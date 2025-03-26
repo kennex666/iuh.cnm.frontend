@@ -1,12 +1,12 @@
-import { useRouter } from 'expo-router';
-import { Button, View } from 'react-native';
+import { useRouter } from "expo-router";
+import { Button, Text, View } from "react-native";
 
 export default function HomeScreen() {
-  const router = useRouter();
+    const router = useRouter();
 
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Button title="Go to About" onPress={() => router.push('/about')} />
-    </View>
-  );
-};
+    return (
+        <View className="flex-1 justify-center items-center">
+            <Button title="Go to About" onPress={() => router.push("/about")} />
+        </View>
+    );
+}
