@@ -1,0 +1,29 @@
+{
+  "conversations": [
+    {
+      "id": "c1",
+      "isGroup": false,
+      "name": null,
+      "avatarUrl": null,
+      "participantIds": ["u1", "u2"],
+      "adminIds": [],
+      "settings": {},
+      "createdAt": "2024-03-01T00:00:00.000Z",
+      "updatedAt": "2024-03-15T00:00:00.000Z"
+    },
+    {
+      "id": "c2",
+      "isGroup": true,
+      "name": "420300154902_17B_HK2_20242025",
+      "avatarUrl": "https://placehold.co/400x400/0068FF/FFFFFF/png?text=G",
+      "participantIds": ["u1", "u2", "u3"],
+      "adminIds": ["u1"],
+      "settings": {
+        "notifications": true,
+        "theme": "default"
+      },
+      "createdAt": "2024-02-15T00:00:00.000Z",
+      "updatedAt": "2024-03-15T00:00:00.000Z"
+    }
+  ]
+} 

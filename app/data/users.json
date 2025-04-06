@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "id": "u1",
+      "name": "Lê Nguyên Duy Khang",
+      "email": "khang.le@example.com",
+      "phone": "0123456789",
+      "gender": "male",
+      "password": "hashedPassword123",
+      "avatarUrl": "https://placehold.co/400x400/0068FF/FFFFFF/png?text=LK",
+      "coverUrl": "https://placehold.co/1200x400/0068FF/FFFFFF/png?text=Cover",
+      "dob": "1995-05-15T00:00:00.000Z",
+      "isOnline": true,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-03-15T00:00:00.000Z"
+    },
+    {
+      "id": "u2",
+      "name": "Nguyễn Thị Bảo Trân",
+      "email": "tran.nguyen@example.com",
+      "phone": "0987654321",
+      "gender": "female",
+      "password": "hashedPassword456",
+      "avatarUrl": "https://placehold.co/400x400/FF1493/FFFFFF/png?text=BT",
+      "coverUrl": "https://placehold.co/1200x400/FF1493/FFFFFF/png?text=Cover",
+      "dob": "1998-08-20T00:00:00.000Z",
+      "isOnline": false,
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "updatedAt": "2024-03-10T00:00:00.000Z"
+    },
+    {
+      "id": "u3",
+      "name": "Trần Văn An",
+      "email": "an.tran@example.com",
+      "phone": "0369852147",
+      "gender": "male",
+      "password": "hashedPassword789",
+      "avatarUrl": "https://placehold.co/400x400/32CD32/FFFFFF/png?text=TA",
+      "coverUrl": "https://placehold.co/1200x400/32CD32/FFFFFF/png?text=Cover",
+      "dob": "1997-03-25T00:00:00.000Z",
+      "isOnline": true,
+      "createdAt": "2024-02-01T00:00:00.000Z",
+      "updatedAt": "2024-03-15T00:00:00.000Z"
+    }
+  ]
+} 
