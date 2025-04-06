@@ -75,7 +75,7 @@ export default function Register() {
       
       // Đợi toast hiển thị xong rồi chuyển trang
       setTimeout(() => {
-        router.replace('/(app)/index');
+        router.replace('/(main)');
       }, 2000);
     } catch (error) {
       setToast({
