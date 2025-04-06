@@ -61,7 +61,7 @@ export default function MessagesScreen() {
   return (
     <View className="flex-1 bg-white flex-row">
       {/* Left Column - Conversations List */}
-      <View className="w-80 border-r border-gray-200">
+      <View className="w-[23vw] border-r border-gray-200">
         {/* Search Header */}
         <View className="p-4 border-b border-gray-100">
           <View className="flex-row items-center bg-gray-100 rounded-lg px-3 h-9">
@@ -118,7 +118,7 @@ export default function MessagesScreen() {
       </View>
 
       {/* Middle Column - Chat Area */}
-      <View className="flex-1 flex-col">
+      <View className="w-[50vw] flex-1 flex-col">
         {selectedConversation ? (
           <>
             {/* Chat Header */}
@@ -227,7 +227,7 @@ export default function MessagesScreen() {
 
       {/* Right Column - Conversation Info */}
       {selectedConversation && (
-        <View className="w-80 border-l border-gray-200">
+        <View className="w-[23vw] border-l border-gray-200">
           <View className="p-6">
             <View className="items-center">
               <Image

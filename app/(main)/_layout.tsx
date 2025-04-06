@@ -1,7 +1,9 @@
 import { Stack, Link, usePathname } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { Dimensions, StyleSheet, View, Text, Image, Platform } from 'react-native';
+import {Dimensions, StyleSheet, View, Text, Image, Platform, TouchableOpacity} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {useState} from "react";
+import ProfileModal from "@/app/(main)/profile";
 
 type Route = {
   name: string;
@@ -10,6 +12,8 @@ type Route = {
 };
 
 export default function AppLayout() {
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
+
   const { width } = Dimensions.get('window');
   const isDesktop = width > 768;
   const insets = useSafeAreaInsets();
@@ -19,7 +23,6 @@ export default function AppLayout() {
     { name: 'index', title: 'Tin nhắn', icon: 'comments' },
     { name: 'contacts', title: 'Danh bạ', icon: 'address-book' },
     { name: 'diary', title: 'Nhật ký', icon: 'clock-o' },
-    { name: 'profile', title: 'Cá nhân', icon: 'user' },
   ];
 
   // Check if the current route is active
@@ -43,13 +46,13 @@ export default function AppLayout() {
       {isDesktop ? (
         <View style={[styles.leftSidebar, { paddingTop: insets.top + 16 }]}>
           {/* Avatar */}
-          <View style={styles.avatarContainer}>
+          <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
             <Image 
               source={{ uri: 'https://placehold.co/200x200/0068FF/FFFFFF/png?text=A' }}
               style={styles.avatar}
             />
             <View style={styles.onlineIndicator} />
-          </View>
+          </TouchableOpacity>
 
           {/* Divider */}
           <View style={styles.divider} />
@@ -110,6 +113,10 @@ export default function AppLayout() {
           })}
         </View>
       ) : null}
+      <ProfileModal
+          visible={profileModalVisible}
+          onClose={() => setProfileModalVisible(false)}
+      />
     </View>
   );
 }
