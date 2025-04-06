@@ -1,5 +1,6 @@
 import React from 'react';
 import {Image, ImageSourcePropType, View} from 'react-native';
+import {ImageConstant} from "@/constants/ImageConstant";
 
 interface AppLogoProps {
     size?: number;
@@ -8,7 +9,7 @@ interface AppLogoProps {
 
 const AppLogo = ({
                      size = 80,
-                     logoSource = require('../../assets/telegram-logo.png')
+                     logoSource = ImageConstant.logo,
                  }: AppLogoProps) => {
     return (
         <View className="items-center mb-6">

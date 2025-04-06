@@ -1,5 +1,6 @@
 import {Image, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
+import {ImageConstant} from "@/constants/ImageConstant";
 
 interface CoverImageProps {
     source: any;
@@ -12,7 +13,7 @@ const CoverImage = ({source, onPickImage}: CoverImageProps) => (
             source={source}
             className="w-full h-full"
             style={{width: '100%', height: 192}}
-            defaultSource={require("../../assets/profile/cover.png")}
+            defaultSource={ImageConstant.profile.cover}
         />
         <TouchableOpacity
             className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2"

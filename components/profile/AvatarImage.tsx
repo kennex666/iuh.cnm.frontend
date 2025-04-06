@@ -1,5 +1,6 @@
 import {Image, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
+import {ImageConstant} from "@/constants/ImageConstant";
 
 interface AvatarImageProps {
     source: any;
@@ -13,7 +14,7 @@ const AvatarImage = ({source, onPickImage}: AvatarImageProps) => (
                 source={source}
                 className="w-32 h-32 rounded-full"
                 style={{width: 128, height: 128}}
-                defaultSource={require("../../assets/profile/avatar.png")}
+                defaultSource={ImageConstant.profile.avatar}
             />
             <TouchableOpacity
                 className="absolute bottom-0 right-0 bg-gray-100 rounded-full p-2"
