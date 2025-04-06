@@ -1,4 +1,4 @@
-import { Stack, Link, usePathname } from 'expo-router';
+import {Stack, Link, usePathname, Href} from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import {Dimensions, StyleSheet, View, Text, Image, Platform, TouchableOpacity} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,7 +38,7 @@ export default function AppLayout() {
   // This is used to navigate to the route when the tab is pressed
   const getHref = (routeName: string) => {
     if (routeName === 'index') return '/';
-    return `/(main)/${routeName}` as const;
+    return `/(main)/${routeName}` as Href;
   };
 
   return (
