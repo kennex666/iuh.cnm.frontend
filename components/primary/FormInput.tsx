@@ -33,7 +33,7 @@ const FormInput = ({
             <View className="flex-row items-center px-3 sm:px-4">
                 <Ionicons name={icon} size={20} color="#9CA3AF"/>
                 <TextInput
-                    className="flex-1 h-[48px] sm:h-[56px] ml-2 sm:ml-3 text-gray-800 text-sm sm:text-base"
+                    className="flex-1 h-[48px] sm:h-[56px] ml-2 sm:ml-3 text-gray-800 text-sm sm:text-base outline-none focus:outline-none"
                     placeholder={placeholder}
                     value={value}
                     onChangeText={onChangeText}
