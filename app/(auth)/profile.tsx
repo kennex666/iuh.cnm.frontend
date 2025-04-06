@@ -28,6 +28,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         phone: "+84 337 104 900",
         email: "thienphu@gmail.com",
         bio: "Xin chào, tôi là Thiên Phú. Tôi thích lập trình và du lịch.",
+        avatar: require("../../assets/profile/avatar.png"),
+        cover: require("../../assets/profile/cover.png"),
     });
     const [toast, setToast] = useState({
         visible: false,
@@ -83,7 +85,7 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 <View className="items-center mb-2 mt-4 bg-white p-4">
                     <View className="mb-2">
                         <Image
-                            source={{uri: 'https://picsum.photos/100'}}
+                            source={user.avatar}
                             className="w-20 h-20 rounded-full"
                             style={{width: 100, height: 100}}
                             defaultSource={require("../../assets/telegram-logo.png")}
