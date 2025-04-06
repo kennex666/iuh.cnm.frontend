@@ -8,7 +8,7 @@ interface AppLogoProps {
 
 const AppLogo = ({
                      size = 80,
-                     logoSource = require('../../../assets/telegram-logo.png')
+                     logoSource = require('../../assets/telegram-logo.png')
                  }: AppLogoProps) => {
     return (
         <View className="items-center mb-6">

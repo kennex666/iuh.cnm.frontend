@@ -1,14 +1,14 @@
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, useWindowDimensions, View} from 'react-native';
 import {useRouter} from 'expo-router';
-import Toast from '../components/Toast';
-import GradientBackground from '../components/primary/GradientBackground';
-import AppLogo from '../components/primary/AppLogo';
-import AuthHeader from '../components/primary/AuthHeader';
-import FormInput from '../components/primary/FormInput';
-import Button from '../components/primary/Button';
-import TextLink from '../components/primary/TextLink';
-import Divider from '../components/primary/Divider';
+import Toast from '@/components/Toast';
+import GradientBackground from '@/components/primary/GradientBackground';
+import AppLogo from '@/components/primary/AppLogo';
+import AuthHeader from '@/components/primary/AuthHeader';
+import FormInput from '@/components/primary/FormInput';
+import Button from '@/components/primary/Button';
+import TextLink from '@/components/primary/TextLink';
+import Divider from '@/components/primary/Divider';
 
 export default function Login() {
     const {width} = useWindowDimensions();

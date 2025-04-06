@@ -12,7 +12,7 @@ import {
     View
 } from "react-native";
 import {Ionicons} from '@expo/vector-icons';
-import Toast from '../components/Toast';
+import Toast from '@/components/Toast';
 
 type ProfileModalProps = {
     visible: boolean;
