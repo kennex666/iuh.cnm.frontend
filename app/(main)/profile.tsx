@@ -83,13 +83,29 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
 
             <ScrollView className="flex-1 bg-gray-100">
                 <View className="items-center mb-2 mt-4 bg-white p-4">
-                    <View className="mb-2">
+                    <View className="w-full h-48">
                         <Image
-                            source={user.avatar}
-                            className="w-20 h-20 rounded-full"
-                            style={{width: 100, height: 100}}
-                            defaultSource={require("../../assets/telegram-logo.png")}
+                            source={user.cover}
+                            className="w-full h-full"
+                            style={{width: '100%', height: 192}}
+                            defaultSource={require("../../assets/profile/cover.png")}
                         />
+                        <TouchableOpacity className="absolute bottom-4 right-4 bg-gray-100 rounded-full p-2">
+                            <Ionicons name="camera" size={20} color="#4B5563"/>
+                        </TouchableOpacity>
+                    </View>
+                    <View className="relative -mt-16 flex items-center">
+                        <View className="border-4 border-white rounded-full">
+                            <Image
+                                source={user.avatar}
+                                className="w-32 h-32 rounded-full"
+                                style={{width: 128, height: 128}}
+                                defaultSource={require("../../assets/profile/avatar.png")}
+                            />
+                            <TouchableOpacity className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2">
+                                <Ionicons name="camera" size={20} color="#4B5563"/>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                     <Text className="text-xl font-bold">{user.displayName}</Text>
                     <TouchableOpacity onPress={toggleEdit} className="mt-2 flex-row items-center">
