@@ -71,7 +71,7 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
 
     const InfoScreen = () => (
         <View className="flex-1 bg-white">
-            <View className="bg-white p-4 border-b border-gray-200">
+            <View className="bg-white p-2 border-b border-gray-200">
                 <View className="flex-row items-center justify-between">
                     <TouchableOpacity onPress={closeModal} className="p-2">
                         <Ionicons name="close" size={24} color="black"/>
@@ -90,11 +90,11 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                             style={{width: '100%', height: 192}}
                             defaultSource={require("../../assets/profile/cover.png")}
                         />
-                        <TouchableOpacity className="absolute bottom-4 right-4 bg-gray-100 rounded-full p-2">
+                        <TouchableOpacity className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2">
                             <Ionicons name="camera" size={20} color="#4B5563"/>
                         </TouchableOpacity>
                     </View>
-                    <View className="relative -mt-16 flex items-center">
+                    <View className="relative -mt-20 flex items-center">
                         <View className="border-4 border-white rounded-full">
                             <Image
                                 source={user.avatar}
@@ -102,7 +102,7 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                                 style={{width: 128, height: 128}}
                                 defaultSource={require("../../assets/profile/avatar.png")}
                             />
-                            <TouchableOpacity className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2">
+                            <TouchableOpacity className="absolute bottom-0 right-0 bg-gray-100 rounded-full p-2">
                                 <Ionicons name="camera" size={20} color="#4B5563"/>
                             </TouchableOpacity>
                         </View>
