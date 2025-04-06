@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity, useWindowDimensions, View} from 'react-native';
+import {Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import Toast from '@/components/Toast';
 import GradientBackground from '@/components/primary/GradientBackground';
@@ -11,7 +11,6 @@ import TextLink from '@/components/primary/TextLink';
 import Divider from '@/components/primary/Divider';
 
 export default function Login() {
-    const {width} = useWindowDimensions();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -71,10 +70,6 @@ export default function Login() {
         }
     };
 
-    const handleRegister = () => {
-        router.push('/register');
-    };
-
     return (
         <GradientBackground>
             <View className="flex-1 justify-center items-center px-4 py-8 sm:px-6 md:px-8 lg:px-10">
@@ -129,9 +124,9 @@ export default function Login() {
                         />
 
                         <TextLink
+                            href="/register"
                             text="Chưa có tài khoản?"
                             linkText="Đăng ký ngay"
-                            onPress={handleRegister}
                             className="mt-6 sm:mt-8"
                         />
                     </View>

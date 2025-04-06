@@ -30,7 +30,7 @@ const Button = ({
         ${isPrimary
                 ? loading
                     ? 'bg-blue-400'
-                    : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
                 : 'border-2 border-blue-500'
             }
         ${className}
