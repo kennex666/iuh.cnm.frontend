@@ -24,6 +24,23 @@ export default function Register() {
   const router = useRouter();
 
   const validateForm = () => {
+    const regexPhoneNumber = /^[0-9]+$/;
+    const regexPassword = /^[a-zA-Z0-9]+$/;
+    if (!regexPhoneNumber.test(phoneNumber)) {
+      setToast({
+        visible: true,
+        message: 'Số điện thoại không hợp lệ',
+        type: 'error'
+      });
+    }
+    if (!regexPassword.test(password)) {
+      setToast({
+        visible: true,
+        message: 'Mật khẩu không hợp lệ',
+        type: 'error'
+      });
+      return false;
+    }
     if (!phoneNumber) {
       setToast({
         visible: true,

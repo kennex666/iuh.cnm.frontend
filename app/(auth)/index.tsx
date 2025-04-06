@@ -21,10 +21,27 @@ export default function Login() {
   const router = useRouter();
 
   const validateForm = () => {
+    const regex = /^[0-9]+$/;
+    if (!regex.test(phoneNumber)) {
+      setToast({
+        visible: true,
+        message: 'Số điện thoại không hợp lệ',
+        type: 'error'
+      });
+    }
     if (!phoneNumber) {
       setToast({
         visible: true,
         message: 'Vui lòng nhập số điện thoại',
+        type: 'error'
+      });
+      return false;
+    }
+    const regexPassword = /^[a-zA-Z0-9]+$/;
+    if (!regexPassword.test(password)) {
+      setToast({
+        visible: true,
+        message: 'Mật khẩu không hợp lệ',
         type: 'error'
       });
       return false;
