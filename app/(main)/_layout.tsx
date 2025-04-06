@@ -3,7 +3,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import {Dimensions, StyleSheet, View, Text, Image, Platform, TouchableOpacity} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {useState} from "react";
-import ProfileModal from "@/app/(main)/profile";
+import ProfileModal from "@/app/(main)/profileUser";
 
 type Route = {
   name: string;
