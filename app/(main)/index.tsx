@@ -6,10 +6,6 @@ import Conversations from '@/components/Conversations';
 import ChatArea from '@/components/ChatArea';
 import Info from '@/components/Info';
 
-// Services
-import { getUsers } from '@/constants/api/services/userService';
-
-
 export default function MessagesScreen() {
   return (
     <View className="flex-1 bg-white flex-row">

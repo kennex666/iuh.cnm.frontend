@@ -180,6 +180,11 @@ export const getUserById = (userId) => {
   return users.find(user => user.id === userId);
 };
 
+// Helper function to get conversations for a user
+export const getConversationsByUserId = (userId) => {
+  return conversations.filter(conv => conv.participantIds.includes(userId));
+};
+
 // Helper function to get conversation by ID
 export const getConversationById = (conversationId) => {
   return conversations.find(conv => conv.id === conversationId);
