@@ -1,0 +1,34 @@
+{
+  "messages": [
+    {
+      "id": "m1",
+      "conversationId": "c1",
+      "senderId": "u1",
+      "content": "Hello! How are you?",
+      "type": "text",
+      "repliedToId": null,
+      "sentAt": "2024-03-15T10:30:00.000Z",
+      "readBy": ["u1", "u2"]
+    },
+    {
+      "id": "m2",
+      "conversationId": "c1",
+      "senderId": "u2",
+      "content": "I'm good, thanks! 😊",
+      "type": "text",
+      "repliedToId": "m1",
+      "sentAt": "2024-03-15T10:31:00.000Z",
+      "readBy": ["u1", "u2"]
+    },
+    {
+      "id": "m3",
+      "conversationId": "c2",
+      "senderId": "u1",
+      "content": "https://example.com/document.pdf",
+      "type": "file",
+      "repliedToId": null,
+      "sentAt": "2024-03-15T11:00:00.000Z",
+      "readBy": ["u1", "u2", "u3"]
+    }
+  ]
+} 

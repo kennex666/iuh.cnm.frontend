@@ -1,0 +1,16 @@
+{
+  "reactions": [
+    {
+      "id": "r1",
+      "messageId": "m2",
+      "userId": "u1",
+      "emoji": "❤️"
+    },
+    {
+      "id": "r2",
+      "messageId": "m2",
+      "userId": "u3",
+      "emoji": "👍"
+    }
+  ]
+} 
