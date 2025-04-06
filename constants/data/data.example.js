@@ -72,6 +72,16 @@ export const conversations = [
     participantIds: ["u1", "u2"],
     adminIds: [],
     settings: {},
+    lastMessage: {
+      id: "m1",
+      conversationId: "c1",
+      senderId: "u1",
+      content: "Hello! How are you?",
+      type: "text",
+      repliedToId: null,
+      sentAt: new Date("2024-03-15T10:30:00"),
+      readBy: ["u1", "u2"]
+    },
     createdAt: new Date("2024-03-01"),
     updatedAt: new Date("2024-03-15")
   },
@@ -85,6 +95,16 @@ export const conversations = [
     settings: {
       notifications: true,
       theme: "default"
+    },
+    lastMessage: {
+      id: "m1",
+      conversationId: "c1",
+      senderId: "u1",
+      content: "Hello! How are you?",
+      type: "text",
+      repliedToId: null,
+      sentAt: new Date("2024-03-15T10:30:00"),
+      readBy: ["u1", "u2"]
     },
     createdAt: new Date("2024-02-15"),
     updatedAt: new Date("2024-03-15")
@@ -149,6 +169,11 @@ export const reactions = [
     emoji: "👍"
   }
 ];
+
+// Helper function to get all users
+export const getAllUsers = () => {
+  return users;
+};
 
 // Helper function to get user by ID
 export const getUserById = (userId) => {
