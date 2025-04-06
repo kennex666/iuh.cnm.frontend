@@ -1,8 +1,10 @@
 import React, {useState} from "react";
 import {
+    Alert,
     Dimensions,
     Image,
     Modal,
+    Platform,
     SafeAreaView,
     ScrollView,
     Text,
@@ -13,6 +15,7 @@ import {
 } from "react-native";
 import {Ionicons} from '@expo/vector-icons';
 import Toast from '@/components/Toast';
+import * as ImagePicker from 'expo-image-picker';
 
 type ProfileModalProps = {
     visible: boolean;
@@ -31,6 +34,82 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         avatar: require("../../assets/profile/avatar.png"),
         cover: require("../../assets/profile/cover.png"),
     });
+
+    const [avatarUri, setAvatarUri] = useState<string | null>(null);
+    const [coverUri, setCoverUri] = useState<string | null>(null);
+
+    const requestMediaLibraryPermission = async () => {
+        if (Platform.OS !== 'web') {
+            const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Thông báo', 'Cần quyền truy cập vào thư viện ảnh để sử dụng tính năng này!');
+                return false;
+            }
+            return true;
+        }
+        return true;
+    };
+
+    const handlePickAvatar = async () => {
+        const hasPermission = await requestMediaLibraryPermission();
+
+        if (!hasPermission) return;
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images", "videos"],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            // Lưu URI của ảnh đã chọn
+            setAvatarUri(result.assets[0].uri);
+
+            // Trong thực tế, bạn sẽ gửi ảnh lên server
+            // và cập nhật state sau khi nhận phản hồi
+            console.log('Avatar URI:', result.assets[0].uri);
+
+            // Thông báo thành công
+            Alert.alert('Thành công', 'Đã cập nhật ảnh đại diện!');
+        }
+    };
+
+    // Xử lý chọn ảnh bìa
+    const handlePickCover = async () => {
+        const hasPermission = await requestMediaLibraryPermission();
+
+        if (!hasPermission) return;
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images", "videos"],
+            allowsEditing: true,
+            aspect: [16, 9],
+            quality: 0.7,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            // Lưu URI của ảnh đã chọn
+            setCoverUri(result.assets[0].uri);
+
+            // Trong thực tế, bạn sẽ gửi ảnh lên server
+            console.log('Cover URI:', result.assets[0].uri);
+
+            // Thông báo thành công
+            Alert.alert('Thành công', 'Đã cập nhật ảnh bìa!');
+        }
+    };
+
+    // Hiển thị ảnh đại diện
+    const avatarSource = avatarUri
+        ? {uri: avatarUri}
+        : user.avatar;
+
+    // Hiển thị ảnh bìa
+    const coverSource = coverUri
+        ? {uri: coverUri}
+        : user.cover;
+
     const [toast, setToast] = useState({
         visible: false,
         message: '',
@@ -82,27 +161,29 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
             </View>
 
             <ScrollView className="flex-1 bg-gray-100">
-                <View className="items-center mb-2 mt-4 bg-white p-4">
+                <View className="items-center mb-2 mt-4 bg-white p-2">
                     <View className="w-full h-48">
                         <Image
-                            source={user.cover}
+                            source={coverSource}
                             className="w-full h-full"
                             style={{width: '100%', height: 192}}
                             defaultSource={require("../../assets/profile/cover.png")}
                         />
-                        <TouchableOpacity className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2">
+                        <TouchableOpacity className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2"
+                                          onPress={handlePickCover}>
                             <Ionicons name="camera" size={20} color="#4B5563"/>
                         </TouchableOpacity>
                     </View>
                     <View className="relative -mt-20 flex items-center">
                         <View className="border-4 border-white rounded-full">
                             <Image
-                                source={user.avatar}
+                                source={avatarSource}
                                 className="w-32 h-32 rounded-full"
                                 style={{width: 128, height: 128}}
                                 defaultSource={require("../../assets/profile/avatar.png")}
                             />
-                            <TouchableOpacity className="absolute bottom-0 right-0 bg-gray-100 rounded-full p-2">
+                            <TouchableOpacity className="absolute bottom-0 right-0 bg-gray-100 rounded-full p-2"
+                                              onPress={handlePickAvatar}>
                                 <Ionicons name="camera" size={20} color="#4B5563"/>
                             </TouchableOpacity>
                         </View>
