@@ -1,30 +1,33 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
-  Modal,
-  SafeAreaView,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Dimensions,
-  TouchableWithoutFeedback
+    Dimensions,
+    Image,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View
 } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
+import {Ionicons} from '@expo/vector-icons';
 import Toast from '../components/Toast';
 
 type ProfileModalProps = {
-  visible: boolean;
-  onClose: () => void;
+    visible: boolean;
+    onClose: () => void;
 }
 
-export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
+export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const [editMode, setEditMode] = useState(false);
     const [user, setUser] = useState({
-        displayName: "John Doe",
-        email: "john.doe@gmail.com",
-        phone: "+84 123 456 789",
-        bio: "Software Developer"
+        displayName: "Thiên Phú",
+        gender: "Nam",
+        dob: "08 tháng 03, 2002",
+        phone: "+84 337 104 900",
+        email: "thienphu@gmail.com",
+        bio: "Xin chào, tôi là Thiên Phú. Tôi thích lập trình và du lịch.",
     });
     const [toast, setToast] = useState({
         visible: false,
@@ -32,10 +35,10 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
         type: 'success' as 'success' | 'error'
     });
 
-    // Lấy kích thước màn hình
-    const { width, height } = Dimensions.get('window');
+    // Get screen dimensions
+    const {width, height} = Dimensions.get('window');
     const modalWidth = width >= 768 ? width * 0.25 : width * 0.8;
-    const modalHeight = height * 0.8;  // 8/10 chiều cao màn hình
+    const modalHeight = height * 0.8;
 
     const [editUser, setEditUser] = useState({...user});
 
@@ -65,41 +68,56 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
     };
 
     const InfoScreen = () => (
-        <View className="flex-1">
-            <View className="bg-blue-500 p-4">
+        <View className="flex-1 bg-white">
+            <View className="bg-white p-4 border-b border-gray-200">
                 <View className="flex-row items-center justify-between">
                     <TouchableOpacity onPress={closeModal} className="p-2">
-                        <Ionicons name="arrow-back" size={24} color="white" />
+                        <Ionicons name="close" size={24} color="black"/>
                     </TouchableOpacity>
-                    <Text className="text-white text-lg font-bold">Thông tin tài khoản</Text>
-                    <TouchableOpacity onPress={toggleEdit} className="p-2">
-                        <Ionicons name="create-outline" size={24} color="white" />
-                    </TouchableOpacity>
+                    <Text className="text-black text-lg font-medium">Thông tin tài khoản</Text>
+                    <View className="w-8"/>
                 </View>
             </View>
 
-            <ScrollView className="p-4">
-                <View className="items-center mb-6 mt-4">
-                    <View className="bg-blue-500 rounded-full w-24 h-24 items-center justify-center">
-                        <Text className="text-white text-3xl font-bold">{user.displayName[0]}</Text>
+            <ScrollView className="flex-1 bg-gray-100">
+                <View className="items-center mb-2 mt-4 bg-white p-4">
+                    <View className="mb-2">
+                        <Image
+                            source={{uri: 'https://picsum.photos/100'}}
+                            className="w-20 h-20 rounded-full"
+                            style={{width: 100, height: 100}}
+                            defaultSource={require("../../assets/telegram-logo.png")}
+                        />
                     </View>
-                    <Text className="text-xl font-bold mt-3">{user.displayName}</Text>
+                    <Text className="text-xl font-bold">{user.displayName}</Text>
+                    <TouchableOpacity onPress={toggleEdit} className="mt-2 flex-row items-center">
+                        <Ionicons name="pencil-outline" size={16} color="#1E88E5"/>
+                        <Text className="text-blue-500 ml-1">Cập nhật</Text>
+                    </TouchableOpacity>
                 </View>
 
-                <View className="bg-white rounded-xl p-4 shadow-sm mb-4">
-                    <View className="mb-4">
-                        <Text className="text-gray-500 mb-1">Email</Text>
-                        <Text className="text-black text-base">{user.email}</Text>
+                <View className="mt-2 bg-white p-4">
+                    <Text className="text-base font-bold text-gray-800 mb-4">Thông tin cá nhân</Text>
+
+                    <View className="mb-4 flex-row justify-between border-b border-gray-100 pb-3">
+                        <Text className="text-gray-600">Giới tính</Text>
+                        <Text className="text-black font-medium">{user.gender}</Text>
                     </View>
 
-                    <View className="mb-4">
-                        <Text className="text-gray-500 mb-1">Số điện thoại</Text>
-                        <Text className="text-black text-base">{user.phone}</Text>
+                    <View className="mb-4 flex-row justify-between border-b border-gray-100 pb-3">
+                        <Text className="text-gray-600">Ngày sinh</Text>
+                        <Text className="text-black font-medium">{user.dob}</Text>
                     </View>
 
-                    <View>
-                        <Text className="text-gray-500 mb-1">Mô tả bản thân</Text>
-                        <Text className="text-black text-base">{user.bio}</Text>
+                    <View className="mb-4 flex-row justify-between border-b border-gray-100 pb-3">
+                        <Text className="text-gray-600">Điện thoại</Text>
+                        <Text className="text-black font-medium">{user.phone}</Text>
+                    </View>
+
+                    <View className="mb-2">
+                        <Text className="text-xs text-gray-500 mt-2">
+                            Chỉ bạn bè có lưu số của bạn trong danh bạ mới xem được số này
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
@@ -107,60 +125,75 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
     );
 
     const EditScreen = () => (
-        <View className="flex-1">
-            <View className="bg-blue-500 p-4">
+        <View className="flex-1 bg-white">
+            <View className="bg-white p-4 border-b border-gray-200">
                 <View className="flex-row items-center justify-between">
                     <TouchableOpacity onPress={handleCancel} className="p-2">
-                        <Ionicons name="close" size={24} color="white" />
+                        <Text className="text-gray-600">Hủy</Text>
                     </TouchableOpacity>
-                    <Text className="text-white text-lg font-bold">Chỉnh sửa thông tin</Text>
+                    <Text className="text-black text-lg font-medium">Cập nhật thông tin cá nhân</Text>
                     <TouchableOpacity onPress={handleEdit} className="p-2">
-                        <Ionicons name="checkmark" size={24} color="white" />
+                        <Text className="text-blue-500 font-medium">Cập nhật</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
-            <ScrollView className="p-4">
-                <View className="bg-white rounded-xl p-4 shadow-sm mb-4">
-                    <View className="mb-4">
-                        <Text className="text-gray-500 mb-1">Họ tên</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg p-2 text-base"
-                            value={editUser.displayName}
-                            onChangeText={(text) => setEditUser({...editUser, displayName: text})}
-                        />
-                    </View>
+            <ScrollView className="p-4 bg-white">
+                <View className="mb-4">
+                    <Text className="text-gray-600 mb-1">Tên hiển thị</Text>
+                    <TextInput
+                        className="border border-gray-300 rounded-lg p-3 text-base bg-white"
+                        value={editUser.displayName}
+                        onChangeText={(text) => setEditUser({...editUser, displayName: text})}
+                    />
+                </View>
 
-                    <View className="mb-4">
-                        <Text className="text-gray-500 mb-1">Email</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg p-2 text-base"
-                            value={editUser.email}
-                            onChangeText={(text) => setEditUser({...editUser, email: text})}
-                            keyboardType="email-address"
-                        />
-                    </View>
+                <Text className="text-gray-600 mb-2">Thông tin cá nhân</Text>
 
-                    <View className="mb-4">
-                        <Text className="text-gray-500 mb-1">Số điện thoại</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg p-2 text-base"
-                            value={editUser.phone}
-                            onChangeText={(text) => setEditUser({...editUser, phone: text})}
-                            keyboardType="phone-pad"
-                        />
-                    </View>
+                <View className="mb-4">
+                    <View className="flex-row mb-2">
+                        <TouchableOpacity
+                            className={`flex-row items-center mr-4 ${editUser.gender === 'Nam' ? 'opacity-100' : 'opacity-50'}`}
+                            onPress={() => setEditUser({...editUser, gender: 'Nam'})}
+                        >
+                            <View
+                                className={`w-5 h-5 rounded-full border ${editUser.gender === 'Nam' ? 'border-blue-500' : 'border-gray-400'} mr-1 items-center justify-center`}>
+                                {editUser.gender === 'Nam' && <View className="w-3 h-3 rounded-full bg-blue-500"/>}
+                            </View>
+                            <Text>Nam</Text>
+                        </TouchableOpacity>
 
-                    <View>
-                        <Text className="text-gray-500 mb-1">Mô tả bản thân</Text>
-                        <TextInput
-                            className="border border-gray-300 rounded-lg p-2 text-base"
-                            value={editUser.bio}
-                            onChangeText={(text) => setEditUser({...editUser, bio: text})}
-                            multiline
-                            numberOfLines={4}
-                            textAlignVertical="top"
-                        />
+                        <TouchableOpacity
+                            className={`flex-row items-center ${editUser.gender === 'Nữ' ? 'opacity-100' : 'opacity-50'}`}
+                            onPress={() => setEditUser({...editUser, gender: 'Nữ'})}
+                        >
+                            <View
+                                className={`w-5 h-5 rounded-full border ${editUser.gender === 'Nữ' ? 'border-blue-500' : 'border-gray-400'} mr-1 items-center justify-center`}>
+                                {editUser.gender === 'Nữ' && <View className="w-3 h-3 rounded-full bg-blue-500"/>}
+                            </View>
+                            <Text>Nữ</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                <View className="mb-4">
+                    <Text className="text-gray-600 mb-2">Ngày sinh</Text>
+                    <View className="flex-row">
+                        <View className="flex-1 mr-2">
+                            <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
+                                <Text>08</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View className="flex-1 mr-2">
+                            <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
+                                <Text>03</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View className="flex-1">
+                            <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
+                                <Text>2002</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </ScrollView>
@@ -186,15 +219,15 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
                             <View style={{
                                 width: modalWidth,
                                 height: modalHeight,
-                                backgroundColor: '#f3f4f6',
-                                borderRadius: 16,
+                                backgroundColor: '#ffffff',
+                                borderRadius: 8,
                                 overflow: 'hidden'
                             }}>
                                 <SafeAreaView className="flex-1">
                                     {editMode ? (
-                                        <EditScreen />
+                                        <EditScreen/>
                                     ) : (
-                                        <InfoScreen />
+                                        <InfoScreen/>
                                     )}
                                 </SafeAreaView>
                             </View>
@@ -207,7 +240,7 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
                 visible={toast.visible}
                 message={toast.message}
                 type={toast.type}
-                onHide={() => setToast(prev => ({ ...prev, visible: false }))}
+                onHide={() => setToast(prev => ({...prev, visible: false}))}
             />
         </>
     );
