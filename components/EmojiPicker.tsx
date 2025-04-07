@@ -1,59 +1,115 @@
-import React from 'react'
-import { Text, View, ScrollView, TouchableOpacity } from 'react-native'
+import React, { useState } from 'react'
+import { Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native'
+import { Ionicons } from '@expo/vector-icons';
 
 interface EmojiPickerProps {
   setMessage: React.Dispatch<React.SetStateAction<string>>;
   toggleModelEmoji: () => void;
 }
 
-const EMOJI_CATEGORIES = [
+const CATEGORIES = [
   {
-    name: 'Cảm xúc',
-    emojis: ['😀', '😂', '😊', '😍', '😎', '😘', '😜', '😢']
+    icon: "😊",
+    name: "Smileys & People",
+    emojis: [
+      "😀", "😃", "😄", "😁", "😅", "😂", "🤣", "😊",
+      "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘",
+      "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪",
+      "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒"
+    ]
   },
   {
-    name: 'Động vật',
-    emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼']
+    icon: "🐱",
+    name: "Animals & Nature",
+    emojis: [
+      "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼",
+      "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🐔"
+    ]
   },
   {
-    name: 'Thức ăn',
-    emojis: ['🍎', '🍕', '🍔', '🍟', '🍦', '🍩', '🍪', '🍫']
+    icon: "🍎",
+    name: "Food & Drink",
+    emojis: [
+      "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓",
+      "🍈", "🍒", "🍑", "🥭", "🍍", "🥥", "🥝", "🍅"
+    ]
   },
   {
-    name: 'Hoạt động',
-    emojis: ['⚽', '🏀', '🎮', '🎨', '🎵', '🎬', '🎭', '🎪']
+    icon: "⚽",
+    name: "Activities",
+    emojis: [
+      "⚽", "🏀", "🏈", "⚾", "🥎", "🎾", "🏐", "🏉",
+      "🎱", "🏓", "🏸", "🏒", "🏑", "🥍", "🏏", "⛳"
+    ]
   },
   {
-    name: 'Du lịch',
-    emojis: ['🚗', '✈️', '🚢', '🚀', '🏖️', '🏝️', '🏰', '🗽']
+    icon: "🚗",
+    name: "Travel & Places",
+    emojis: [
+      "🚗", "🚕", "🚙", "🚌", "🚎", "🏎", "🚓", "🚑",
+      "🚒", "🚐", "🛻", "🚚", "🚛", "🚜", "🛵", "🏍"
+    ]
   }
 ];
 
 export default function EmojiPicker({ setMessage, toggleModelEmoji }: EmojiPickerProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(0);
+
   return (
-    <View className="p-4">
-      <Text className="text-gray-800 mb-2">Chọn biểu tượng cảm xúc</Text>
-      <ScrollView className="max-h-[300px]">
-        {EMOJI_CATEGORIES.map((category, index) => (
-          <View key={index} className="mb-4">
-            <Text className="font-semibold text-gray-700 mb-2">{category.name}</Text>
-            <View className="flex-row flex-wrap">
-              {category.emojis.map((emoji, emojiIndex) => (
-                <TouchableOpacity
-                  key={emojiIndex}
-                  className="w-1/8 p-2 items-center justify-center"
-                  onPress={() => {
-                    setMessage(prev => prev + emoji);
-                    toggleModelEmoji();
-                  }}
-                >
-                  <Text className="text-2xl">{emoji}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+    <View className="bg-white">
+      {/* Search Bar */}
+      <View className="p-2 border-b border-gray-200">
+        <View className="flex-row items-center bg-gray-100 rounded-full px-3 py-1">
+          <Ionicons name="search-outline" size={16} color="#666" />
+          <TextInput
+            className="flex-1 ml-2 text-base text-gray-800"
+            placeholder="Search emoji"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#666"
+          />
+        </View>
+      </View>
+
+      {/* Emoji Content */}
+      <View className="h-[300px]">
+        {/* Category Title */}
+        <Text className="px-3 py-2 font-semibold text-gray-700">
+          {CATEGORIES[selectedCategory].name}
+        </Text>
+
+        {/* Emojis Grid */}
+        <ScrollView className="flex-1">
+          <View className="flex-row flex-wrap px-2">
+            {CATEGORIES[selectedCategory].emojis.map((emoji, index) => (
+              <TouchableOpacity
+                key={index}
+                className="w-[12.5%] p-1 items-center justify-center"
+                onPress={() => {
+                  setMessage(prev => prev + emoji);
+                  toggleModelEmoji();
+                }}
+              >
+                <Text className="text-2xl">{emoji}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        ))}
-      </ScrollView>
+        </ScrollView>
+
+        {/* Bottom Categories */}
+        <View className="flex-row justify-between px-2 py-1 border-t border-gray-200">
+          {CATEGORIES.map((category, index) => (
+            <TouchableOpacity
+              key={index}
+              className={`p-2 rounded-lg ${selectedCategory === index ? 'bg-gray-200' : ''}`}
+              onPress={() => setSelectedCategory(index)}
+            >
+              <Text className="text-xl">{category.icon}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
     </View>
-  )
+  );
 }
