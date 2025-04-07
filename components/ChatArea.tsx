@@ -17,6 +17,8 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
   const [isModelGift, setIsModelGift] = useState(false);
   const scaleAnimation = useRef(new Animated.Value(0)).current;
 
+  const [inputHeight, setInputHeight] = useState(28);
+
   const { messages, loading, error } = useMessages(selectedChat?.id || undefined);
 
   // Toggle models 
@@ -174,11 +176,11 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
                   
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
                     <Ionicons name="image-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Hình ảnh</Text>
+                    <Text className="ml-2  text-gray-800">Hình ảnh</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelEmoji}>
-                    <Ionicons name="file-tray-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Tệp</Text>
+                    <Ionicons name="file-tray-full-outline" size={24} color="#666" />
+                    <Text className="ml-2 text-gray-800">File</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelGift}>
                     <Ionicons name="gift-outline" size={24} color="#666" />
@@ -196,13 +198,30 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
           </TouchableOpacity>
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
-              className="flex-1 text-base text-gray-800"
+              className="min-h-[26px] text-base text-gray-800"
               placeholder="Nhập tin nhắn..."
               value={message}
               onChangeText={setMessage}
               multiline
               numberOfLines={1}
               placeholderTextColor="#666"
+              style={{
+                borderWidth: 0,
+                outline: 'none',
+                height: Math.min(inputHeight, 26 * 3),
+              }}
+              onContentSizeChange={(event) => { 
+                const { height } = event.nativeEvent.contentSize;
+                setInputHeight(height > 26 ? height : 26);
+              }}
+              onBlur={() => {
+                if (inputHeight < 28) {
+                  setInputHeight(28);
+                }
+              }}
+              onFocus={() => {
+                setInputHeight(28);
+              }}
             />
           </View>
           <TouchableOpacity className="p-2">
