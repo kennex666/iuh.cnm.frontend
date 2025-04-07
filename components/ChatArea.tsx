@@ -3,6 +3,7 @@ import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Text, View, Image, TextInput, ScrollView, TouchableOpacity, Modal, Animated, Easing, ActivityIndicator } from 'react-native';
 import { useMessages } from '../hooks/useMessages';
 import { Conversation } from '../hooks/useConversations';
+import EmojiPicker from './EmojiPicker'; 
 
 interface ChatAreaProps {
   selectedChat: Conversation | null;
@@ -47,6 +48,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
 
   const toggleModelEmoji = () => {
     setIsModelEmoji(!isModelEmoji);
+    console.log('Emoji model toggled: ', isModelEmoji);
   };
 
   const toggleModelSticker = () => {
@@ -173,7 +175,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               >
                 <View className="bg-white shadow-md rounded-lg p-4 w-[300px]">
                   <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
-                  
+
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
                     <Ionicons name="image-outline" size={24} color="#666" />
                     <Text className="ml-2  text-gray-800">Hình ảnh</Text>
@@ -193,7 +195,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
           <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
             <Ionicons name="gift-outline" size={24} color="#666" />
           </TouchableOpacity>
-          <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
+          <TouchableOpacity className="p-2" onPress={toggleModelGift}>
             <Ionicons name="storefront-outline" size={24} color="#666" />
           </TouchableOpacity>
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
@@ -210,7 +212,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
                 outline: 'none',
                 height: Math.min(inputHeight, 26 * 3),
               }}
-              onContentSizeChange={(event) => { 
+              onContentSizeChange={(event) => {
                 const { height } = event.nativeEvent.contentSize;
                 setInputHeight(height > 26 ? height : 26);
               }}
@@ -224,9 +226,18 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               }}
             />
           </View>
-          <TouchableOpacity className="p-2">
-            <Ionicons name="happy-outline" size={24} color="#666" />
-          </TouchableOpacity>
+          <View className='relative'>
+            <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
+              <Ionicons name="happy-outline" size={24} color="#666" />
+            </TouchableOpacity>
+            {
+              isModelEmoji && (
+                <View className='absolute bottom-full bg-white z-50 right-0 w-[300px] shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+                  <EmojiPicker setMessage={setMessage} toggleModelEmoji={toggleModelEmoji} />
+                </View>
+              )
+            }
+          </View>
           <TouchableOpacity className="p-2">
             <Ionicons name="send" size={24} color="#0068FF" />
           </TouchableOpacity>
