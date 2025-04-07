@@ -7,6 +7,9 @@ interface Category {
   icon: string;
   name: string;
   color: string;
+  stickers: {
+    [key: string]: string;
+  };
 }
 
 interface StickerPickerProps {
@@ -16,85 +19,108 @@ interface StickerPickerProps {
 
 const STICKER_CATEGORIES = [
   {
-    id: 'happy',
-    icon: '😊',
-    name: 'Happy',
+    id: 'Pets',
+    icon: '🐾',
+    name: 'Pets',
+    color: '#FFB6C1', // Light Pink
+    stickers: {
+      adopt: '@/assets/stickers/pets/adopt.png',
+      bath: '@/assets/stickers/pets/bath.png',
+      cat: '@/assets/stickers/pets/cat.png',
+      dog: '@/assets/stickers/pets/dog.png',
+      pet_food: '@/assets/stickers/pets/pet_food.png',
+      good_morning: '@/assets/stickers/pets/good_morning.png',
+      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+    }
+  },
+  {
+    id: 'Christmas',
+    icon: '🎄',
+    name: 'Christmas',
+    color: '#FF4500', // Orange Red
+    stickers: {
+      adopt: '@/assets/stickers/pets/adopt.png',
+      bath: '@/assets/stickers/pets/bath.png',
+      cat: '@/assets/stickers/pets/cat.png',
+      dog: '@/assets/stickers/pets/dog.png',
+      pet_food: '@/assets/stickers/pets/pet_food.png',
+      good_morning: '@/assets/stickers/pets/good_morning.png',
+      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+    }
+  },
+  {
+    id: 'Home',
+    icon: '🏡',
+    name: 'Home',
     color: '#FFD700', // Gold
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/happy/${i + 1}.png`)
+    stickers: {
+      adopt: '@/assets/stickers/pets/adopt.png',
+      bath: '@/assets/stickers/pets/bath.png',
+      cat: '@/assets/stickers/pets/cat.png',
+      dog: '@/assets/stickers/pets/dog.png',
+      pet_food: '@/assets/stickers/pets/pet_food.png',
+      good_morning: '@/assets/stickers/pets/good_morning.png',
+      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+    }
   },
   {
-    id: 'love',
+    id: 'Love',
     icon: '❤️',
-    name: 'In Love',
-    color: '#FF69B4', // Pink
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/love/${i + 1}.png`)
-  },
-  {
-    id: 'sad',
-    icon: '😢',
-    name: 'Sad',
-    color: '#A9A9A9', // Dark Gray
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/sad/${i + 1}.png`)
-  },
-  {
-    id: 'eating',
-    icon: '🍽️',
-    name: 'Eating',
-    color: '#FFA500', // Orange
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/eating/${i + 1}.png`)
+    name: 'Love',
+    color: '#FF69B4', // Hot Pink
+    stickers: {
+      adopt: '@/assets/stickers/pets/adopt.png',
+      bath: '@/assets/stickers/pets/bath.png',
+      cat: '@/assets/stickers/pets/cat.png',
+      dog: '@/assets/stickers/pets/dog.png',
+      pet_food: '@/assets/stickers/pets/pet_food.png',
+      good_morning: '@/assets/stickers/pets/good_morning.png',
+      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+    }
   },
   {
     id: 'celebrating',
     icon: '🎉',
     name: 'Celebrating',
     color: '#90EE90', // Light Green
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/celebrating/${i + 1}.png`)
+    stickers: {
+      adopt: '@/assets/stickers/pets/adopt.png',
+      bath: '@/assets/stickers/pets/bath.png',
+      cat: '@/assets/stickers/pets/cat.png',
+      dog: '@/assets/stickers/pets/dog.png',
+      pet_food: '@/assets/stickers/pets/pet_food.png',
+      good_morning: '@/assets/stickers/pets/good_morning.png',
+      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+    }
   },
   {
     id: 'active',
     icon: '⚡',
     name: 'Active',
     color: '#87CEEB', // Sky Blue
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/active/${i + 1}.png`)
+    stickers: {
+      adopt: '@/assets/stickers/pets/adopt.png',
+      bath: '@/assets/stickers/pets/bath.png',
+      cat: '@/assets/stickers/pets/cat.png',
+      dog: '@/assets/stickers/pets/dog.png',
+      pet_food: '@/assets/stickers/pets/pet_food.png',
+      good_morning: '@/assets/stickers/pets/good_morning.png',
+      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+    }
   },
-  {
-    id: 'working',
-    icon: '💼',
-    name: 'Working',
-    color: '#20B2AA', // Light Sea Green
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/working/${i + 1}.png`)
-  },
-  {
-    id: 'sleepy',
-    icon: '😴',
-    name: 'Sleepy',
-    color: '#9370DB', // Medium Purple
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/sleepy/${i + 1}.png`)
-  },
-  {
-    id: 'angry',
-    icon: '😠',
-    name: 'Angry',
-    color: '#FF6347', // Tomato
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/angry/${i + 1}.png`)
-  },
-  {
-    id: 'confused',
-    icon: '😕',
-    name: 'Confused',
-    color: '#DEB887', // Burly Wood
-    stickers: Array.from({ length: 8 }, (_, i) => `/assets/stickers/confused/${i + 1}.png`)
-  }
 ];
+
+const STICKER_SIZE = 50; // Kích thước của sticker
+const STICKER_SPACING = 10; // Khoảng cách giữa các sticker
 
 export default function StickerPicker({ setMessage, toggleModelSticker }: StickerPickerProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const { width } = useWindowDimensions();
   
   // Tính toán kích thước container dựa trên màn hình
   const containerWidth = Math.min(width * 0.9, 400); // Giới hạn max width là 400px
   
-  // Filter categories based on search
   const filteredCategories = STICKER_CATEGORIES.filter(category => 
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -108,6 +134,7 @@ export default function StickerPicker({ setMessage, toggleModelSticker }: Sticke
       key={category.id}
       className="mb-2 px-3 py-2 rounded-lg flex-1"
       style={{ backgroundColor: category.color + '15' }}
+      onPress={() => setSelectedCategory(category)}
     >
       <View className="flex-row items-center justify-start space-x-2">
         <Text className="text-base">{category.icon}</Text>
@@ -118,37 +145,75 @@ export default function StickerPicker({ setMessage, toggleModelSticker }: Sticke
     </TouchableOpacity>
   );
 
-  return (
-    <View style={{ width: containerWidth }} className="bg-white rounded-lg shadow-lg">
-      {/* Search Bar */}
-      <View className="p-2 border-b border-gray-200">
-        <View className="flex-row items-center bg-gray-100 rounded-lg px-2 py-1">
-          <Ionicons name="search-outline" size={14} color="#666" />
-          <TextInput
-            className="flex-1 ml-2 text-sm text-gray-800"
-            placeholder="Search"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#666"
-          />
+  const renderStickers = () => {
+    if (!selectedCategory) return null;
+
+    return (
+      <View className="p-2">
+        <View className="flex-row items-center mb-3">
+          <TouchableOpacity 
+            onPress={() => setSelectedCategory(null)}
+            className="mr-2"
+          >
+            <Ionicons name="arrow-back" size={20} color="#666" />
+          </TouchableOpacity>
+          <Text className="text-base font-medium text-gray-800">{selectedCategory.name}</Text>
+        </View>
+        <View className="flex-row flex-wrap">
+          {Object.entries(selectedCategory.stickers).map(([key, path], index) => (
+            <TouchableOpacity
+              key={key}
+              className="p-1"
+              style={{ width: `${100 / 4}%` }}
+              onPress={() => {
+                setMessage(prev => prev + `[sticker:${path}]`);
+                toggleModelSticker();
+              }}
+            >
+              <Image
+                source={{ uri: path }}
+                className="w-[60px] h-[60px]"
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
+    );
+  };
 
-      {/* Sticker Categories */}
-      <ScrollView className="max-h-[300px]">
-        <View className="p-2">
-          <View className="flex-row space-x-2">
-            {/* Left Column */}
-            <View className="flex-1 space-y-2">
-              {leftColumn.map(renderCategoryButton)}
-            </View>
-            
-            {/* Right Column */}
-            <View className="flex-1 space-y-2">
-              {rightColumn.map(renderCategoryButton)}
-            </View>
+  return (
+    <View style={{ width: containerWidth }} className="bg-white rounded-lg shadow-lg">
+      {/* Search Bar - Chỉ hiển thị khi không có category được chọn */}
+      {!selectedCategory && (
+        <View className="p-2 border-b border-gray-200">
+          <View className="flex-row items-center bg-gray-100 rounded-lg px-2 py-1">
+            <Ionicons name="search-outline" size={14} color="#666" />
+            <TextInput
+              className="flex-1 ml-2 text-sm text-gray-800"
+              placeholder="Search"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#666"
+            />
           </View>
         </View>
+      )}
+
+      {/* Content */}
+      <ScrollView className="max-h-[300px]">
+        {selectedCategory ? renderStickers() : (
+          <View className="p-2">
+            <View className="flex-row space-x-2">
+              <View className="flex-1 space-y-2">
+                {leftColumn.map(renderCategoryButton)}
+              </View>
+              <View className="flex-1 space-y-2">
+                {rightColumn.map(renderCategoryButton)}
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
