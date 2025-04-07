@@ -56,6 +56,8 @@ export default function EmojiPicker({ setMessage, toggleModelEmoji }: EmojiPicke
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(0);
 
+  // Filter emojis based on search query folowing the selected category
+  const filteredEmojis = searchQuery ? CATEGORIES[selectedCategory].emojis.filter(emoji => emoji.includes(searchQuery)) : CATEGORIES[selectedCategory].emojis;
   return (
     <View className="bg-white">
       {/* Search Bar */}
@@ -75,17 +77,19 @@ export default function EmojiPicker({ setMessage, toggleModelEmoji }: EmojiPicke
       {/* Emoji Content */}
       <View className="h-[300px]">
         {/* Category Title */}
-        <Text className="px-3 py-2 font-semibold text-gray-700">
-          {CATEGORIES[selectedCategory].name}
-        </Text>
+        {!searchQuery && (
+          <Text className="px-3 py-2 font-semibold text-gray-700">
+            {CATEGORIES[selectedCategory].name}
+          </Text>
+        )}
 
         {/* Emojis Grid */}
         <ScrollView className="flex-1">
           <View className="flex-row flex-wrap px-2">
-            {CATEGORIES[selectedCategory].emojis.map((emoji, index) => (
+            {filteredEmojis.map((emoji, index) => (
               <TouchableOpacity
                 key={index}
-                className="w-[12.5%] p-1 items-center justify-center"
+                className="w-1/5 p-2 items-center"
                 onPress={() => {
                   setMessage(prev => prev + emoji);
                   toggleModelEmoji();
