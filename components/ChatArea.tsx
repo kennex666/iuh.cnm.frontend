@@ -5,6 +5,7 @@ import { useMessages } from '../hooks/useMessages';
 import { Conversation } from '../hooks/useConversations';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
+import MessageReaction from './MessageReaction';
 
 interface ChatAreaProps {
   selectedChat: Conversation | null;
@@ -12,6 +13,7 @@ interface ChatAreaProps {
 
 export default function ChatArea({ selectedChat }: ChatAreaProps) {
   const [message, setMessage] = useState('');
+  const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
   const [isModelChecked, setIsModelChecked] = useState(false);
   const [isModelImage, setIsModelImage] = useState(false);
   const [isModelEmoji, setIsModelEmoji] = useState(false);
@@ -22,6 +24,11 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
   const [inputHeight, setInputHeight] = useState(28);
 
   const { messages, loading, error } = useMessages(selectedChat?.id || undefined);
+
+  const handleReaction = (messageId: string, reactionId: string) => {
+    console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
+    // TODO: Implement reaction handling
+  };
 
   // Toggle models 
   const toggleModelChecked = () => {
@@ -132,13 +139,18 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               />
             )}
             <View>
-              <View
-                className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === 'u1' ? 'bg-blue-500' : 'bg-gray-100'}`}
-              >
+              <View className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === 'u1' ? 'bg-blue-500' : 'bg-gray-100'}`}>
                 <Text className={msg.senderId === 'u1' ? 'text-white' : 'text-gray-900'}>
                   {msg.content}
                 </Text>
               </View>
+              {/* Reaction Area */}
+              <MessageReaction 
+                messageId={msg.id}
+                isVisible={activeReactionId === msg.id}
+                onReact={handleReaction}
+                onToggle={() => setActiveReactionId(activeReactionId === msg.id ? null : msg.id)}
+              />
             </View>
           </View>
         ))}
@@ -194,17 +206,17 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
             </View>
           )}
           <View className='relative'>
-          <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
-            <Ionicons name="gift-outline" size={24} color="#666" />
-          </TouchableOpacity>
-          {isModelSticker && (
-            <View className='absolute bottom-full bg-white z-50 left-0 shadow-xl rounded-lg overflow-hidden border border-gray-200'>
-              <StickerPicker 
-                setMessage={setMessage}
-                toggleModelSticker={toggleModelSticker}
-              />
-            </View>
-          )}
+            <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
+              <Ionicons name="gift-outline" size={24} color="#666" />
+            </TouchableOpacity>
+            {isModelSticker && (
+              <View className='absolute bottom-full bg-white z-50 left-0 shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+                <StickerPicker
+                  setMessage={setMessage}
+                  toggleModelSticker={toggleModelSticker}
+                />
+              </View>
+            )}
           </View>
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
