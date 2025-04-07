@@ -171,17 +171,14 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               >
                 <View className="bg-white shadow-md rounded-lg p-4 w-[300px]">
                   <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
+                  
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
                     <Ionicons name="image-outline" size={24} color="#666" />
                     <Text className="ml-2 text-gray-800">Hình ảnh</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelEmoji}>
-                    <Ionicons name="happy-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Biểu tượng cảm xúc</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelSticker}>
-                    <Ionicons name="happy-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Sticker</Text>
+                    <Ionicons name="file-tray-outline" size={24} color="#666" />
+                    <Text className="ml-2 text-gray-800">Tệp</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelGift}>
                     <Ionicons name="gift-outline" size={24} color="#666" />
@@ -191,6 +188,12 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               </Animated.View>
             </View>
           )}
+          <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
+            <Ionicons name="gift-outline" size={24} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
+            <Ionicons name="storefront-outline" size={24} color="#666" />
+          </TouchableOpacity>
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
               className="flex-1 text-base text-gray-800"
