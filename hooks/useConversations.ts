@@ -42,8 +42,8 @@ export function useConversations() {
         setLoading(false);
       }
     };
-
     fetchConversations();
+    console.log('Fetching conversations...', JSON.stringify(conversations));
   }, []);
 
   return { conversations, loading, error };

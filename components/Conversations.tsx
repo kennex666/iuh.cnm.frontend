@@ -3,9 +3,13 @@ import { Text, View, Image, TextInput, ScrollView, TouchableOpacity, ActivityInd
 import { Ionicons } from '@expo/vector-icons';
 import { useConversations } from '@/hooks/useConversations';
 
-export default function Conversations() {
+interface ConversationsProps {
+  selectedChat: string | null;
+  onSelectChat: (id: string) => void;
+}
+
+export default function Conversations({ selectedChat, onSelectChat }: ConversationsProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const { conversations, loading, error } = useConversations();
 
   // Filter conversations based on search query
@@ -62,7 +66,7 @@ export default function Conversations() {
               selectedChat === conversation.id ? 'bg-blue-50' : ''
             }`}
             onPress={() => {
-              setSelectedChat(conversation.id)
+              onSelectChat(conversation.id)
               console.log(conversation.id)
             }}
             activeOpacity={0.7}
