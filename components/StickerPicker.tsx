@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Text, View, ScrollView, TouchableOpacity, TextInput, Image, useWindowDimensions } from 'react-native'
+import { Text, View, ScrollView, TouchableOpacity, TextInput, Image, useWindowDimensions, ImageSourcePropType } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 
 interface Category {
@@ -8,7 +8,7 @@ interface Category {
   name: string;
   color: string;
   stickers: {
-    [key: string]: string;
+    [key: string]: ImageSourcePropType;
   };
 }
 
@@ -24,13 +24,13 @@ const STICKER_CATEGORIES = [
     name: 'Pets',
     color: '#FFB6C1', // Light Pink
     stickers: {
-      adopt: '@/assets/stickers/pets/adopt.png',
-      bath: '@/assets/stickers/pets/bath.png',
-      cat: '@/assets/stickers/pets/cat.png',
-      dog: '@/assets/stickers/pets/dog.png',
-      pet_food: '@/assets/stickers/pets/pet_food.png',
-      good_morning: '@/assets/stickers/pets/good_morning.png',
-      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+      adopt: require('@/assets/stickers/pets/adopt.png'),
+      bath: require('@/assets/stickers/pets/bath.png'),
+      cat: require('@/assets/stickers/pets/cat.png'),
+      dog: require('@/assets/stickers/pets/dog.png'),
+      pet_food: require('@/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -39,13 +39,13 @@ const STICKER_CATEGORIES = [
     name: 'Christmas',
     color: '#FF4500', // Orange Red
     stickers: {
-      adopt: '@/assets/stickers/pets/adopt.png',
-      bath: '@/assets/stickers/pets/bath.png',
-      cat: '@/assets/stickers/pets/cat.png',
-      dog: '@/assets/stickers/pets/dog.png',
-      pet_food: '@/assets/stickers/pets/pet_food.png',
-      good_morning: '@/assets/stickers/pets/good_morning.png',
-      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+      adopt: require('@/assets/stickers/pets/adopt.png'),
+      bath: require('@/assets/stickers/pets/bath.png'),
+      cat: require('@/assets/stickers/pets/cat.png'),
+      dog: require('@/assets/stickers/pets/dog.png'),
+      pet_food: require('@/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -54,13 +54,13 @@ const STICKER_CATEGORIES = [
     name: 'Home',
     color: '#FFD700', // Gold
     stickers: {
-      adopt: '@/assets/stickers/pets/adopt.png',
-      bath: '@/assets/stickers/pets/bath.png',
-      cat: '@/assets/stickers/pets/cat.png',
-      dog: '@/assets/stickers/pets/dog.png',
-      pet_food: '@/assets/stickers/pets/pet_food.png',
-      good_morning: '@/assets/stickers/pets/good_morning.png',
-      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+      adopt: require('@/assets/stickers/pets/adopt.png'),
+      bath: require('@/assets/stickers/pets/bath.png'),
+      cat: require('@/assets/stickers/pets/cat.png'),
+      dog: require('@/assets/stickers/pets/dog.png'),
+      pet_food: require('@/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -69,13 +69,13 @@ const STICKER_CATEGORIES = [
     name: 'Love',
     color: '#FF69B4', // Hot Pink
     stickers: {
-      adopt: '@/assets/stickers/pets/adopt.png',
-      bath: '@/assets/stickers/pets/bath.png',
-      cat: '@/assets/stickers/pets/cat.png',
-      dog: '@/assets/stickers/pets/dog.png',
-      pet_food: '@/assets/stickers/pets/pet_food.png',
-      good_morning: '@/assets/stickers/pets/good_morning.png',
-      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+      adopt: require('@/assets/stickers/pets/adopt.png'),
+      bath: require('@/assets/stickers/pets/bath.png'),
+      cat: require('@/assets/stickers/pets/cat.png'),
+      dog: require('@/assets/stickers/pets/dog.png'),
+      pet_food: require('@/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -84,13 +84,13 @@ const STICKER_CATEGORIES = [
     name: 'Celebrating',
     color: '#90EE90', // Light Green
     stickers: {
-      adopt: '@/assets/stickers/pets/adopt.png',
-      bath: '@/assets/stickers/pets/bath.png',
-      cat: '@/assets/stickers/pets/cat.png',
-      dog: '@/assets/stickers/pets/dog.png',
-      pet_food: '@/assets/stickers/pets/pet_food.png',
-      good_morning: '@/assets/stickers/pets/good_morning.png',
-      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+      adopt: require('@/assets/stickers/pets/adopt.png'),
+      bath: require('@/assets/stickers/pets/bath.png'),
+      cat: require('@/assets/stickers/pets/cat.png'),
+      dog: require('@/assets/stickers/pets/dog.png'),
+      pet_food: require('@/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -99,19 +99,19 @@ const STICKER_CATEGORIES = [
     name: 'Active',
     color: '#87CEEB', // Sky Blue
     stickers: {
-      adopt: '@/assets/stickers/pets/adopt.png',
-      bath: '@/assets/stickers/pets/bath.png',
-      cat: '@/assets/stickers/pets/cat.png',
-      dog: '@/assets/stickers/pets/dog.png',
-      pet_food: '@/assets/stickers/pets/pet_food.png',
-      good_morning: '@/assets/stickers/pets/good_morning.png',
-      have_a_nice_day: '@/assets/stickers/pets/have_a_nice_day.png',
+      adopt: require('@/assets/stickers/pets/adopt.png'),
+      bath: require('@/assets/stickers/pets/bath.png'),
+      cat: require('@/assets/stickers/pets/cat.png'),
+      dog: require('@/assets/stickers/pets/dog.png'),
+      pet_food: require('@/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
 ];
 
-const STICKER_SIZE = 50; // Kích thước của sticker
-const STICKER_SPACING = 10; // Khoảng cách giữa các sticker
+const STICKER_SIZE = 70; // Tăng kích thước sticker
+const STICKER_SPACING = 12; // Tăng khoảng cách giữa các sticker
 
 export default function StickerPicker({ setMessage, toggleModelSticker }: StickerPickerProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -159,20 +159,26 @@ export default function StickerPicker({ setMessage, toggleModelSticker }: Sticke
           </TouchableOpacity>
           <Text className="text-base font-medium text-gray-800">{selectedCategory.name}</Text>
         </View>
-        <View className="flex-row flex-wrap">
+        <View className="flex-row flex-wrap justify-between">
           {Object.entries(selectedCategory.stickers).map(([key, path], index) => (
             <TouchableOpacity
               key={key}
-              className="p-1"
-              style={{ width: `${100 / 4}%` }}
+              style={{ 
+                width: STICKER_SIZE,
+                height: STICKER_SIZE,
+                margin: STICKER_SPACING / 2,
+              }}
               onPress={() => {
-                setMessage(prev => prev + `[sticker:${path}]`);
+                setMessage(prev => prev + `[sticker:${key}]`);
                 toggleModelSticker();
               }}
             >
               <Image
-                source={{ uri: path }}
-                className="w-[60px] h-[60px]"
+                source={path}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
                 resizeMode="contain"
               />
             </TouchableOpacity>
