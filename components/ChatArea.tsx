@@ -3,7 +3,8 @@ import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Text, View, Image, TextInput, ScrollView, TouchableOpacity, Modal, Animated, Easing, ActivityIndicator } from 'react-native';
 import { useMessages } from '../hooks/useMessages';
 import { Conversation } from '../hooks/useConversations';
-import EmojiPicker from './EmojiPicker'; 
+import EmojiPicker from './EmojiPicker';
+import StickerPicker from './StickerPicker';
 
 interface ChatAreaProps {
   selectedChat: Conversation | null;
@@ -192,12 +193,19 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               </Animated.View>
             </View>
           )}
+          <View className='relative'>
           <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
             <Ionicons name="gift-outline" size={24} color="#666" />
           </TouchableOpacity>
-          <TouchableOpacity className="p-2" onPress={toggleModelGift}>
-            <Ionicons name="storefront-outline" size={24} color="#666" />
-          </TouchableOpacity>
+          {isModelSticker && (
+            <View className='absolute bottom-full bg-white z-50 left-0 shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+              <StickerPicker 
+                setMessage={setMessage}
+                toggleModelSticker={toggleModelSticker}
+              />
+            </View>
+          )}
+          </View>
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
               className="min-h-[26px] text-base text-gray-800"
