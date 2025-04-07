@@ -25,7 +25,7 @@ export default function MessagesScreen() {
 
       {/* Right Column - Info (25%) */}
       <View className="w-1/4">
-        <Info />
+        <Info selectedChat={selectedChat} />
       </View>
     </View>
   );
