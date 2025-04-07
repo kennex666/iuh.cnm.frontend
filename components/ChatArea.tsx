@@ -181,7 +181,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
                     <Ionicons name="image-outline" size={24} color="#666" />
                     <Text className="ml-2  text-gray-800">Hình ảnh</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelEmoji}>
+                  <TouchableOpacity className="flex-row items-center mb-2">
                     <Ionicons name="file-tray-full-outline" size={24} color="#666" />
                     <Text className="ml-2 text-gray-800">File</Text>
                   </TouchableOpacity>
