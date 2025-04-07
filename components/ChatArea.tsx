@@ -2,9 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Text, View, Image, TextInput, ScrollView, TouchableOpacity, Modal, Animated, Easing, ActivityIndicator } from 'react-native';
 import { useMessages } from '../hooks/useMessages';
+import { Conversation } from '../hooks/useConversations';
 
 interface ChatAreaProps {
-  selectedChat: string | null;
+  selectedChat: Conversation | null;
 }
 
 export default function ChatArea({ selectedChat }: ChatAreaProps) {
@@ -16,9 +17,9 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
   const [isModelGift, setIsModelGift] = useState(false);
   const scaleAnimation = useRef(new Animated.Value(0)).current;
 
-  const { messages, loading, error } = useMessages(selectedChat || undefined);
+  const { messages, loading, error } = useMessages(selectedChat?.id || undefined);
 
-  // Toggle models
+  // Toggle models 
   const toggleModelChecked = () => {
     if (isModelChecked) {
       Animated.timing(scaleAnimation, {
@@ -56,7 +57,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
 
   if (loading) {
     return (
-      <View className="w-[50vw] flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#0068FF" />
       </View>
     );
@@ -64,7 +65,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
 
   if (error) {
     return (
-      <View className="w-[50vw] flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center">
         <Text className="text-red-500">Error: {error}</Text>
       </View>
     );
@@ -72,24 +73,31 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
 
   if (!selectedChat) {
     return (
-      <View className="w-[50vw] flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center">
         <Text className="text-gray-500">Chọn một cuộc trò chuyện để bắt đầu</Text>
       </View>
     );
   }
 
   return (
-    <View className="w-[50vw] flex-1 flex-col">
+    <View className="flex-1 flex-col">
       {/* Chat Header */}
       <View className="h-16 px-4 border-b border-gray-200 flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Image
-            source={{ uri: 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
+            source={{ uri: selectedChat?.avatarUrl || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
             className="w-10 h-10 rounded-full"
           />
           <View className="ml-3">
-            <Text className="font-semibold text-gray-900">Group Chat</Text>
-            <Text className="text-sm text-gray-500">81 thành viên</Text>
+            <Text className="font-semibold text-gray-900">
+              {selectedChat?.name || selectedChat?.participantIds.join(', ')}
+            </Text>
+            {selectedChat?.isGroup && (
+              <Text className="text-sm text-gray-500">{selectedChat.participantIds.length} thành viên</Text>
+            )}
+            {!selectedChat?.isGroup && selectedChat?.participantIds.length > 0 && (
+              <Text className="text-sm text-green-500">Đang hoạt động</Text>
+            )}
           </View>
         </View>
         <View className="flex-row items-center space-x-4">

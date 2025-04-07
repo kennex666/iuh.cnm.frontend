@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
 
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  type: string;
+  repliedToId: string | null;
+  sentAt: string;
+  readBy: string[];
+}
+
 export interface Conversation {
   id: string;
   isGroup: boolean;
@@ -8,16 +19,7 @@ export interface Conversation {
   participantIds: string[];
   adminIds: string[];
   settings: Record<string, any>;
-  lastMessage: {
-    id: string;
-    conversationId: string;
-    senderId: string;
-    content: string;
-    type: string;
-    repliedToId: string | null;
-    sentAt: string;
-    readBy: string[];
-  };
+  lastMessage: Message | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,8 +44,8 @@ export function useConversations() {
         setLoading(false);
       }
     };
+
     fetchConversations();
-    console.log('Fetching conversations...', JSON.stringify(conversations));
   }, []);
 
   return { conversations, loading, error };
