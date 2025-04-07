@@ -19,18 +19,16 @@ interface MessageReactionProps {
 
 export default function MessageReaction({ messageId, isVisible, onReact, onToggle }: MessageReactionProps) {
   return (
-    <View>
-      {/* Nút hiển thị menu reaction */}
+    <View className="relative">
       <TouchableOpacity 
         onPress={onToggle} 
-        className="mt-1 p-1.5"
+        className="mt-1 p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200"
       >
         <FontAwesome name="heart" size={14} color="#999999" />
       </TouchableOpacity>
 
-      {/* Menu chọn reaction - hiển thị khi isVisible = true */}
       {isVisible && (
-        <View className="absolute bottom-full left-0 bg-white shadow-xl rounded-full py-2 px-3 z-50 mb-2 flex-row items-center">
+        <View className="absolute bottom-full bg-white shadow-xl rounded-full py-2 px-3 mb-2 flex-row items-center">
           {REACTIONS.map((reaction) => (
             <TouchableOpacity 
               key={reaction.id}
@@ -43,7 +41,6 @@ export default function MessageReaction({ messageId, isVisible, onReact, onToggl
               <FontAwesome name={reaction.icon} size={20} color={reaction.color} />
             </TouchableOpacity>
           ))}
-          {/* Nút thêm reaction (có thể mở rộng tính năng sau) */}
           <TouchableOpacity className="mx-1.5 p-1 hover:bg-gray-50 active:scale-110 transition-transform rounded-full">
             <FontAwesome name="plus" size={16} color="#999999" />
           </TouchableOpacity>

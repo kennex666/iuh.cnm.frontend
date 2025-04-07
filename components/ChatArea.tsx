@@ -138,19 +138,20 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
                 className="w-8 h-8 rounded-full mr-2"
               />
             )}
-            <View>
+            <View className={`flex flex-col ${msg.senderId === 'u1' ? 'items-end' : 'items-start'}`}>
               <View className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === 'u1' ? 'bg-blue-500' : 'bg-gray-100'}`}>
                 <Text className={msg.senderId === 'u1' ? 'text-white' : 'text-gray-900'}>
                   {msg.content}
                 </Text>
               </View>
-              {/* Reaction Area */}
-              <MessageReaction 
-                messageId={msg.id}
-                isVisible={activeReactionId === msg.id}
-                onReact={handleReaction}
-                onToggle={() => setActiveReactionId(activeReactionId === msg.id ? null : msg.id)}
-              />
+              <View className={`${msg.senderId === 'u1' ? 'right-0' : 'left-0'}`}>
+                <MessageReaction 
+                  messageId={msg.id}
+                  isVisible={activeReactionId === msg.id}
+                  onReact={handleReaction}
+                  onToggle={() => setActiveReactionId(activeReactionId === msg.id ? null : msg.id)}
+                />
+              </View>
             </View>
           </View>
         ))}
