@@ -3,6 +3,9 @@ import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Text, View, Image, TextInput, ScrollView, TouchableOpacity, Modal, Animated, Easing, ActivityIndicator } from 'react-native';
 import { useMessages } from '../hooks/useMessages';
 import { Conversation } from '../hooks/useConversations';
+import EmojiPicker from './EmojiPicker';
+import StickerPicker from './StickerPicker';
+import MessageReaction from './MessageReaction';
 
 interface ChatAreaProps {
   selectedChat: Conversation | null;
@@ -10,6 +13,7 @@ interface ChatAreaProps {
 
 export default function ChatArea({ selectedChat }: ChatAreaProps) {
   const [message, setMessage] = useState('');
+  const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
   const [isModelChecked, setIsModelChecked] = useState(false);
   const [isModelImage, setIsModelImage] = useState(false);
   const [isModelEmoji, setIsModelEmoji] = useState(false);
@@ -17,7 +21,14 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
   const [isModelGift, setIsModelGift] = useState(false);
   const scaleAnimation = useRef(new Animated.Value(0)).current;
 
+  const [inputHeight, setInputHeight] = useState(28);
+
   const { messages, loading, error } = useMessages(selectedChat?.id || undefined);
+
+  const handleReaction = (messageId: string, reactionId: string) => {
+    console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
+    // TODO: Implement reaction handling
+  };
 
   // Toggle models 
   const toggleModelChecked = () => {
@@ -45,6 +56,7 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
 
   const toggleModelEmoji = () => {
     setIsModelEmoji(!isModelEmoji);
+    console.log('Emoji model toggled: ', isModelEmoji);
   };
 
   const toggleModelSticker = () => {
@@ -126,13 +138,19 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
                 className="w-8 h-8 rounded-full mr-2"
               />
             )}
-            <View>
-              <View
-                className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === 'u1' ? 'bg-blue-500' : 'bg-gray-100'}`}
-              >
+            <View className={`flex flex-col ${msg.senderId === 'u1' ? 'items-end' : 'items-start'}`}>
+              <View className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === 'u1' ? 'bg-blue-500' : 'bg-gray-100'}`}>
                 <Text className={msg.senderId === 'u1' ? 'text-white' : 'text-gray-900'}>
                   {msg.content}
                 </Text>
+              </View>
+              <View className={`${msg.senderId === 'u1' ? 'right-0' : 'left-0'}`}>
+                <MessageReaction 
+                  messageId={msg.id}
+                  isVisible={activeReactionId === msg.id}
+                  onReact={handleReaction}
+                  onToggle={() => setActiveReactionId(activeReactionId === msg.id ? null : msg.id)}
+                />
               </View>
             </View>
           </View>
@@ -171,17 +189,14 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               >
                 <View className="bg-white shadow-md rounded-lg p-4 w-[300px]">
                   <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
+
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
                     <Ionicons name="image-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Hình ảnh</Text>
+                    <Text className="ml-2  text-gray-800">Hình ảnh</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelEmoji}>
-                    <Ionicons name="happy-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Biểu tượng cảm xúc</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelSticker}>
-                    <Ionicons name="happy-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-800">Sticker</Text>
+                  <TouchableOpacity className="flex-row items-center mb-2">
+                    <Ionicons name="file-tray-full-outline" size={24} color="#666" />
+                    <Text className="ml-2 text-gray-800">File</Text>
                   </TouchableOpacity>
                   <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelGift}>
                     <Ionicons name="gift-outline" size={24} color="#666" />
@@ -191,20 +206,59 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
               </Animated.View>
             </View>
           )}
+          <View className='relative'>
+            <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
+              <Ionicons name="gift-outline" size={24} color="#666" />
+            </TouchableOpacity>
+            {isModelSticker && (
+              <View className='absolute bottom-full bg-white z-50 left-0 shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+                <StickerPicker
+                  setMessage={setMessage}
+                  toggleModelSticker={toggleModelSticker}
+                />
+              </View>
+            )}
+          </View>
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
-              className="flex-1 text-base text-gray-800"
+              className="min-h-[26px] text-base text-gray-800"
               placeholder="Nhập tin nhắn..."
               value={message}
               onChangeText={setMessage}
               multiline
               numberOfLines={1}
               placeholderTextColor="#666"
+              style={{
+                borderWidth: 0,
+                outline: 'none',
+                height: Math.min(inputHeight, 26 * 3),
+              }}
+              onContentSizeChange={(event) => {
+                const { height } = event.nativeEvent.contentSize;
+                setInputHeight(height > 26 ? height : 26);
+              }}
+              onBlur={() => {
+                if (inputHeight < 28) {
+                  setInputHeight(28);
+                }
+              }}
+              onFocus={() => {
+                setInputHeight(28);
+              }}
             />
           </View>
-          <TouchableOpacity className="p-2">
-            <Ionicons name="happy-outline" size={24} color="#666" />
-          </TouchableOpacity>
+          <View className='relative'>
+            <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
+              <Ionicons name="happy-outline" size={24} color="#666" />
+            </TouchableOpacity>
+            {
+              isModelEmoji && (
+                <View className='absolute bottom-full bg-white z-50 right-0 w-[300px] shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+                  <EmojiPicker setMessage={setMessage} toggleModelEmoji={toggleModelEmoji} />
+                </View>
+              )
+            }
+          </View>
           <TouchableOpacity className="p-2">
             <Ionicons name="send" size={24} color="#0068FF" />
           </TouchableOpacity>
