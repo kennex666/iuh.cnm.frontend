@@ -159,6 +159,28 @@ export default function AppLayout() {
               </Link>
             );
           })}
+          {/* User Profile Icon */}
+          <TouchableOpacity
+            className="flex-1 h-full justify-center items-center"
+            onPress={() => setProfileModalVisible(true)}
+          >
+            <View className="items-center">
+              <View className="relative">
+                <Image
+                  source={{
+                    uri:
+                      user?.avatarURL ||
+                      `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${
+                        user?.name?.charAt(0) || "U"
+                      }`,
+                  }}
+                  className="w-6 h-6 rounded-full"
+                />
+                <View className="absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full bg-green-500 border border-white" />
+              </View>
+              <Text className="text-xs mt-1 text-gray-500">Cá nhân</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       ) : null}
       <ProfileModal
