@@ -25,8 +25,17 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
 
   const { messages, loading, error } = useMessages(selectedChat?.id || undefined);
 
+  const handleReactionToggle = (messageId: string) => {
+    if (activeReactionId === messageId) {
+      setActiveReactionId(null);
+    } else {
+      setActiveReactionId(messageId);
+    }
+  };
+
   const handleReaction = (messageId: string, reactionId: string) => {
     console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
+    setActiveReactionId(null);
     // TODO: Implement reaction handling
   };
 
@@ -144,14 +153,13 @@ export default function ChatArea({ selectedChat }: ChatAreaProps) {
                   {msg.content}
                 </Text>
               </View>
-              <View className={`${msg.senderId === 'u1' ? 'right-0' : 'left-0'}`}>
-                <MessageReaction 
-                  messageId={msg.id}
-                  isVisible={activeReactionId === msg.id}
-                  onReact={handleReaction}
-                  onToggle={() => setActiveReactionId(activeReactionId === msg.id ? null : msg.id)}
-                />
-              </View>
+              <MessageReaction 
+                messageId={msg.id}
+                isVisible={activeReactionId === msg.id}
+                onReact={handleReaction}
+                onToggle={() => handleReactionToggle(msg.id)}
+                isSender={msg.senderId === 'u1'}
+              />
             </View>
           </View>
         ))}

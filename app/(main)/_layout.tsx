@@ -59,36 +59,47 @@ export default function AppLayout() {
         <View style={styles.container}>
             {isDesktop ? (
                 <View style={[styles.leftSidebar, { paddingTop: insets.top + 16 }]}>
-                    {/* Avatar */}
-                    <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
-                        <Image
-                            source={{
-                                uri:
-                                    user?.avatarURL ||
-                                    `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${user?.name?.charAt(0) || "U"}`,
-                            }}
-                            style={styles.avatar}
-                        />
-                        <View style={styles.onlineIndicator} />
-                    </TouchableOpacity>
+                    <View className='flex-1 flex-col items-center justify-between'>
+                        {/* Header of Tabs */}
+                        <View>
+                            {/* Avatar */}
+                            <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
+                                <Image
+                                    source={{
+                                        uri:
+                                            user?.avatarURL ||
+                                            `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${user?.name?.charAt(0) || "U"}`,
+                                    }}
+                                    style={styles.avatar}
+                                />
+                                <View style={styles.onlineIndicator} />
+                            </TouchableOpacity>
 
-                    {/* Divider */}
-                    <View style={styles.divider} />
+                            {/* Divider */}
+                            <View style={styles.divider} />
 
-                    {routes.map((route) => {
-                        const active = isActive(route.name);
-                        return (
-                            <Link
-                                key={route.name}
-                                href={getHref(route.name)}
-                                style={[styles.tabItem, active && styles.activeTabItem]}
-                            >
-                                <View style={styles.iconContainer}>
-                                    <FontAwesome name={route.icon} size={24} color={active ? "#0068FF" : "#666"} />
-                                </View>
-                            </Link>
-                        );
-                    })}
+                            {routes.map((route) => {
+                                const active = isActive(route.name);
+                                return (
+                                    <Link
+                                        key={route.name}
+                                        href={getHref(route.name)}
+                                        style={[styles.tabItem, active && styles.activeTabItem]}
+                                    >
+                                        <View style={styles.iconContainer}>
+                                            <FontAwesome name={route.icon} size={24} color={active ? "#0068FF" : "#666"} />
+                                        </View>
+                                    </Link>
+                                );
+                            })}
+                        </View>
+                        {/* Bottoms: logout, exit */}
+                        <View className='flex flex-col items-center justify-center py-4 relative'>
+                            <TouchableOpacity className='p-2 rounded-lg'>
+                                <FontAwesome name="sign-out" size={24} color="#FF0000" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             ) : null}
 

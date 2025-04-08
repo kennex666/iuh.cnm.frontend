@@ -58,7 +58,7 @@ export const friendRequests = [
     senderId: "u3",
     receiverId: "u1",
     status: "accepted",
-    createdAt: new Date("2024-03-08"),
+    createdAt: new Date("2024-03-08"),Ư
     updatedAt: new Date("2024-03-09")
   }
 ];
