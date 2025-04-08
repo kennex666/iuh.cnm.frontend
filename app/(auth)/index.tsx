@@ -9,8 +9,10 @@ import FormInput from '@/components/primary/FormInput';
 import Button from '@/components/primary/Button';
 import TextLink from '@/components/primary/TextLink';
 import Divider from '@/components/primary/Divider';
+import { useAuth } from '@/contexts/userContext';
 
 export default function Login() {
+    const { login } = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -46,25 +48,34 @@ export default function Login() {
 
         setLoading(true);
         try {
-            // Giả lập API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            setToast({
-                visible: true,
-                message: 'Đăng nhập thành công!',
-                type: 'success'
-            });
-
-            // Đợi toast hiển thị xong rồi chuyển trang
-            setTimeout(() => {
-                router.replace('/(main)');
-            }, 2000);
+            // Gọi API đăng nhập thực tế
+            const result = await login(phoneNumber, password);
+            
+            if (result.success) {
+                setToast({
+                    visible: true,
+                    message: 'Đăng nhập thành công!',
+                    type: 'success'
+                });
+                
+                // Đợi toast hiển thị xong rồi chuyển trang
+                setTimeout(() => {
+                    router.replace('/(main)');
+                }, 2000);
+            } else {
+                setToast({
+                    visible: true,
+                    message: result.message || 'Đăng nhập thất bại',
+                    type: 'error'
+                });
+            }
         } catch (error) {
             setToast({
                 visible: true,
-                message: 'Số điện thoại hoặc mật khẩu không đúng',
+                message: 'Có lỗi xảy ra, vui lòng thử lại sau',
                 type: 'error'
             });
+            console.error('Login error:', error);
         } finally {
             setLoading(false);
         }
@@ -72,6 +83,7 @@ export default function Login() {
 
     return (
         <GradientBackground>
+            {/* Phần UI không thay đổi */}
             <View className="flex-1 justify-center items-center px-4 py-8 sm:px-6 md:px-8 lg:px-10">
                 <View className="w-full max-w-[420px]">
                     <AppLogo/>
@@ -84,7 +96,7 @@ export default function Login() {
                     <View className="space-y-4 sm:space-y-5">
                         <FormInput
                             icon="person-outline"
-                            placeholder="Số điện thoại hoặc email"
+                            placeholder="Số điện thoại"
                             value={phoneNumber}
                             onChangeText={setPhoneNumber}
                             editable={!loading}
@@ -117,8 +129,7 @@ export default function Login() {
 
                         <Button
                             title="Đăng nhập bằng mã QR"
-                            onPress={() => {
-                            }}
+                            onPress={() => {}}
                             variant="outline"
                             icon="qr-code-outline"
                         />
