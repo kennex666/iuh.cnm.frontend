@@ -18,11 +18,13 @@ import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
 import {shadows} from '@/src/styles/shadow';
 
-interface ChatAreaProps {
+export interface ChatAreaProps {
     selectedChat: Conversation | null;
+    onBackPress?: () => void;
+    onInfoPress?: () => void;
 }
 
-export default function ChatArea({selectedChat}: ChatAreaProps) {
+export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
     const [message, setMessage] = useState('');
     const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
     const [isModelChecked, setIsModelChecked] = useState(false);
@@ -114,19 +116,23 @@ export default function ChatArea({selectedChat}: ChatAreaProps) {
     return (
         <View className="flex-1 flex-col">
             {/* Chat Header */}
-            <View className="h-16 px-4 border-b border-gray-200 flex-row items-center justify-between">
+            <View className="h-14 px-4 border-b border-gray-200 flex-row items-center justify-between">
                 <View className="flex-row items-center">
+                    {onBackPress && (
+                        <TouchableOpacity onPress={onBackPress} className="mr-3">
+                            <Ionicons name="arrow-back" size={24} color="#666" />
+                        </TouchableOpacity>
+                    )}
                     <Image
                         source={{uri: selectedChat?.avatarUrl || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                         className="w-10 h-10 rounded-full"
                     />
                     <View className="ml-3">
-                        <Text className="font-semibold text-gray-900">
+                        <Text className="font-semibold text-gray-900" numberOfLines={1}>
                             {selectedChat?.name || selectedChat?.participantIds.join(', ')}
                         </Text>
                         {selectedChat?.isGroup && (
-                            <Text className="text-sm text-gray-500">{selectedChat.participantIds.length} thành
-                                viên</Text>
+                            <Text className="text-sm text-gray-500">{selectedChat.participantIds.length} thành viên</Text>
                         )}
                         {!selectedChat?.isGroup && selectedChat?.participantIds.length > 0 && (
                             <Text className="text-sm text-green-500">Đang hoạt động</Text>
@@ -140,7 +146,7 @@ export default function ChatArea({selectedChat}: ChatAreaProps) {
                     <TouchableOpacity>
                         <Ionicons name="videocam-outline" size={22} color="#666"/>
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={onInfoPress}>
                         <Ionicons name="information-circle-outline" size={24} color="#666"/>
                     </TouchableOpacity>
                 </View>

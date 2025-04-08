@@ -5,11 +5,12 @@ import {Conversation} from '../../hook/useConversations';
 import Search from './Search';
 
 // Props interface cho component Info
-interface InfoProps {
+export interface InfoProps {
     selectedChat: Conversation | null;  // Cuộc trò chuyện được chọn, null nếu chưa chọn
+    onBackPress?: () => void;
 }
 
-export default function Info({selectedChat}: InfoProps) {
+export default function Info({selectedChat, onBackPress}: InfoProps) {
     // State quản lý hiển thị/ẩn search modal
     const [isSearchVisible, setIsSearchVisible] = useState(false);
 
@@ -34,6 +35,11 @@ export default function Info({selectedChat}: InfoProps) {
                 <ScrollView className="flex-1">
                     {/* Header - Hiển thị tiêu đề phần thông tin */}
                     <View className="h-14 px-4 border-b border-gray-200 flex-row items-center">
+                        {onBackPress && (
+                            <TouchableOpacity onPress={onBackPress} className="mr-3">
+                                <Ionicons name="arrow-back" size={24} color="#666" />
+                            </TouchableOpacity>
+                        )}
                         <Text className="text-lg font-semibold text-gray-900">Thông tin người dùng</Text>
                     </View>
 
@@ -126,6 +132,11 @@ export default function Info({selectedChat}: InfoProps) {
             <ScrollView className="flex-1">
                 {/* Header - Hiển thị tiêu đề phần thông tin */}
                 <View className="h-14 px-4 border-b border-gray-200 flex-row items-center">
+                    {onBackPress && (
+                        <TouchableOpacity onPress={onBackPress} className="mr-3">
+                            <Ionicons name="arrow-back" size={24} color="#666" />
+                        </TouchableOpacity>
+                    )}
                     <Text className="text-lg font-semibold text-gray-900">Thông tin nhóm</Text>
                 </View>
 
