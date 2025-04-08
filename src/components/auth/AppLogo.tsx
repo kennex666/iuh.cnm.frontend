@@ -1,6 +1,6 @@
 import React from 'react';
 import {Image, ImageSourcePropType, View} from 'react-native';
-import {ImageConstant} from "@/constants/ImageConstant";
+import {ImageConstant} from "@/src/constants/ImageConstant";
 
 interface AppLogoProps {
     size?: number;

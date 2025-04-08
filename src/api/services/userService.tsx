@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User } from '@/models/User';
+import { User } from '@/src/models/User';
 
 const API_BASE_URL = 'https://67f506d5913986b16fa2e323.mockapi.io';
 

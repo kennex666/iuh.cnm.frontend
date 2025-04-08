@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '@/models/User';
+import { User } from '@/src/models/User';
 
 const USER_STORAGE_KEY = '@IUH_CNM_APP:user';
 

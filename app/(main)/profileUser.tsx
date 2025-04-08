@@ -12,14 +12,14 @@ import {
     View
 } from "react-native";
 import {Ionicons} from '@expo/vector-icons';
-import Toast from '@/components/Toast';
+import Toast from '@/src/components/ui/Toast';
 import * as ImagePicker from 'expo-image-picker';
-import FormInput from "@/components/primary/FormInput";
-import ModalHeader from "@/components/profile/ModelHeader";
-import CoverImage from "@/components/profile/CoverImage";
-import AvatarImage from "@/components/profile/AvatarImage";
-import ProfileInfoItem from "@/components/profile/ProfileInfoItem";
-import RadioButton from "@/components/profile/RadioButton";
+import FormInput from "@/src/components/ui/FormInput";
+import ModalHeader from "@/src/components/profile/ModelHeader";
+import CoverImage from "@/src/components/profile/CoverImage";
+import AvatarImage from "@/src/components/profile/AvatarImage";
+import ProfileInfoItem from "@/src/components/profile/ProfileInfoItem";
+import RadioButton from "@/src/components/profile/RadioButton";
 
 type ProfileModalProps = {
     visible: boolean;
