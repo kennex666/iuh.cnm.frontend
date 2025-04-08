@@ -117,7 +117,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         <View className="flex-1 flex-col">
             {/* Chat Header */}
             <View className="h-14 px-4 border-b border-gray-200 flex-row items-center justify-between">
-                <View className="flex-row items-center">
+                <View className="flex-row items-center flex-1">
                     {onBackPress && (
                         <TouchableOpacity onPress={onBackPress} className="mr-3">
                             <Ionicons name="arrow-back" size={24} color="#666" />
@@ -127,8 +127,10 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         source={{uri: selectedChat?.avatarUrl || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                         className="w-10 h-10 rounded-full"
                     />
-                    <View className="ml-3">
-                        <Text className="font-semibold text-gray-900" numberOfLines={1}>
+                    <View className="ml-3" style={{ maxWidth: '45%' }}>
+                        <Text className="font-semibold text-gray-900 text-base" 
+                              numberOfLines={1}
+                              ellipsizeMode="tail">
                             {selectedChat?.name || selectedChat?.participantIds.join(', ')}
                         </Text>
                         {selectedChat?.isGroup && (
