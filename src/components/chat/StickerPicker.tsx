@@ -24,13 +24,13 @@ const STICKER_CATEGORIES = [
     name: 'Pets',
     color: '#FFB6C1', // Light Pink
     stickers: {
-      adopt: require('@/assets/stickers/pets/adopt.png'),
-      bath: require('@/assets/stickers/pets/bath.png'),
-      cat: require('@/assets/stickers/pets/cat.png'),
-      dog: require('@/assets/stickers/pets/dog.png'),
-      pet_food: require('@/assets/stickers/pets/pet_food.png'),
-      good_morning: require('@/assets/stickers/pets/good_morning.png'),
-      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
+      adopt: require('@/resources/assets/stickers/pets/adopt.png'),
+      bath: require('@/resources/assets/stickers/pets/bath.png'),
+      cat: require('@/resources/assets/stickers/pets/cat.png'),
+      dog: require('@/resources/assets/stickers/pets/dog.png'),
+      pet_food: require('@/resources/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/resources/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/resources/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -39,13 +39,13 @@ const STICKER_CATEGORIES = [
     name: 'Christmas',
     color: '#FF4500', // Orange Red
     stickers: {
-      adopt: require('@/assets/stickers/pets/adopt.png'),
-      bath: require('@/assets/stickers/pets/bath.png'),
-      cat: require('@/assets/stickers/pets/cat.png'),
-      dog: require('@/assets/stickers/pets/dog.png'),
-      pet_food: require('@/assets/stickers/pets/pet_food.png'),
-      good_morning: require('@/assets/stickers/pets/good_morning.png'),
-      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
+      adopt: require('@/resources/assets/stickers/pets/adopt.png'),
+      bath: require('@/resources/assets/stickers/pets/bath.png'),
+      cat: require('@/resources/assets/stickers/pets/cat.png'),
+      dog: require('@/resources/assets/stickers/pets/dog.png'),
+      pet_food: require('@/resources/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/resources/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/resources/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -54,13 +54,13 @@ const STICKER_CATEGORIES = [
     name: 'Home',
     color: '#FFD700', // Gold
     stickers: {
-      adopt: require('@/assets/stickers/pets/adopt.png'),
-      bath: require('@/assets/stickers/pets/bath.png'),
-      cat: require('@/assets/stickers/pets/cat.png'),
-      dog: require('@/assets/stickers/pets/dog.png'),
-      pet_food: require('@/assets/stickers/pets/pet_food.png'),
-      good_morning: require('@/assets/stickers/pets/good_morning.png'),
-      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
+      adopt: require('@/resources/assets/stickers/pets/adopt.png'),
+      bath: require('@/resources/assets/stickers/pets/bath.png'),
+      cat: require('@/resources/assets/stickers/pets/cat.png'),
+      dog: require('@/resources/assets/stickers/pets/dog.png'),
+      pet_food: require('@/resources/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/resources/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/resources/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -69,13 +69,13 @@ const STICKER_CATEGORIES = [
     name: 'Love',
     color: '#FF69B4', // Hot Pink
     stickers: {
-      adopt: require('@/assets/stickers/pets/adopt.png'),
-      bath: require('@/assets/stickers/pets/bath.png'),
-      cat: require('@/assets/stickers/pets/cat.png'),
-      dog: require('@/assets/stickers/pets/dog.png'),
-      pet_food: require('@/assets/stickers/pets/pet_food.png'),
-      good_morning: require('@/assets/stickers/pets/good_morning.png'),
-      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
+      adopt: require('@/resources/assets/stickers/pets/adopt.png'),
+      bath: require('@/resources/assets/stickers/pets/bath.png'),
+      cat: require('@/resources/assets/stickers/pets/cat.png'),
+      dog: require('@/resources/assets/stickers/pets/dog.png'),
+      pet_food: require('@/resources/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/resources/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/resources/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -84,13 +84,13 @@ const STICKER_CATEGORIES = [
     name: 'Celebrating',
     color: '#90EE90', // Light Green
     stickers: {
-      adopt: require('@/assets/stickers/pets/adopt.png'),
-      bath: require('@/assets/stickers/pets/bath.png'),
-      cat: require('@/assets/stickers/pets/cat.png'),
-      dog: require('@/assets/stickers/pets/dog.png'),
-      pet_food: require('@/assets/stickers/pets/pet_food.png'),
-      good_morning: require('@/assets/stickers/pets/good_morning.png'),
-      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
+      adopt: require('@/resources/assets/stickers/pets/adopt.png'),
+      bath: require('@/resources/assets/stickers/pets/bath.png'),
+      cat: require('@/resources/assets/stickers/pets/cat.png'),
+      dog: require('@/resources/assets/stickers/pets/dog.png'),
+      pet_food: require('@/resources/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/resources/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/resources/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
   {
@@ -99,13 +99,13 @@ const STICKER_CATEGORIES = [
     name: 'Active',
     color: '#87CEEB', // Sky Blue
     stickers: {
-      adopt: require('@/assets/stickers/pets/adopt.png'),
-      bath: require('@/assets/stickers/pets/bath.png'),
-      cat: require('@/assets/stickers/pets/cat.png'),
-      dog: require('@/assets/stickers/pets/dog.png'),
-      pet_food: require('@/assets/stickers/pets/pet_food.png'),
-      good_morning: require('@/assets/stickers/pets/good_morning.png'),
-      have_a_nice_day: require('@/assets/stickers/pets/have_a_nice_day.png'),
+      adopt: require('@/resources/assets/stickers/pets/adopt.png'),
+      bath: require('@/resources/assets/stickers/pets/bath.png'),
+      cat: require('@/resources/assets/stickers/pets/cat.png'),
+      dog: require('@/resources/assets/stickers/pets/dog.png'),
+      pet_food: require('@/resources/assets/stickers/pets/pet_food.png'),
+      good_morning: require('@/resources/assets/stickers/pets/good_morning.png'),
+      have_a_nice_day: require('@/resources/assets/stickers/pets/have_a_nice_day.png'),
     }
   },
 ];

@@ -35,8 +35,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         phone: "+84 337 104 900",
         email: "thienphu@gmail.com",
         bio: "Xin chào, tôi là Thiên Phú. Tôi thích lập trình và du lịch.",
-        avatar: require("../../assets/profile/avatar.png"),
-        cover: require("../../assets/profile/cover.png"),
+        avatar: require("@/resources/assets/profile/avatar.png"),
+        cover: require("@/resources/assets/profile/cover.png"),
     });
 
     const [avatarUri, setAvatarUri] = useState<string | null>(null);

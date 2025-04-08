@@ -1,7 +1,7 @@
 export const ImageConstant = {
-    logo: require("../../assets/telegram-logo.png"),
+    logo: require("@/resources/assets/telegram-logo.png"),
     profile: {
-        avatar: require("../../assets/profile/avatar.png"),
-        cover: require("../../assets/profile/cover.png"),
+        avatar: require("@/resources/assets/profile/avatar.png"),
+        cover: require("@/resources/assets/profile/cover.png"),
     }
 }
