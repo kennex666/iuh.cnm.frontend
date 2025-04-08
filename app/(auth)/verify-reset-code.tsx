@@ -56,7 +56,7 @@ export default function VerifyResetCode() {
             
             // Navigate to new password screen after 2 seconds
             setTimeout(() => {
-                router.push('./new-password');
+                router.navigate('/');
             }, 2000);
         } catch (error) {
             setToast({
