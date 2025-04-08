@@ -132,7 +132,7 @@ export default function Login() {
                                         activeOpacity={0.6}
                                         onPress={() => router.push('/forgot-password')}
                                     >
-                                        <Text className="text-blue-500 font-medium text-xs sm:text-sm">
+                                        <Text className="text-blue-500 font-medium text-xs sm:text-sm py-2">
                                             Quên mật khẩu?
                                         </Text>
                                     </TouchableOpacity>
