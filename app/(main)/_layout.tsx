@@ -22,15 +22,15 @@ export default function AppLayout() {
     const pathname = usePathname();
 
     if (!isLoading && !user) {
-      return <Redirect href="/" />;
+        return <Redirect href="/" />;
     }
 
     if (isLoading) {
-      return (
-        <View style={[styles.container, styles.loadingContainer]}>
-          <Text style={styles.loadingText}>Đang tải...</Text>
-        </View>
-      );
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <Text style={styles.loadingText}>Đang tải...</Text>
+            </View>
+        );
     }
 
     const routes: Route[] = [
@@ -62,7 +62,11 @@ export default function AppLayout() {
                     {/* Avatar */}
                     <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
                         <Image
-                            source={{ uri: "https://placehold.co/200x200/0068FF/FFFFFF/png?text=A" }}
+                            source={{
+                                uri:
+                                    user?.avatarURL ||
+                                    `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${user?.name?.charAt(0) || "U"}`,
+                            }}
                             style={styles.avatar}
                         />
                         <View style={styles.onlineIndicator} />
@@ -197,11 +201,11 @@ const styles = StyleSheet.create({
         color: "#0068FF",
     },
     loadingContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
     },
     loadingText: {
-      fontSize: 16,
-      color: '#0068FF',
+        fontSize: 16,
+        color: "#0068FF",
     },
 });
