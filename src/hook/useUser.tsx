@@ -10,6 +10,7 @@ export function useUser() {
       id: user.id,
       name: user.name,
       avatarURL: user.avatarURL,
+      coverURL: user.coverURL,
       phone: user.phone,
       email: user.email
     } : null
