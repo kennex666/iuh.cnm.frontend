@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Text, View, Image, TextInput, ScrollView, TouchableOpacity, Modal, Animated, Easing, ActivityIndicator } from 'react-native';
-import { useMessages } from '../hooks/useMessages';
-import { Conversation } from '../hooks/useConversations';
+import { useMessages } from '../../hook/useMessages';
+import { Conversation } from '../../hook/useConversations';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';

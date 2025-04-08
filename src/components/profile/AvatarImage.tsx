@@ -1,6 +1,6 @@
 import {Image, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
-import {ImageConstant} from "@/constants/ImageConstant";
+import {ImageConstant} from "@/src/constants/ImageConstant";
 
 interface AvatarImageProps {
     source: any;

@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { AuthProvider } from '@/contexts/userContext';
+import { AuthProvider } from '@/src/contexts/userContext';
 import "../global.css";
 
 export {

@@ -1,13 +1,13 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useRouter} from 'expo-router';
-import Toast from '@/components/Toast';
-import GradientBackground from '@/components/primary/GradientBackground';
-import AppLogo from '@/components/primary/AppLogo';
-import AuthHeader from '@/components/primary/AuthHeader';
-import FormInput from '@/components/primary/FormInput';
-import Button from '@/components/primary/Button';
-import TextLink from '@/components/primary/TextLink';
+import Toast from '@/src/components/ui/Toast';
+import GradientBackground from '@/src/components/auth/GradientBackground';
+import AppLogo from '@/src/components/auth/AppLogo';
+import AuthHeader from '@/src/components/auth/AuthHeader';
+import FormInput from '@/src/components/ui/FormInput';
+import Button from '@/src/components/ui/Button';
+import TextLink from '@/src/components/ui/TextLink';
 
 export default function Register() {
     const [phoneNumber, setPhoneNumber] = useState('');

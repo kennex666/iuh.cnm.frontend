@@ -1,15 +1,15 @@
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
-import Toast from '@/components/Toast';
-import GradientBackground from '@/components/primary/GradientBackground';
-import AppLogo from '@/components/primary/AppLogo';
-import AuthHeader from '@/components/primary/AuthHeader';
-import FormInput from '@/components/primary/FormInput';
-import Button from '@/components/primary/Button';
-import TextLink from '@/components/primary/TextLink';
-import Divider from '@/components/primary/Divider';
-import { useAuth } from '@/contexts/userContext';
+import Toast from '@/src/components/ui/Toast';
+import GradientBackground from '@/src/components/auth/GradientBackground';
+import AppLogo from '@/src/components/auth/AppLogo';
+import AuthHeader from '@/src/components/auth/AuthHeader';
+import FormInput from '@/src/components/ui/FormInput';
+import Button from '@/src/components/ui/Button';
+import TextLink from '@/src/components/ui/TextLink';
+import Divider from '@/src/components/ui/Divider';
+import { useAuth } from '@/src/contexts/userContext';
 
 export default function Login() {
     const { login } = useAuth();
@@ -112,7 +112,7 @@ export default function Login() {
                             editable={!loading}
                         />
 
-                        <TouchableOpacity className="self-end" activeOpacity={0.6}>
+                        <TouchableOpacity className="self-end" activeOpacity={0.6} onPress={() => router.push('/forgot-password')}>
                             <Text className="text-blue-500 font-medium text-xs sm:text-sm">
                                 Quên mật khẩu?
                             </Text>

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { User } from '@/models/User';
-import { storage } from '@/stores/userStorage';
-import { userService } from '@/api/userService';
+import { User } from '@/src/models/User';
+import { storage } from '@/src/services/userStorage';
+import { userService } from '@/src/api/services/userService';
 
 interface AuthContextType {
   user: Partial<User> | null;

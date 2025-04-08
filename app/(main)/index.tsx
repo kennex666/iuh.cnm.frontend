@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Platform } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import Conversations from '@/components/Conversations';
-import ChatArea from '@/components/ChatArea';
-import Info from '@/components/Info';
-import { Conversation } from '@/hooks/useConversations';
+import Conversations from '@/src/components/chat/Conversations';
+import ChatArea from '@/src/components/chat/ChatArea';
+import Info from '@/src/components/chat/Info';
+import { Conversation } from '@/src/hook/useConversations';
 
 export default function MessagesScreen() {
   // slectedChat state to manage the currently selected chat

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Conversation } from '../hooks/useConversations';
+import { Conversation } from '../../hook/useConversations';
 import Search from './Search';
 
 // Props interface cho component Info
