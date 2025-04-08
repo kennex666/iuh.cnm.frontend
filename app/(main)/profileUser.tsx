@@ -205,19 +205,16 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                     <View className="flex-row">
                         <View className="flex-1 mr-2">
                             <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                {/*<Text>{editUser?.dob?.split(' ')[0]}</Text>*/}
                                 <Text>{dob.split('/')[0]}</Text>
                             </TouchableOpacity>
                         </View>
                         <View className="flex-1 mr-2">
                             <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                {/*<Text>{editUser?.dob?.split(' ')[1]}</Text>*/}
                                 <Text>{dob.split('/')[1]}</Text>
                             </TouchableOpacity>
                         </View>
                         <View className="flex-1">
                             <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                {/*<Text>{editUser?.dob?.split(' ')[2]}</Text>*/}
                                 <Text>{dob.split('/')[2]}</Text>
                             </TouchableOpacity>
                         </View>
