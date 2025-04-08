@@ -1,8 +1,8 @@
-import {Stack, Link, usePathname, Href} from 'expo-router';
+import { Stack, Link, usePathname, Href } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import {Dimensions, StyleSheet, View, Text, Image, Platform, TouchableOpacity} from 'react-native';
+import { Dimensions, StyleSheet, View, Text, Image, Platform, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {useState} from "react";
+import { useState } from "react";
 import ProfileModal from "@/app/(main)/profileUser";
 
 type Route = {
@@ -13,7 +13,6 @@ type Route = {
 
 export default function AppLayout() {
   const [profileModalVisible, setProfileModalVisible] = useState(false);
-
   const { width } = Dimensions.get('window');
   const isDesktop = width > 768;
   const insets = useSafeAreaInsets();
@@ -45,36 +44,47 @@ export default function AppLayout() {
     <View style={styles.container}>
       {isDesktop ? (
         <View style={[styles.leftSidebar, { paddingTop: insets.top + 16 }]}>
-          {/* Avatar */}
-          <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
-            <Image 
-              source={{ uri: 'https://placehold.co/200x200/0068FF/FFFFFF/png?text=A' }}
-              style={styles.avatar}
-            />
-            <View style={styles.onlineIndicator} />
-          </TouchableOpacity>
+          <View className='flex-1 flex-col items-center justify-between'>
+            {/* Header of Tabs */}
+            <View>
+              {/* Avatar */}
+              <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
+                <Image
+                  source={{ uri: 'https://placehold.co/200x200/0068FF/FFFFFF/png?text=A' }}
+                  style={styles.avatar}
+                />
+                <View style={styles.onlineIndicator} />
+              </TouchableOpacity>
 
-          {/* Divider */}
-          <View style={styles.divider} />
+              {/* Divider */}
+              <View style={styles.divider} />
 
-          {routes.map((route) => {
-            const active = isActive(route.name);
-            return (
-              <Link
-                key={route.name}
-                href={getHref(route.name)}
-                style={[styles.tabItem, active && styles.activeTabItem]}
-              >
-                <View style={styles.iconContainer}>
-                  <FontAwesome 
-                    name={route.icon}
-                    size={24} 
-                    color={active ? '#0068FF' : '#666'} 
-                  />
-                </View>
-              </Link>
-            );
-          })}
+              {routes.map((route) => {
+                const active = isActive(route.name);
+                return (
+                  <Link
+                    key={route.name}
+                    href={getHref(route.name)}
+                    style={[styles.tabItem, active && styles.activeTabItem]}
+                  >
+                    <View style={styles.iconContainer}>
+                      <FontAwesome
+                        name={route.icon}
+                        size={24}
+                        color={active ? '#0068FF' : '#666'}
+                      />
+                    </View>
+                  </Link>
+                );
+              })}
+            </View>
+            {/* Bottoms: logout, exit */}
+            <View className='flex flex-col items-center justify-center py-4 relative'>
+              <TouchableOpacity className='p-2 rounded-lg'>
+              <FontAwesome name="sign-out" size={24} color="#FF0000" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       ) : null}
 
@@ -96,10 +106,10 @@ export default function AppLayout() {
                 style={styles.bottomTabItem}
               >
                 <View style={styles.iconContainer}>
-                  <FontAwesome 
+                  <FontAwesome
                     name={route.icon}
-                    size={24} 
-                    color={active ? '#0068FF' : '#666'} 
+                    size={24}
+                    color={active ? '#0068FF' : '#666'}
                   />
                 </View>
                 <Text style={[
@@ -114,8 +124,8 @@ export default function AppLayout() {
         </View>
       ) : null}
       <ProfileModal
-          visible={profileModalVisible}
-          onClose={() => setProfileModalVisible(false)}
+        visible={profileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
       />
     </View>
   );
@@ -145,7 +155,7 @@ const styles = StyleSheet.create({
   },
   onlineIndicator: {
     position: 'absolute',
-    right: -2,
+    right: 6,
     bottom: -2,
     width: 12,
     height: 12,
