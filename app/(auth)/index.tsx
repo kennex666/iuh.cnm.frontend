@@ -95,19 +95,19 @@ export default function Login() {
                     keyboardShouldPersistTaps="handled"
                 >
                     <View 
-                        className="flex-1 justify-start items-center px-4 pt-8 sm:justify-center sm:px-6 md:px-8 lg:px-10" 
-                        style={{paddingTop: Math.max(insets.top + 20, 40)}}
+                        className="flex-1 justify-end items-center px-4 pb-6" 
+                        style={{paddingTop: Math.max(insets.top, 20)}}
                     >
                         <View className="w-full max-w-[100%] sm:max-w-[420px]">
                             <AppLogo />
 
-                            <View className="mt-4 sm:mt-6">
+                            <View className="mt-4">
                                 <AuthHeader
                                     title="Welcome Back!"
                                     subtitle={'Đăng nhập để kết nối với bạn bè và\nngười thân của bạn'}
                                 />
 
-                                <View className="mt-4 space-y-3 sm:space-y-4">
+                                <View className="mt-4 space-y-3">
                                     <FormInput
                                         icon="person-outline"
                                         placeholder="Số điện thoại"
