@@ -139,14 +139,14 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         )}
                     </View>
                 </View>
-                <View className="flex-row items-center space-x-4">
-                    <TouchableOpacity>
+                <View className="flex-row items-center">
+                    <TouchableOpacity className="p-2 mr-1">
                         <Ionicons name="call-outline" size={22} color="#666"/>
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity className="p-2 mr-1">
                         <Ionicons name="videocam-outline" size={22} color="#666"/>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={onInfoPress}>
+                    <TouchableOpacity className="p-2" onPress={onInfoPress}>
                         <Ionicons name="information-circle-outline" size={24} color="#666"/>
                     </TouchableOpacity>
                 </View>
