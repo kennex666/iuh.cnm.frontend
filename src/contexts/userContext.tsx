@@ -1,14 +1,10 @@
-import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import {User} from '@/src/models/User';
 import {storage} from '@/src/services/userStorage';
 import {userService} from '@/src/api/services/userService';
+import {AuthContextType} from "@/src/models/AuthContextType";
+import {AuthProviderProps} from "@/src/models/AuthProviderProps";
 
-interface AuthContextType {
-    user: Partial<User> | null;
-    isLoading: boolean;
-    login: (phone: string, password: string) => Promise<{ success: boolean; message?: string }>;
-    logout: () => Promise<void>;
-}
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -20,23 +16,21 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-interface AuthProviderProps {
-    children: ReactNode;
-}
-
 export const AuthProvider = ({children}: AuthProviderProps) => {
     const [user, setUser] = useState<Partial<User> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Tự động tải thông tin user khi khởi động app
-        const loadUser = async () => {
-            const storedUser = await storage.getUser();
-            setUser(storedUser);
-            setIsLoading(false);
-        };
+    const loadUser = async () => {
+        const storedUser = await storage.getUser();
+        setUser(storedUser);
+        setIsLoading(false);
+    };
 
-        loadUser();
+    useEffect(() => {
+        loadUser().catch((error) => {
+            console.error('Error loading user:', error);
+            setIsLoading(false);
+        });
     }, []);
 
     const login = async (phone: string, password: string) => {

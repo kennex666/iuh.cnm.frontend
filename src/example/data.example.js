@@ -1,4 +1,3 @@
-// Sample data for the chat application
 export const users = [
     {
         id: "u1",
