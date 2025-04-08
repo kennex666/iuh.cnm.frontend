@@ -9,10 +9,13 @@ export function useUser() {
         profile: user ? {
             id: user.id,
             name: user.name,
+            email: user.email,
+            phone: user.phone,
+            gender: user.gender,
             avatarURL: user.avatarURL,
             coverURL: user.coverURL,
-            phone: user.phone,
-            email: user.email
+            dob: user.dob,
+            isOnline: user.isOnline,
         } : null
     };
 }
