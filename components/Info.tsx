@@ -10,7 +10,7 @@ interface InfoProps {
 export default function Info({ selectedChat }: InfoProps) {
   if (!selectedChat) {
     return (
-      <View className="flex-1 items-center justify-center">
+      <View className="flex-1 items-center justify-center border-l border-gray-200">
         <Text className="text-gray-500">Chọn một cuộc trò chuyện để xem thông tin</Text>
       </View>
     );
@@ -19,7 +19,7 @@ export default function Info({ selectedChat }: InfoProps) {
   // Hiển thị giao diện cho người dùng
   if (!selectedChat.isGroup) {
     return (
-      <ScrollView className="flex-1 bg-white">
+      <ScrollView className="flex-1 bg-white border-l border-gray-200">
         {/* Header title */}
         <View className="h-14 px-4 border-b border-gray-200 flex-row items-center">
           <Text className="text-lg font-semibold text-gray-900">Thông tin người dùng</Text>
@@ -94,7 +94,7 @@ export default function Info({ selectedChat }: InfoProps) {
 
   // Hiển thị giao diện cho nhóm
   return (
-    <ScrollView className="flex-1 bg-white">
+    <ScrollView className="flex-1 bg-white border-l border-gray-200">
       {/* Header title */}
       <View className="h-14 px-4 border-b border-gray-200 flex-row items-center">
         <Text className="text-lg font-semibold text-gray-900">Thông tin nhóm</Text>
