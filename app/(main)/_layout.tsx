@@ -1,6 +1,6 @@
 import {Href, Link, Redirect, Stack, usePathname} from "expo-router";
 import {FontAwesome} from "@expo/vector-icons";
-import {Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
@@ -27,8 +27,8 @@ export default function AppLayout() {
 
     if (isLoading) {
         return (
-            <View style={[styles.container, styles.loadingContainer]}>
-                <Text style={styles.loadingText}>Đang tải...</Text>
+            <View className="flex-1 justify-center items-center">
+                <Text className="text-base text-blue-500">Đang tải...</Text>
             </View>
         );
     }
@@ -56,14 +56,14 @@ export default function AppLayout() {
     };
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 flex-row bg-white">
             {isDesktop ? (
-                <View style={[styles.leftSidebar, {paddingTop: insets.top + 16}]}>
+                <View className={`w-16 bg-white items-center border-r border-gray-200`} style={{paddingTop: insets.top + 16}}>
                     <View className='flex-1 flex-col items-center justify-between'>
                         {/* Header of Tabs */}
                         <View>
                             {/* Avatar */}
-                            <TouchableOpacity style={styles.avatarContainer}
+                            <TouchableOpacity className="relative mb-4"
                                               onPress={() => setProfileModalVisible(true)}>
                                 <Image
                                     source={{
@@ -71,13 +71,13 @@ export default function AppLayout() {
                                             user?.avatarURL ||
                                             `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${user?.name?.charAt(0) || "U"}`,
                                     }}
-                                    style={styles.avatar}
+                                    className="w-10 h-10 rounded-full"
                                 />
-                                <View style={styles.onlineIndicator}/>
+                                <View className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white"/>
                             </TouchableOpacity>
 
                             {/* Divider */}
-                            <View style={styles.divider}/>
+                            <View className="w-4/5 h-px bg-gray-200 mb-4"/>
 
                             {routes.map((route) => {
                                 const active = isActive(route.name);
@@ -85,9 +85,9 @@ export default function AppLayout() {
                                     <Link
                                         key={route.name}
                                         href={getHref(route.name)}
-                                        style={[styles.tabItem, active && styles.activeTabItem]}
+                                        className={`w-12 h-12 justify-center items-center mb-2 rounded-xl ${active ? 'bg-blue-50' : ''}`}
                                     >
-                                        <View style={styles.iconContainer}>
+                                        <View className="w-full h-full justify-center items-center">
                                             <FontAwesome name={route.icon} size={24}
                                                          color={active ? "#0068FF" : "#666"}/>
                                         </View>
@@ -105,21 +105,23 @@ export default function AppLayout() {
                 </View>
             ) : null}
 
-            <View style={styles.content}>
+            <View className="flex-1">
                 <Stack screenOptions={{headerShown: false}}/>
             </View>
 
             {!isDesktop ? (
-                <View style={[styles.bottomTabs, {paddingBottom: insets.bottom, height: 52 + insets.bottom}]}>
+                <View className="absolute bottom-0 left-0 right-0 flex-row bg-white border-t border-gray-200 pt-1.5" 
+                      style={{paddingBottom: insets.bottom, height: 52 + insets.bottom}}>
                     {routes.map((route) => {
                         const active = isActive(route.name);
                         return (
-                            <Link key={route.name} href={getHref(route.name)} style={styles.bottomTabItem}>
-                                <View style={styles.iconContainer}>
+                            <Link key={route.name} href={getHref(route.name)} className="flex-1 h-[46px] justify-center items-center">
+                                <View className="w-full h-full justify-center items-center">
                                     <FontAwesome name={route.icon} size={24} color={active ? "#0068FF" : "#666"}/>
                                 </View>
-                                <Text
-                                    style={[styles.bottomTabText, active && styles.activeBottomTabText]}>{route.title}</Text>
+                                <Text className={`text-xs mt-1 ${active ? 'text-blue-500' : 'text-gray-500'}`}>
+                                    {route.title}
+                                </Text>
                             </Link>
                         );
                     })}
@@ -129,97 +131,3 @@ export default function AppLayout() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        flexDirection: "row",
-        backgroundColor: "#fff",
-    },
-    leftSidebar: {
-        width: 64,
-        backgroundColor: "#fff",
-        alignItems: "center",
-        borderRightWidth: 1,
-        borderRightColor: "#E5E7EB",
-    },
-    avatarContainer: {
-        position: "relative",
-        marginBottom: 16,
-    },
-    avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-    },
-    onlineIndicator: {
-        position: "absolute",
-        right: -2,
-        bottom: -2,
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: "#22C55E",
-        borderWidth: 2,
-        borderColor: "#fff",
-    },
-    divider: {
-        width: "80%",
-        height: 1,
-        backgroundColor: "#E5E7EB",
-        marginBottom: 16,
-    },
-    tabItem: {
-        width: 48,
-        height: 48,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 8,
-        borderRadius: 12,
-    },
-    activeTabItem: {
-        backgroundColor: "#EBF5FF",
-    },
-    iconContainer: {
-        width: "100%",
-        height: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    content: {
-        flex: 1,
-    },
-    bottomTabs: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        flexDirection: "row",
-        backgroundColor: "#fff",
-        borderTopWidth: 1,
-        borderTopColor: "#E5E7EB",
-        paddingTop: 6,
-    },
-    bottomTabItem: {
-        flex: 1,
-        height: 46,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    bottomTabText: {
-        fontSize: 12,
-        marginTop: 4,
-        color: "#666",
-    },
-    activeBottomTabText: {
-        color: "#0068FF",
-    },
-    loadingContainer: {
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    loadingText: {
-        fontSize: 16,
-        color: "#0068FF",
-    },
-});

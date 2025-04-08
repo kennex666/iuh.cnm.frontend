@@ -16,6 +16,7 @@ import {Conversation} from '../../hook/useConversations';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
+import {shadows} from '@/src/styles/shadow';
 
 interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -207,7 +208,9 @@ export default function ChatArea({selectedChat}: ChatAreaProps) {
                                     }),
                                 }}
                             >
-                                <View className="bg-white shadow-md rounded-lg p-4 w-[300px]">
+                                <View 
+                                    className="bg-white rounded-lg p-4 w-[300px]"
+                                    style={shadows.md}>
                                     <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
 
                                     <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
@@ -232,7 +235,8 @@ export default function ChatArea({selectedChat}: ChatAreaProps) {
                         </TouchableOpacity>
                         {isModelSticker && (
                             <View
-                                className='absolute bottom-full bg-white z-50 left-0 shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+                                className='absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200'
+                                style={shadows.xl}>
                                 <StickerPicker
                                     setMessage={setMessage}
                                     toggleModelSticker={toggleModelSticker}
@@ -275,7 +279,8 @@ export default function ChatArea({selectedChat}: ChatAreaProps) {
                         {
                             isModelEmoji && (
                                 <View
-                                    className='absolute bottom-full bg-white z-50 right-0 w-[300px] shadow-xl rounded-lg overflow-hidden border border-gray-200'>
+                                    className='absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200'
+                                    style={shadows.xl}>
                                     <EmojiPicker setMessage={setMessage} toggleModelEmoji={toggleModelEmoji}/>
                                 </View>
                             )

@@ -10,6 +10,7 @@ import {
     View
 } from 'react-native'
 import {Ionicons} from '@expo/vector-icons';
+import {shadows} from '@/src/styles/shadow';
 
 interface Category {
     id: string;
@@ -198,7 +199,13 @@ export default function StickerPicker({setMessage, toggleModelSticker}: StickerP
     };
 
     return (
-        <View style={{width: containerWidth}} className="bg-white rounded-lg shadow-lg">
+        <View 
+            style={{
+                width: containerWidth,
+                backgroundColor: 'white',
+                borderRadius: 8,
+                ...shadows.lg
+            }}>
             {/* Search Bar - Chỉ hiển thị khi không có category được chọn */}
             {!selectedCategory && (
                 <View className="p-2 border-b border-gray-200">
