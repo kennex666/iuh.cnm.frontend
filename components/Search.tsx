@@ -9,7 +9,6 @@ interface SearchProps {
   conversationId: string;  // ID của cuộc trò chuyện hiện tại
 }
 
-// Interface định nghĩa cấu trúc của một kết quả tìm kiếm
 interface SearchResult {
   type: 'message' | 'file' | 'image';  // Loại kết quả
   title: string;                       // Tiêu đề/nội dung
@@ -23,7 +22,7 @@ export default function Search({ isVisible, onClose, conversationId }: SearchPro
   const [searchText, setSearchText] = useState('');  // Text người dùng nhập để tìm kiếm
   const [activeTab, setActiveTab] = useState<'all' | 'messages' | 'files' | 'media'>('all');  // Tab đang được chọn
 
-  // Mock data - sẽ được thay thế bằng dữ liệu thực từ API sau này
+  // Mock data  thay thế bằng dữ liệu thực từ API sau này
   const mockResults: SearchResult[] = [
     {
       type: 'message',
@@ -101,9 +100,9 @@ export default function Search({ isVisible, onClose, conversationId }: SearchPro
       {/* Khu vực hiển thị kết quả tìm kiếm */}
       <ScrollView className="flex-1">
         {searchText.length > 0 ? (
-          // Lọc và hiển thị kết quả dựa trên tab đang active
-          mockResults
-            .filter((result) => {
+          // Lọc và hiển thị kết quả dựa trên tab đang active 
+          // Lọc kết quả dựa trên tab đang active
+          mockResults.filter((result) => {
               if (activeTab === 'all') return true;
               if (activeTab === 'messages') return result.type === 'message';
               if (activeTab === 'files') return result.type === 'file';
