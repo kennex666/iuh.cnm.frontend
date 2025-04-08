@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity, View, ScrollView, KeyboardAvoidingView, Platform} from 'react-native';
+import {KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
@@ -86,20 +86,20 @@ export default function Login() {
 
     return (
         <GradientBackground>
-            <KeyboardAvoidingView 
+            <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 className="flex-1"
             >
-                <ScrollView 
+                <ScrollView
                     contentContainerStyle={{flexGrow: 1}}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View 
-                        className="flex-1 justify-start items-center px-4 pt-8 sm:justify-center sm:px-6 md:px-8 lg:px-10" 
+                    <View
+                        className="flex-1 justify-start items-center px-4 pt-8 sm:justify-center sm:px-6 md:px-8 lg:px-10"
                         style={{paddingTop: Math.max(insets.top + 20, 40)}}
                     >
                         <View className="w-full max-w-[100%] sm:max-w-[420px]">
-                            <AppLogo />
+                            <AppLogo/>
 
                             <View className="mt-4 sm:mt-6">
                                 <AuthHeader
@@ -127,8 +127,8 @@ export default function Login() {
                                         editable={!loading}
                                     />
 
-                                    <TouchableOpacity 
-                                        className="self-end" 
+                                    <TouchableOpacity
+                                        className="self-end"
                                         activeOpacity={0.6}
                                         onPress={() => router.push('/forgot-password')}
                                     >
@@ -148,7 +148,8 @@ export default function Login() {
 
                                     <Button
                                         title="Đăng nhập bằng mã QR"
-                                        onPress={() => {}}
+                                        onPress={() => {
+                                        }}
                                         variant="outline"
                                         icon="qr-code-outline"
                                         className="mt-2"

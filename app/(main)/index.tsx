@@ -1,10 +1,9 @@
 import React, {useState} from 'react';
-import {View, Platform} from 'react-native';
+import {useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/chat/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
 import Info from '@/src/components/chat/Info';
 import {Conversation} from '@/src/hook/useConversations';
-import {useWindowDimensions} from 'react-native';
 
 export default function MessagesScreen() {
     // slectedChat state to manage the currently selected chat
@@ -35,7 +34,7 @@ export default function MessagesScreen() {
 
                 {/* Middle Column - Chat Area (50%) */}
                 <View className="w-1/2">
-                    <ChatArea 
+                    <ChatArea
                         selectedChat={selectedChat}
                         onInfoPress={handleInfoPress}
                     />
@@ -55,28 +54,28 @@ export default function MessagesScreen() {
             {!selectedChat && (
                 <View className='flex-1'>
                     <View className='h-8'></View>
-                    <Conversations 
-                        selectedChat={selectedChat} 
+                    <Conversations
+                        selectedChat={selectedChat}
                         onSelectChat={setSelectedChat}
                     />
                 </View>
             )}
-            
+
             {selectedChat && !showInfo && (
-               <View className='flex-1'>
-                <View className='h-8'></View>
-                <ChatArea 
-                    selectedChat={selectedChat}
-                    onBackPress={handleBackPress}
-                    onInfoPress={handleInfoPress}
-                />
-               </View>
+                <View className='flex-1'>
+                    <View className='h-8'></View>
+                    <ChatArea
+                        selectedChat={selectedChat}
+                        onBackPress={handleBackPress}
+                        onInfoPress={handleInfoPress}
+                    />
+                </View>
             )}
 
             {selectedChat && showInfo && (
                 <View className='flex-1'>
                     <View className='h-8'></View>
-                    <Info 
+                    <Info
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}
                     />
