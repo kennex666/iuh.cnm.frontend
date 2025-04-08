@@ -130,7 +130,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         <View className="flex-1 bg-white">
             <ModalHeader
                 title="Thông tin tài khoản"
-                onLeftPress={closeModal}
+                onRightPress={closeModal}
+                rightIconName="close"
             />
 
             <ScrollView className="flex-1 bg-gray-100">
