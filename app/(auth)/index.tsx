@@ -112,7 +112,7 @@ export default function Login() {
                             editable={!loading}
                         />
 
-                        <TouchableOpacity className="self-end" activeOpacity={0.6}>
+                        <TouchableOpacity className="self-end" activeOpacity={0.6} onPress={() => router.push('/forgot-password')}>
                             <Text className="text-blue-500 font-medium text-xs sm:text-sm">
                                 Quên mật khẩu?
                             </Text>
