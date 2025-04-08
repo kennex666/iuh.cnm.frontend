@@ -47,13 +47,13 @@ export default function VerifyResetCode() {
             // TODO: Implement actual verification API call
             // This is a mock implementation
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
+
             setToast({
                 visible: true,
                 message: 'Xác thực thành công!',
                 type: 'success'
             });
-            
+
             // Navigate to new password screen after 2 seconds
             setTimeout(() => {
                 router.navigate('/');

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {useRouter} from 'expo-router';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
@@ -39,13 +39,13 @@ export default function ForgotPassword() {
             // TODO: Implement actual password reset API call
             // This is a mock implementation
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
+
             setToast({
                 visible: true,
                 message: 'Mã xác thực đã được gửi đến số điện thoại của bạn',
                 type: 'success'
             });
-            
+
             // Navigate to verification screen after 2 seconds
             setTimeout(() => {
                 router.push('./verify-reset-code');

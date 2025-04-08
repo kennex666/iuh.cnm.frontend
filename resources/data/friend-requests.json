@@ -1,20 +1,20 @@
 {
-  "friendRequests": [
-    {
-      "id": "fr1",
-      "senderId": "u1",
-      "receiverId": "u2",
-      "status": "pending",
-      "createdAt": "2024-03-10T00:00:00.000Z",
-      "updatedAt": "2024-03-10T00:00:00.000Z"
-    },
-    {
-      "id": "fr2",
-      "senderId": "u3",
-      "receiverId": "u1",
-      "status": "accepted",
-      "createdAt": "2024-03-08T00:00:00.000Z",
-      "updatedAt": "2024-03-09T00:00:00.000Z"
-    }
-  ]
+    "friendRequests": [
+        {
+            "id": "fr1",
+            "senderId": "u1",
+            "receiverId": "u2",
+            "status": "pending",
+            "createdAt": "2024-03-10T00:00:00.000Z",
+            "updatedAt": "2024-03-10T00:00:00.000Z"
+        },
+        {
+            "id": "fr2",
+            "senderId": "u3",
+            "receiverId": "u1",
+            "status": "accepted",
+            "createdAt": "2024-03-08T00:00:00.000Z",
+            "updatedAt": "2024-03-09T00:00:00.000Z"
+        }
+    ]
 } 

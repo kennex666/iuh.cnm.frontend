@@ -1,10 +1,10 @@
-import { Stack, Link, usePathname, Href, Redirect } from "expo-router";
-import { FontAwesome } from "@expo/vector-icons";
-import { Dimensions, StyleSheet, View, Text, Image, Platform, TouchableOpacity } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useState } from "react";
+import {Href, Link, Redirect, Stack, usePathname} from "expo-router";
+import {FontAwesome} from "@expo/vector-icons";
+import {Dimensions, Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {useSafeAreaInsets} from "react-native-safe-area-context";
+import {useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import { useAuth } from "@/src/contexts/userContext";
+import {useAuth} from "@/src/contexts/userContext";
 
 type Route = {
     name: string;
@@ -13,16 +13,16 @@ type Route = {
 };
 
 export default function AppLayout() {
-    const { user, isLoading } = useAuth();
+    const {user, isLoading} = useAuth();
     const [profileModalVisible, setProfileModalVisible] = useState(false);
 
-    const { width } = Dimensions.get("window");
+    const {width} = Dimensions.get("window");
     const isDesktop = width > 768;
     const insets = useSafeAreaInsets();
     const pathname = usePathname();
 
     if (!isLoading && !user) {
-        return <Redirect href="/" />;
+        return <Redirect href="/"/>;
     }
 
     if (isLoading) {
@@ -34,9 +34,9 @@ export default function AppLayout() {
     }
 
     const routes: Route[] = [
-        { name: "index", title: "Tin nhắn", icon: "comments" },
-        { name: "contacts", title: "Danh bạ", icon: "address-book" },
-        { name: "diary", title: "Nhật ký", icon: "clock-o" },
+        {name: "index", title: "Tin nhắn", icon: "comments"},
+        {name: "contacts", title: "Danh bạ", icon: "address-book"},
+        {name: "diary", title: "Nhật ký", icon: "clock-o"},
     ];
 
     // Check if the current route is active
@@ -58,12 +58,13 @@ export default function AppLayout() {
     return (
         <View style={styles.container}>
             {isDesktop ? (
-                <View style={[styles.leftSidebar, { paddingTop: insets.top + 16 }]}>
+                <View style={[styles.leftSidebar, {paddingTop: insets.top + 16}]}>
                     <View className='flex-1 flex-col items-center justify-between'>
                         {/* Header of Tabs */}
                         <View>
                             {/* Avatar */}
-                            <TouchableOpacity style={styles.avatarContainer} onPress={() => setProfileModalVisible(true)}>
+                            <TouchableOpacity style={styles.avatarContainer}
+                                              onPress={() => setProfileModalVisible(true)}>
                                 <Image
                                     source={{
                                         uri:
@@ -72,11 +73,11 @@ export default function AppLayout() {
                                     }}
                                     style={styles.avatar}
                                 />
-                                <View style={styles.onlineIndicator} />
+                                <View style={styles.onlineIndicator}/>
                             </TouchableOpacity>
 
                             {/* Divider */}
-                            <View style={styles.divider} />
+                            <View style={styles.divider}/>
 
                             {routes.map((route) => {
                                 const active = isActive(route.name);
@@ -87,7 +88,8 @@ export default function AppLayout() {
                                         style={[styles.tabItem, active && styles.activeTabItem]}
                                     >
                                         <View style={styles.iconContainer}>
-                                            <FontAwesome name={route.icon} size={24} color={active ? "#0068FF" : "#666"} />
+                                            <FontAwesome name={route.icon} size={24}
+                                                         color={active ? "#0068FF" : "#666"}/>
                                         </View>
                                     </Link>
                                 );
@@ -96,7 +98,7 @@ export default function AppLayout() {
                         {/* Bottoms: logout, exit */}
                         <View className='flex flex-col items-center justify-center py-4 relative'>
                             <TouchableOpacity className='p-2 rounded-lg'>
-                                <FontAwesome name="sign-out" size={24} color="#FF0000" />
+                                <FontAwesome name="sign-out" size={24} color="#FF0000"/>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -104,25 +106,26 @@ export default function AppLayout() {
             ) : null}
 
             <View style={styles.content}>
-                <Stack screenOptions={{ headerShown: false }} />
+                <Stack screenOptions={{headerShown: false}}/>
             </View>
 
             {!isDesktop ? (
-                <View style={[styles.bottomTabs, { paddingBottom: insets.bottom, height: 52 + insets.bottom }]}>
+                <View style={[styles.bottomTabs, {paddingBottom: insets.bottom, height: 52 + insets.bottom}]}>
                     {routes.map((route) => {
                         const active = isActive(route.name);
                         return (
                             <Link key={route.name} href={getHref(route.name)} style={styles.bottomTabItem}>
                                 <View style={styles.iconContainer}>
-                                    <FontAwesome name={route.icon} size={24} color={active ? "#0068FF" : "#666"} />
+                                    <FontAwesome name={route.icon} size={24} color={active ? "#0068FF" : "#666"}/>
                                 </View>
-                                <Text style={[styles.bottomTabText, active && styles.activeBottomTabText]}>{route.title}</Text>
+                                <Text
+                                    style={[styles.bottomTabText, active && styles.activeBottomTabText]}>{route.title}</Text>
                             </Link>
                         );
                     })}
                 </View>
             ) : null}
-            <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
+            <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)}/>
         </View>
     );
 }

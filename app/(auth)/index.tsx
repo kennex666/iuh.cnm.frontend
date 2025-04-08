@@ -9,10 +9,10 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import Divider from '@/src/components/ui/Divider';
-import { useAuth } from '@/src/contexts/userContext';
+import {useAuth} from '@/src/contexts/userContext';
 
 export default function Login() {
-    const { login } = useAuth();
+    const {login} = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -50,14 +50,14 @@ export default function Login() {
         try {
             // Gọi API đăng nhập thực tế
             const result = await login(phoneNumber, password);
-            
+
             if (result.success) {
                 setToast({
                     visible: true,
                     message: 'Đăng nhập thành công!',
                     type: 'success'
                 });
-                
+
                 // Đợi toast hiển thị xong rồi chuyển trang
                 setTimeout(() => {
                     router.replace('/(main)');
@@ -112,7 +112,8 @@ export default function Login() {
                             editable={!loading}
                         />
 
-                        <TouchableOpacity className="self-end" activeOpacity={0.6} onPress={() => router.push('/forgot-password')}>
+                        <TouchableOpacity className="self-end" activeOpacity={0.6}
+                                          onPress={() => router.push('/forgot-password')}>
                             <Text className="text-blue-500 font-medium text-xs sm:text-sm">
                                 Quên mật khẩu?
                             </Text>
@@ -129,7 +130,8 @@ export default function Login() {
 
                         <Button
                             title="Đăng nhập bằng mã QR"
-                            onPress={() => {}}
+                            onPress={() => {
+                            }}
                             variant="outline"
                             icon="qr-code-outline"
                         />
