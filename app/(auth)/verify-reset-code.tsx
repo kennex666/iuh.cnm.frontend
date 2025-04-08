@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
+import {View, ScrollView, KeyboardAvoidingView, Platform} from 'react-native';
 import {useRouter} from 'expo-router';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
 import AppLogo from '@/src/components/auth/AppLogo';
@@ -18,6 +19,7 @@ export default function VerifyResetCode() {
         type: 'success' as 'success' | 'error'
     });
     const router = useRouter();
+    const insets = useSafeAreaInsets();
 
     const validateForm = () => {
         if (!verificationCode) {
@@ -72,41 +74,56 @@ export default function VerifyResetCode() {
 
     return (
         <GradientBackground>
-            <View className="flex-1 justify-center items-center px-4 py-8 sm:px-6 md:px-8 lg:px-10">
-                <View className="w-full max-w-[420px]">
-                    <AppLogo/>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                className="flex-1"
+            >
+                <ScrollView 
+                    contentContainerStyle={{flexGrow: 1}}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View 
+                        className="flex-1 justify-start items-center px-4 pt-8 sm:justify-center sm:px-6 md:px-8 lg:px-10" 
+                        style={{paddingTop: Math.max(insets.top + 20, 40)}}
+                    >
+                        <View className="w-full max-w-[100%] sm:max-w-[420px]">
+                            <AppLogo />
 
-                    <AuthHeader
-                        title="Xác thực mã"
-                        subtitle={'Nhập mã xác thực đã được gửi đến\nsố điện thoại của bạn'}
-                    />
+                            <View className="mt-4 sm:mt-6">
+                                <AuthHeader
+                                    title="Xác thực mã"
+                                    subtitle={'Nhập mã xác thực đã được gửi đến\nsố điện thoại của bạn'}
+                                />
 
-                    <View className="space-y-4 sm:space-y-5">
-                        <FormInput
-                            icon="key-outline"
-                            placeholder="Mã xác thực"
-                            value={verificationCode}
-                            onChangeText={(text) => setVerificationCode(text.slice(0, 6))}
-                            editable={!loading}
-                            keyboardType="numeric"
-                        />
+                                <View className="mt-4 space-y-3 sm:space-y-4">
+                                    <FormInput
+                                        icon="key-outline"
+                                        placeholder="Mã xác thực"
+                                        value={verificationCode}
+                                        onChangeText={(text) => setVerificationCode(text.slice(0, 6))}
+                                        editable={!loading}
+                                        keyboardType="numeric"
+                                    />
 
-                        <Button
-                            title="Xác nhận"
-                            onPress={handleVerifyCode}
-                            loading={loading}
-                            className="mt-4"
-                        />
+                                    <Button
+                                        title="Xác nhận"
+                                        onPress={handleVerifyCode}
+                                        loading={loading}
+                                        className="mt-2"
+                                    />
 
-                        <TextLink
-                            href="./forgot-password"
-                            text="Không nhận được mã?"
-                            linkText="Gửi lại"
-                            className="mt-6 sm:mt-8"
-                        />
+                                    <TextLink
+                                        href="./forgot-password"
+                                        text="Không nhận được mã?"
+                                        linkText="Gửi lại"
+                                        className="mt-4"
+                                    />
+                                </View>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             <Toast
                 visible={toast.visible}
