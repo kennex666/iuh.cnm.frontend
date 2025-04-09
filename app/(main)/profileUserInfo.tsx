@@ -37,16 +37,12 @@ export default function ProfileUserInfo({
                 rightIconName="close"
             />
 
-            <ScrollView className="flex-1 bg-gray-100">
+            <ScrollView className="flex-1 bg-gray-100 pb-16">
                 <View className="items-center mb-2 mt-4 bg-white p-2">
                     <CoverImage customSource={coverSource} onPickImage={onPickCover}/>
                     <AvatarImage customSource={avatarSource} onPickImage={onPickAvatar}/>
 
                     <Text className="text-xl font-bold">{user?.name}</Text>
-                    <TouchableOpacity onPress={onEditPress} className="mt-2 flex-row items-center">
-                        <Ionicons name="pencil-outline" size={16} color="#1E88E5"/>
-                        <Text className="text-blue-500 ml-1">Cập nhật</Text>
-                    </TouchableOpacity>
                 </View>
 
                 <View className="mt-2 bg-white p-4">
@@ -63,6 +59,16 @@ export default function ProfileUserInfo({
                     </View>
                 </View>
             </ScrollView>
+
+            <View className="absolute bottom-0 w-full p-3 bg-white border-t border-gray-200">
+                <TouchableOpacity
+                    onPress={onEditPress}
+                    className="w-full self-center bg-blue-400 py-3 rounded-lg flex-row justify-center items-center"
+                >
+                    <Ionicons name="pencil-outline" size={18} color="white"/>
+                    <Text className="text-white font-medium ml-2">Cập nhật</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
