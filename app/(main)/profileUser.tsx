@@ -20,7 +20,7 @@ import CoverImage from "@/src/components/profile/CoverImage";
 import AvatarImage from "@/src/components/profile/AvatarImage";
 import ProfileInfoItem from "@/src/components/profile/ProfileInfoItem";
 import RadioButton from "@/src/components/profile/RadioButton";
-import {useUser} from "@/src/hook/useUser";
+import {useUser} from "@/src/hooks/useUser";
 import {formatDate} from "@/src/utils/datetime";
 
 type ProfileModalProps = {
