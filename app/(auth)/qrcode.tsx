@@ -5,11 +5,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { shadows } from "@/src/styles/shadow";
 import Loading from "@/src/components/loading/loading";
+import QRCodeDisplay from "@/src/components/ui/QRCodeDisplay";
 
 export default function QrCode() {
   const [showScanner, setShowScanner] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [qrValue, setQrValue] = useState("");
+  const [qrValue, setQrValue] = useState("https://ngthluan.io.vn/");
 
   // Router
   const router = useRouter();
@@ -78,7 +79,10 @@ export default function QrCode() {
           </View>
           {/* Phần QR code */}
           <View className="bg-white p-4 rounded-2xl border-2 border-gray-100">
-            <Text>Ma QR show</Text>
+            <QRCodeDisplay 
+              value={qrValue}
+              size={256}
+            />
           </View>
           {/* Thông tin bổ sung */}
           <View className="mt-6">
@@ -128,7 +132,7 @@ export default function QrCode() {
           <TouchableOpacity
             className="absolute top-6 right-6 bg-black/30 p-3 rounded-full"
             onPress={() => {
-              /* handle toggle flash */
+             
             }}
           >
             <Ionicons name="flash-outline" size={24} color="white" />
