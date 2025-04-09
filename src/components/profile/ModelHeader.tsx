@@ -24,7 +24,7 @@ const ModalHeader = ({
                      }: ModalHeaderProps) => (
     <View className="bg-white p-4 border-b border-gray-200">
         <View className="flex-row items-center">
-            <View style={{flex: 1.5, flexDirection: "row", alignItems: "center"}}>
+            <View style={{flex: 2, flexDirection: "row", alignItems: "center"}}>
                 {onLeftPress ? (
                     <TouchableOpacity onPress={onLeftPress} className="p-2 flex-row items-center">
                         {leftIconName && <Ionicons name={leftIconName} size={24} color="black"/>}
@@ -38,11 +38,11 @@ const ModalHeader = ({
                 )}
             </View>
 
-            <View style={{flex: 7, alignItems: "center"}}>
+            <View style={{flex: 6, alignItems: "center"}}>
                 <Text className="text-black text-lg font-medium">{title}</Text>
             </View>
 
-            <View style={{flex: 1.5, flexDirection: "row", justifyContent: "flex-end", alignItems: "center"}}>
+            <View style={{flex: 2, flexDirection: "row", justifyContent: "flex-end", alignItems: "center"}}>
                 {onRightPress ? (
                     <TouchableOpacity onPress={onRightPress} className="p-2 flex-row items-center">
                         {rightIconName && <Ionicons name={rightIconName} size={24} color="black"/>}
