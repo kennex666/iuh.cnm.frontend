@@ -159,6 +159,15 @@ export default function Login() {
                                         className="mt-2"
                                     />
 
+                                    {/* Tính năng phát triển */}
+                                    {/* <Button
+                                        title="Đăng nhập bằng hình ảnh"
+                                        onPress={() => router.push('/image-auth')}
+                                        variant="outline"
+                                        icon="images-outline"
+                                        className="mt-2"
+                                    /> */}
+
                                     <TextLink
                                         href="/register"
                                         text="Chưa có tài khoản?"
