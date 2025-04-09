@@ -11,6 +11,7 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { authService } from '@/src/api/services/authService';
 
 export default function Register() {
     // Value
@@ -96,7 +97,22 @@ export default function Register() {
         setLoading(true);
         try {
             // Giả lập API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const result = await authService.register({
+                name: name,
+                phone: phoneNumber,
+                gender: gender,
+                password: password,
+                dob: dob.toISOString().split('T')[0]
+            });
+
+            if(!result.success) {
+                setToast({
+                    visible: true,
+                    message: result.message || 'Đã có lỗi xảy ra, vui lòng thử lại',
+                    type: 'error'
+                });
+                return;
+            }
 
             setToast({
                 visible: true,
@@ -106,7 +122,12 @@ export default function Register() {
 
             // Đợi toast hiển thị xong rồi chuyển trang
             setTimeout(() => {
-                router.replace('/(main)');
+                router.push({
+                    pathname: '/verify-account',
+                    params: {
+                        phone: phoneNumber,
+                    }
+                })
             }, 2000);
         } catch (error) {
             setToast({

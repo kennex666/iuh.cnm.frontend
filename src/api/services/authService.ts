@@ -117,5 +117,50 @@ export const authService = {
             console.error('Forgot password error:', error);
             return { success: false, message: error.message || 'Network error occurred' };
         }
+    },
+    async register({name, phone, gender, password, dob, otp = null}: any): Promise<{
+        success: boolean;
+        message?: string;
+        errorCode?: number | string;
+    }> {
+        try {
+            const response = await axios.post(`${API_URL}/auth/register`, {
+                name,
+                phone,
+                gender,
+                password,
+                dob,
+                otp,
+            });
+
+            if (response.data.errorCode == 200) {
+                return { success: true };
+            }
+            return { success: false, message: response.data.errorMessage };
+        } catch (error: any) {
+            console.error('Register error:', error);
+            return { success: false, message: error.message || 'Network error occurred' };
+        }
+    },
+
+    async verifyAccount({phone, otp}: any): Promise<{
+        success: boolean;
+        message?: string;
+        errorCode?: number | string;
+    }> {
+        try {
+            const response = await axios.post(`${API_URL}/auth/verify-account`, {
+                phone,
+                otp,
+            });
+
+            if (response.data.errorCode == 200) {
+                return { success: true };
+            }
+            return { success: false, message: response.data.errorMessage };
+        } catch (error: any) {
+            console.error('Verify account error:', error);
+            return { success: false, message: error.message || 'Network error occurred' };
+        }
     }
 };
