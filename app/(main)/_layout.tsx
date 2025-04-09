@@ -9,7 +9,7 @@ import {useAuth} from "@/src/contexts/userContext";
 type Route = {
     name: string;
     title: string;
-    icon: "comments" | "address-book" | "clock-o" | "user";
+    icon: "comments" | "address-book" | "gear" | "user";
 };
 
 export default function AppLayout() {
@@ -36,7 +36,7 @@ export default function AppLayout() {
     const routes: Route[] = [
         {name: "index", title: "Tin nhắn", icon: "comments"},
         {name: "contacts", title: "Danh bạ", icon: "address-book"},
-        {name: "diary", title: "Nhật ký", icon: "clock-o"},
+        {name: "settings", title: "Cài đặt", icon: "gear"},
     ];
 
     // Check if the current route is active
@@ -118,6 +118,8 @@ export default function AppLayout() {
                 </View>
             ) : null}
 
+            {/* Main content area */}
+            {/* This is where the main content of the app will be rendered */}
             <View className="flex-1">
                 <Stack screenOptions={{headerShown: false}}/>
             </View>
