@@ -25,7 +25,6 @@ export default function Verify2FA() {
     const insets = useSafeAreaInsets();
 
     const [phone, setPhone] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
     const params = useLocalSearchParams();
 
     useEffect(() => {
@@ -41,20 +40,6 @@ export default function Verify2FA() {
           setTimeout(() => router.back(), 1500);
         }
       }, [params?.phone]);
-
-    useEffect(() => {
-        if (params.password) {
-            setPassword(params.password as string);
-            } else {
-            // Xử lý khi không có phone
-            setToast({
-                visible: true,
-                message: 'Không tìm thấy mật khẩu',
-                type: 'error'
-            });
-            setTimeout(() => router.back(), 1500);
-            }
-    }, [params?.password]);
 
     const validateForm = () => {
         if (!verificationCode) {
