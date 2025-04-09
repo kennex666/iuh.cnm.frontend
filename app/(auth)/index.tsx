@@ -89,6 +89,24 @@ export default function Login() {
                     }, 2000);
                     return;
                 }
+                if(result.errorCode == 207) {
+                    setToast({
+                        visible: true,
+                        message: 'Hãy nhập mã xác thực 2FA',
+                        type: 'success'
+                    });
+                    setTimeout(() => {
+                        router.push(
+                            {
+                                pathname: '/(auth)/verify-account',
+                                params: {
+                                    phone: phoneNumber,
+                                }
+                            }
+                        );
+                    }, 2000);
+                    return;
+                }
                 setToast({
                     visible: true,
                     message: result.message || 'Đăng nhập thất bại',

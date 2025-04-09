@@ -161,5 +161,24 @@ export const authService = {
             console.error('Verify account error:', error);
             return { success: false, message: error.message || 'Network error occurred' };
         }
-    }
+    },
+    async resendOtp({phone}: any): Promise<{
+        success: boolean;
+        message?: string;
+        errorCode?: number | string;
+    }> {
+        try {
+            const response = await axios.post(`${API_URL}/auth/resend-otp`, {
+                phone,
+            });
+
+            if (response.data.errorCode == 200) {
+                return { success: true };
+            }
+            return { success: false, message: response.data.errorMessage };
+        } catch (error: any) {
+            console.error('Resend OTP error:', error);
+            return { success: false, message: error.message || 'Network error occurred' };
+        }
+    },
 };
