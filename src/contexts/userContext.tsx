@@ -74,7 +74,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             const mergedUser = {...user, ...updatedUser};
             const isComplete = isUserComplete(mergedUser);
 
-            if (!isComplete) return {success: false, message: 'Thiếu thông tin người dùng bắt buộc'};
+            // if (!isComplete) return {success: false, message: 'Thiếu thông tin người dùng bắt buộc'};
 
             const completeUser = mergedUser as User;
 

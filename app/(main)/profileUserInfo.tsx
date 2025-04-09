@@ -18,6 +18,12 @@ type ProfileInfoProps = {
     onClose: () => void;
 };
 
+const genderMap = {
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác"
+}
+
 export default function ProfileUserInfo({
                                             user,
                                             avatarSource,
@@ -48,7 +54,7 @@ export default function ProfileUserInfo({
                 <View className="mt-2 bg-white p-4">
                     <Text className="text-base font-bold text-gray-800 mb-4">Thông tin cá nhân</Text>
 
-                    <ProfileInfoItem label="Giới tính" value={user?.gender || ''}/>
+                    <ProfileInfoItem label="Giới tính" value={genderMap[user?.gender]} />
                     <ProfileInfoItem label="Ngày sinh" value={dob}/>
                     <ProfileInfoItem label="Điện thoại" value={user?.phone || ''}/>
 
