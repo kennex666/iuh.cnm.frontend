@@ -116,7 +116,16 @@ export default function DeviceAccessModalDesktop({ visible, onClose }: DeviceAcc
     setLoading(true);
     try {
       // TODO: Implement API call to logout device
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await authService.logoutDevice({deviceId: selectedDevice.id});
+
+      if (!response.success) {
+        setToast({
+          visible: true,
+          message: response.message || 'Có lỗi xảy ra, vui lòng thử lại',
+          type: 'error'
+        });
+        return;
+      }
       
       setDevices(devices.filter(device => device.id !== selectedDevice.id));
       setToast({

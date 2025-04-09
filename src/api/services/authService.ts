@@ -250,17 +250,17 @@ export const authService = {
 	},
 
 	// {{HOST}}/api/auth/logout-all
-    async logoutAll(): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
-        try {
-            const token = await authStorage.getAccessToken();
-            if (!token) {
-                return { success: false, message: "No access token found" };
-            }
+	async logoutAll(): Promise<{
+		success: boolean;
+		message?: string;
+	}> {
+		try {
+			const token = await authStorage.getAccessToken();
+			if (!token) {
+				return { success: false, message: "No access token found" };
+			}
 
-            const response = await axios.get(
+			const response = await axios.get(
 				`${API_DOMAIN.API_AUTH}/logout-all`,
 				{
 					headers: {
@@ -269,16 +269,52 @@ export const authService = {
 				}
 			);
 
-            if (response.data.success) {
-                return { success: true };
-            }
-            return { success: false, message: response.data.errorMessage };
-        } catch (error: any) {
-            console.error("Logout all error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
-    },
+			if (response.data.success) {
+				return { success: true };
+			}
+			return { success: false, message: response.data.errorMessage };
+		} catch (error: any) {
+			console.error("Logout all error:", error);
+			return {
+				success: false,
+				message: error.message || "Network error occurred",
+			};
+		}
+	},
+
+	// logout-device -> post deviceId
+	async logoutDevice({ deviceId }: any): Promise<{
+		success: boolean;
+		message?: string;
+	}> {
+		try {
+			const token = await authStorage.getAccessToken();
+			if (!token) {
+				return { success: false, message: "No access token found" };
+			}
+
+			const response = await axios.post(
+				`${API_DOMAIN.API_AUTH}/logout-device`,
+				{
+					deviceId,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.data.success) {
+				return { success: true };
+			}
+			return { success: false, message: response.data.errorMessage };
+		} catch (error: any) {
+			console.error("Logout device error:", error);
+			return {
+				success: false,
+				message: error.message || "Network error occurred",
+			};
+		}
+	},
 };

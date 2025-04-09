@@ -118,47 +118,61 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
     }
   };
 
+  
   const handleLogoutDevice = (device: Device) => {
-    if (device.isCurrentDevice) {
-      setToast({
-        visible: true,
-        message: 'Không thể đăng xuất thiết bị hiện tại',
-        type: 'error'
-      });
-      return;
-    }
-    
-    setSelectedDevice(device);
-    setShowConfirmLogout(true);
+		if (device.isCurrentDevice) {
+			setToast({
+				visible: true,
+				message: "Không thể đăng xuất thiết bị hiện tại",
+				type: "error",
+			});
+			return;
+		}
+
+		setSelectedDevice(device);
+		setShowConfirmLogout(true);
   };
 
   const confirmLogoutDevice = async () => {
-    if (!selectedDevice) return;
-    
-    setLoading(true);
-    try {
-      // TODO: Implement API call to logout device
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setDevices(devices.filter(device => device.id !== selectedDevice.id));
-      setToast({
-        visible: true,
-        message: 'Đã đăng xuất thiết bị thành công',
-        type: 'success'
-      });
-      
-      setShowConfirmLogout(false);
-      setSelectedDevice(null);
-    } catch (error) {
-      setToast({
-        visible: true,
-        message: 'Có lỗi xảy ra, vui lòng thử lại',
-        type: 'error'
-      });
-    } finally {
-      setLoading(false);
-    }
+		if (!selectedDevice) return;
+
+		setLoading(true);
+		try {
+			// TODO: Implement API call to logout device
+			const response = await authService.logoutDevice({deviceId: selectedDevice.id});
+
+			if (!response.success) {
+				setToast({
+					visible: true,
+					message:
+						response.message || "Có lỗi xảy ra, vui lòng thử lại",
+					type: "error",
+				});
+				return;
+			}
+
+			setDevices(
+				devices.filter((device) => device.id !== selectedDevice.id)
+			);
+			setToast({
+				visible: true,
+				message: "Đã đăng xuất thiết bị thành công",
+				type: "success",
+			});
+
+			setShowConfirmLogout(false);
+			setSelectedDevice(null);
+		} catch (error) {
+			setToast({
+				visible: true,
+				message: "Có lỗi xảy ra, vui lòng thử lại",
+				type: "error",
+			});
+		} finally {
+			setLoading(false);
+		}
   };
+
 
   const handleLogoutAllDevices = async () => {
     setLoading(true);
