@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
-import {useRouter} from 'expo-router';
+import {router, useLocalSearchParams, useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
@@ -9,6 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
+import {authService} from '@/src/api/services/authService';
 
 export default function VerifyResetCode() {
     const [verificationCode, setVerificationCode] = useState('');
@@ -18,8 +19,26 @@ export default function VerifyResetCode() {
         message: '',
         type: 'success' as 'success' | 'error'
     });
-    const router = useRouter();
     const insets = useSafeAreaInsets();
+    const router = useRouter();
+    
+    const [phone, setPhone] = useState<string>('');
+    const params = useLocalSearchParams();
+
+    useEffect(() => {
+        if (params.phone) {
+            setPhone(params.phone as string);
+        } else {
+            // Xử lý khi không có phone
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy thông tin số điện thoại',
+                type: 'error'
+            });
+            setTimeout(() => router.back(), 1500);
+        }
+        console.log('Phone number from params:', phone);
+    }, [params?.phone]);
 
     const validateForm = () => {
         if (!verificationCode) {
@@ -48,7 +67,20 @@ export default function VerifyResetCode() {
         try {
             // TODO: Implement actual verification API call
             // This is a mock implementation
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const response = await authService.forgotPassword(
+                {
+                    phone: phone,
+                    otp: verificationCode
+                }
+            );
+            if (!response.success) {
+                setToast({
+                    visible: true,
+                    message: 'Mã xác thực không hợp lệ',
+                    type: 'error'
+                });
+                return;
+            }
 
             setToast({
                 visible: true,
@@ -58,7 +90,10 @@ export default function VerifyResetCode() {
 
             // Navigate to new password screen after 2 seconds
             setTimeout(() => {
-                router.navigate('/');
+                router.push({
+                    pathname: '/(auth)/reset-password',
+                    params: { phone, otp: verificationCode }
+                });
             }, 2000);
         } catch (error) {
             setToast({

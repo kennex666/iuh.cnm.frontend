@@ -11,6 +11,7 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import Divider from '@/src/components/ui/Divider';
 import {useAuth} from '@/src/contexts/userContext';
+import {authService} from '@/src/api/services/authService';
 
 export default function Login() {
     const {login, user} = useAuth();
@@ -68,7 +69,15 @@ export default function Login() {
                     type: 'success'
                 });
                 setTimeout(() => {
-                    router.push('/verify-2fa');
+                    router.push(
+                        {
+                            pathname: '/(auth)/verify-2fa',
+                            params: {
+                                phone: phoneNumber,
+                                password: password
+                            }
+                        }
+                    );
                 }, 2000);
             } else {
                 setToast({

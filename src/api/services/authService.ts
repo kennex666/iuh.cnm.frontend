@@ -88,5 +88,25 @@ export const authService = {
                 message: error.response?.data?.errorMessage || error.message || 'Network error occurred'
             };
         }
+    },
+    async forgotPassword({phone = "",otp = "",password = ""}: any): Promise<{
+        success: boolean;
+        message?: string;
+    }> {
+        try {
+            const response = await axios.post(`${API_URL}/auth/forgot-password`, {
+                phone,
+                otp,
+                password,
+            });
+
+            if (response.data.errorCode == 200) {
+                return { success: true };
+            }
+            return { success: false, message: response.data.errorMessage };
+        } catch (error: any) {
+            console.error('Forgot password error:', error);
+            return { success: false, message: error.message || 'Network error occurred' };
+        }
     }
 };
