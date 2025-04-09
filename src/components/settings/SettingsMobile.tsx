@@ -5,11 +5,13 @@ import { useAuth } from '@/src/contexts/userContext';
 import { router } from 'expo-router';
 import ChangePasswordModal from './ChangePasswordModal';
 import TwoFactorAuthModal from './TwoFactorAuthModal';
+import DeviceAccessModal from './DeviceAccessModal';
 
 export default function SettingsMobile() {
   const { logout } = useAuth();
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showTwoFactorAuth, setShowTwoFactorAuth] = useState(false);
+  const [showDeviceAccess, setShowDeviceAccess] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -63,6 +65,17 @@ export default function SettingsMobile() {
           
           <TouchableOpacity 
             className="flex-row items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
+            onPress={() => setShowDeviceAccess(true)}
+          >
+            <View className="flex-row items-center space-x-3">
+              <Ionicons name="phone-portrait-outline" size={24} color="#4B5563" />
+              <Text className="text-base text-gray-700">Quản lý thiết bị</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            className="flex-row items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
             onPress={handleLogout}
           >
             <View className="flex-row items-center space-x-3">
@@ -82,6 +95,11 @@ export default function SettingsMobile() {
       <TwoFactorAuthModal
         visible={showTwoFactorAuth}
         onClose={() => setShowTwoFactorAuth(false)}
+      />
+
+      <DeviceAccessModal
+        visible={showDeviceAccess}
+        onClose={() => setShowDeviceAccess(false)}
       />
     </View>
   );

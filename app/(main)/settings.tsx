@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View, Platform, ScrollView } from 'react-native
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '@/src/contexts/userContext'
 import SettingsMobile from '@/src/components/settings/SettingsMobile'
+import SettingsDesktop from '@/src/components/settings/SettingsDesktop'
 export class settings extends Component {
   render() {
     return (
@@ -15,9 +16,7 @@ export class settings extends Component {
 
         {/* Content */}
         {Platform.OS === 'web' ? (
-          <View className="p-4">
-            <Text className="text-center text-lg text-gray-600">Cài đặt trên web</Text>
-          </View>
+          <SettingsDesktop />
         ) : (
           <SettingsMobile />
         )}
