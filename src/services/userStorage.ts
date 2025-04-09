@@ -19,8 +19,7 @@ export const storage = {
      */
     async saveUser(user: User): Promise<void> {
         try {
-            const {password, ...userToStore} = user;
-            await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
+            await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
         } catch (error) {
             console.error('Error saving user to storage:', error);
         }
