@@ -48,13 +48,18 @@ export default function ProfileUserEdit({
                     <View className="flex-row mb-2">
                         <RadioButton
                             label="Nam"
-                            selected={editUser?.gender === 'Nam'}
-                            onPress={() => onChangeUser({...editUser, gender: 'Nam'})}
+                            selected={editUser?.gender === 'male'}
+                            onPress={() => onChangeUser({...editUser, gender: 'male'})}
                         />
                         <RadioButton
                             label="Nữ"
-                            selected={editUser?.gender === 'Nữ'}
-                            onPress={() => onChangeUser({...editUser, gender: 'Nữ'})}
+                            selected={editUser?.gender === 'female'}
+                            onPress={() => onChangeUser({...editUser, gender: 'female'})}
+                        />
+                        <RadioButton
+                            label="Khác"
+                            selected={editUser?.gender === 'other'}
+                            onPress={() => onChangeUser({...editUser, gender: 'other'})}
                         />
                     </View>
                 </View>
