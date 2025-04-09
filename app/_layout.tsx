@@ -3,6 +3,7 @@ import {useEffect} from 'react';
 import {useFonts} from 'expo-font';
 import {AuthProvider} from '@/src/contexts/userContext';
 import "../global.css";
+import {setupAxios} from "@/src/api/axiosConfig";
 
 export {
     ErrorBoundary,
@@ -31,11 +32,16 @@ export default function RootLayout() {
         return null;
     }
 
+    useEffect(() => {
+        // Setup axios with authentication
+        setupAxios();
+    }, []);
+
     return (
         <AuthProvider>
-            <Stack screenOptions={{headerShown: false}}>
-                <Stack.Screen name="(auth)" options={{headerShown: false}}/>
-                <Stack.Screen name="(main)" options={{headerShown: false}}/>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(main)" />
             </Stack>
         </AuthProvider>
     );

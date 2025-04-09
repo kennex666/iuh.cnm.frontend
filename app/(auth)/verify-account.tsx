@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
-import {router, useLocalSearchParams, useRouter} from 'expo-router';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
@@ -10,8 +10,10 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {authService} from '@/src/api/services/authService';
+import { useAuth } from '@/src/contexts/userContext';
 
-export default function VerifyResetCode() {
+export default function Verify2FA() {
+    const {login, user} = useAuth();
     const [verificationCode, setVerificationCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState({
@@ -19,32 +21,31 @@ export default function VerifyResetCode() {
         message: '',
         type: 'success' as 'success' | 'error'
     });
-    const insets = useSafeAreaInsets();
     const router = useRouter();
-    
-    const [phone, setPhone] = useState<string>('');
+    const insets = useSafeAreaInsets();
+
+    const [phone, setPhone] = useState<string>("");
     const params = useLocalSearchParams();
 
     useEffect(() => {
         if (params.phone) {
-            setPhone(params.phone as string);
+          setPhone(params.phone as string);
         } else {
-            // Xử lý khi không có phone
-            setToast({
-                visible: true,
-                message: 'Không tìm thấy thông tin số điện thoại',
-                type: 'error'
-            });
-            setTimeout(() => router.back(), 1500);
+          // Xử lý khi không có phone
+          setToast({
+            visible: true,
+            message: "Không tìm thấy thông tin số điện thoại",
+            type: "error",
+          });
+          setTimeout(() => router.back(), 1500);
         }
-        console.log('Phone number from params:', phone);
-    }, [params?.phone]);
+      }, [params?.phone]);
 
     const validateForm = () => {
         if (!verificationCode) {
             setToast({
                 visible: true,
-                message: 'Vui lòng nhập mã xác thực',
+                message: 'Vui lòng nhập mã xác thực 2FA',
                 type: 'error'
             });
             return false;
@@ -52,7 +53,7 @@ export default function VerifyResetCode() {
         if (verificationCode.length !== 6) {
             setToast({
                 visible: true,
-                message: 'Mã xác thực phải có 6 chữ số',
+                message: 'Mã xác thực 2FA phải có 6 chữ số',
                 type: 'error'
             });
             return false;
@@ -65,14 +66,15 @@ export default function VerifyResetCode() {
 
         setLoading(true);
         try {
-            // TODO: Implement actual verification API call
+            // TODO: Implement actual 2FA verification API call
             // This is a mock implementation
-            const response = await authService.forgotPassword(
-                {
-                    phone: phone,
-                    otp: verificationCode
-                }
-            );
+            const response = await authService.verifyAccount({
+                phone: phone,
+                otp: verificationCode
+            });
+
+            console.log('2FA verification response:', response);
+
             if (!response.success) {
                 setToast({
                     visible: true,
@@ -84,16 +86,13 @@ export default function VerifyResetCode() {
 
             setToast({
                 visible: true,
-                message: 'Xác thực thành công!',
+                message: 'Xác thực 2FA thành công!',
                 type: 'success'
             });
 
-            // Navigate to new password screen after 2 seconds
+            // Navigate to main screen after 2 seconds
             setTimeout(() => {
-                router.push({
-                    pathname: '/(auth)/reset-password',
-                    params: { phone, otp: verificationCode }
-                });
+                router.replace('/(auth)');
             }, 2000);
         } catch (error) {
             setToast({
@@ -101,7 +100,7 @@ export default function VerifyResetCode() {
                 message: 'Có lỗi xảy ra, vui lòng thử lại sau',
                 type: 'error'
             });
-            console.error('Verification error:', error);
+            console.error('2FA verification error:', error);
         } finally {
             setLoading(false);
         }
@@ -126,14 +125,14 @@ export default function VerifyResetCode() {
 
                             <View className="mt-4">
                                 <AuthHeader
-                                    title="Xác thực mã"
-                                    subtitle={'Nhập mã xác thực đã được gửi đến\nsố điện thoại của bạn'}
+                                    title="Xác thực 2FA"
+                                    subtitle={'Nhập mã xác thực 2FA từ ứng dụng\nauthenticator của bạn'}
                                 />
 
                                 <View className="mt-4 space-y-3">
                                     <FormInput
                                         icon="key-outline"
-                                        placeholder="Mã xác thực"
+                                        placeholder="Mã xác thực 2FA"
                                         value={verificationCode}
                                         onChangeText={(text) => setVerificationCode(text.slice(0, 6))}
                                         editable={!loading}
@@ -148,9 +147,9 @@ export default function VerifyResetCode() {
                                     />
 
                                     <TextLink
-                                        href="./forgot-password"
-                                        text="Không nhận được mã?"
-                                        linkText="Gửi lại"
+                                        href="/"
+                                        text="Quay lại đăng nhập"
+                                        linkText="Tại đây"
                                         className="mt-4"
                                     />
                                 </View>

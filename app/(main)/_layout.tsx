@@ -1,6 +1,6 @@
-import {Href, Link, Redirect, Stack, usePathname} from "expo-router";
+import {Href, Link, Redirect, Stack, usePathname, useRouter} from "expo-router";
 import {FontAwesome} from "@expo/vector-icons";
-import {Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
+import {Alert, Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
@@ -9,12 +9,13 @@ import {useAuth} from "@/src/contexts/userContext";
 type Route = {
     name: string;
     title: string;
-    icon: "comments" | "address-book" | "clock-o" | "user";
+    icon: "comments" | "address-book" | "gear" | "user";
 };
 
 export default function AppLayout() {
-    const {user, isLoading} = useAuth();
+    const {user, isLoading, logout} = useAuth();
     const [profileModalVisible, setProfileModalVisible] = useState(false);
+    const router = useRouter();
 
     const {width} = Dimensions.get("window");
     const isDesktop = width > 768;
@@ -36,7 +37,7 @@ export default function AppLayout() {
     const routes: Route[] = [
         {name: "index", title: "Tin nhắn", icon: "comments"},
         {name: "contacts", title: "Danh bạ", icon: "address-book"},
-        {name: "diary", title: "Nhật ký", icon: "clock-o"},
+        {name: "settings", title: "Cài đặt", icon: "gear"},
     ];
 
     // Check if the current route is active
@@ -110,7 +111,18 @@ export default function AppLayout() {
                         </View>
                         {/* Bottoms: logout, exit */}
                         <View className="flex flex-col items-center justify-center py-4 relative">
-                            <TouchableOpacity className="p-2 rounded-lg">
+                            <TouchableOpacity
+                                className="p-2 rounded-lg"
+                                onPress={async () => {
+                                    try {
+                                        await logout(); // Calls storage.removeUser() and authStorage.removeTokens()
+                                        router.replace('/(auth)'); // Navigate back to login/authentication screen
+                                    } catch (error) {
+                                        console.error('Error during logout:', error);
+                                        // Optionally add error notification here
+                                    }
+                                }}
+                            >
                                 <FontAwesome name="sign-out" size={24} color="#FF0000"/>
                             </TouchableOpacity>
                         </View>
@@ -118,6 +130,8 @@ export default function AppLayout() {
                 </View>
             ) : null}
 
+            {/* Main content area */}
+            {/* This is where the main content of the app will be rendered */}
             <View className="flex-1">
                 <Stack screenOptions={{headerShown: false}}/>
             </View>

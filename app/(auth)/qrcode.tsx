@@ -1,14 +1,19 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { shadows } from "@/src/styles/shadow";
-import QRCode from "@/src/components/ui/QRCode";
+import Loading from "@/src/components/loading/loading";
+import QRCodeDisplay from "@/src/components/ui/QRCodeDisplay";
+import QrScanner from "@/src/components/ui/QrScanner";
 
 export default function QrCode() {
   const [showScanner, setShowScanner] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [qrValue, setQrValue] = useState("https://ngthluan.io.vn/");
+
+  // Router
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -20,10 +25,9 @@ export default function QrCode() {
   const handleScan = (data: string) => {
     setLoading(true);
     try {
-      // Giả lập xử lý dữ liệu quét được
       console.log("Scanned data:", data);
-
-      // Giả lập đăng nhập thành công sau 2 giây
+      // Xử lý dữ liệu QR ở đây
+      
       setTimeout(() => {
         setLoading(false);
         router.replace("/(main)");
@@ -45,11 +49,11 @@ export default function QrCode() {
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text className="text-lg font-semibold text-gray-800">
-          {showScanner ? "Quét mã QR" : "Mã QR đăng nhập"}
+          {Platform.OS === 'web' ? "Mã QR đăng nhập" :  "Quét mã QR"}
         </Text>
         <TouchableOpacity onPress={() => setShowScanner(!showScanner)}>
           <Ionicons
-            name={showScanner ? "qr-code-outline" : "scan-outline"}
+            name={Platform.OS === 'web' ? "qr-code-outline" : "scan-outline"}
             size={24}
             color="#333"
           />
@@ -62,22 +66,51 @@ export default function QrCode() {
           <ActivityIndicator size="large" color="#0068FF" />
           <Text className="mt-4 text-gray-500">Đang xử lý...</Text>
         </View>
-      ) : showScanner ? (
-        <View>
-          <Text className="text-center text-gray-500 mt-4">
-            Quét mã QR để đăng nhập
-          </Text>
-          <QRCode onClose={handleClose} />
+      ) : Platform.OS === "web" ? (
+        // Chờ quét mã QR từ thiết bị khác
+        <View className="flex-1 items-center justify-center p-6">
+          <View className="">
+            {/* Phần tiêu đề */}
+            <View className="mb-6">
+              <Text className="text-center text-xl font-bold text-gray-800 mb-2">
+                Mã QR đăng nhập
+              </Text>
+              <Text className="text-center text-sm text-gray-500">
+                Sử dụng thiết bị khác để quét mã này
+              </Text>
+            </View>
+          </View>
+          {/* Phần QR code */}
+          <View className="bg-white p-4 rounded-2xl border-2 border-gray-100">
+            <QRCodeDisplay 
+              value={qrValue}
+              size={256}
+            />
+          </View>
+          {/* Thông tin bổ sung */}
+          <View className="mt-6">
+            <Text className="text-center text-sm text-gray-500">
+              Mã QR sẽ tự động làm mới sau
+            </Text>
+            <Text className="text-center text-lg font-semibold text-blue-500">
+              04:59
+            </Text>
+          </View>
+          {/* Nút làm mới */}
+          <TouchableOpacity
+            className="mt-6 bg-blue-500 py-3 px-6 rounded-full"
+            onPress={() => {
+              /* handle refresh */
+            }}
+          >
+            <Text className="text-white text-center font-semibold">
+              Tạo mã QR mới
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <View>
-          <Text className="text-center text-gray-500 mt-4">
-            Chờ quét mã QR từ thiết bị khác
-          </Text>
-          <Text className="text-center text-gray-500 mt-2">
-            Hoặc nhập mã QR bằng tay
-          </Text>
-        </View>
+        // Màn hình quét mã QR
+        <QrScanner />
       )}
     </View>
   );

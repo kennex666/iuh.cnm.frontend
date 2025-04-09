@@ -12,3 +12,22 @@ export interface User {
     createdAt: number;
     updatedAt: number;
 }
+
+const requiredFields: (keyof User)[] = [
+    'id',
+    'name',
+    'email',
+    'phone',
+    'gender',
+    'password',
+    'avatarURL',
+    'coverURL',
+    'dob',
+    'isOnline',
+    'createdAt',
+    'updatedAt'
+];
+
+export const isUserComplete = (user: Partial<User>): user is User => {
+    return requiredFields.every(field => field in user);
+}

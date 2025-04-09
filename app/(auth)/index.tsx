@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -11,9 +11,10 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import Divider from '@/src/components/ui/Divider';
 import {useAuth} from '@/src/contexts/userContext';
+import {authService} from '@/src/api/services/authService';
 
 export default function Login() {
-    const {login} = useAuth();
+    const {login, user} = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -25,6 +26,12 @@ export default function Login() {
     const router = useRouter();
     // useSafeAreaInsets is used to get the insets of the device
     const insets = useSafeAreaInsets();
+
+    useEffect(() => {
+        if (user) {
+            router.push('/(main)');
+        }
+    }, [user]);
 
     const validateForm = () => {
         if (!phoneNumber) {
@@ -51,21 +58,55 @@ export default function Login() {
 
         setLoading(true);
         try {
-            // Gọi API đăng nhập thực tế
-            const result = await login(phoneNumber, password);
+            console.log('Attempting login with:', phoneNumber, password);
+            const result = await login({phone: phoneNumber, password});
+            console.log('Login result:', result);
 
             if (result.success) {
                 setToast({
                     visible: true,
-                    message: 'Đăng nhập thành công!',
+                    message: 'Đăng nhập thành công! Vui lòng nhập mã 2FA',
                     type: 'success'
                 });
-
-                // Đợi toast hiển thị xong rồi chuyển trang
-                setTimeout(() => {
-                    router.replace('/(main)');
-                }, 2000);
             } else {
+                if (result.errorCode == 203) {
+                    setToast({
+                        visible: true,
+                        message: 'Hãy nhập mã xác thực 2FA',
+                        type: 'success'
+                    });
+                    
+                    setTimeout(() => {
+                        router.push(
+                            {
+                                pathname: '/(auth)/verify-2fa',
+                                params: {
+                                    phone: phoneNumber,
+                                    password: password
+                                }
+                            }
+                        );
+                    }, 2000);
+                    return;
+                }
+                if(result.errorCode == 207) {
+                    setToast({
+                        visible: true,
+                        message: 'Hãy nhập mã xác thực 2FA',
+                        type: 'success'
+                    });
+                    setTimeout(() => {
+                        router.push(
+                            {
+                                pathname: '/(auth)/verify-account',
+                                params: {
+                                    phone: phoneNumber,
+                                }
+                            }
+                        );
+                    }, 2000);
+                    return;
+                }
                 setToast({
                     visible: true,
                     message: result.message || 'Đăng nhập thất bại',
@@ -73,12 +114,12 @@ export default function Login() {
                 });
             }
         } catch (error) {
+            console.error('Login error:', error);
             setToast({
                 visible: true,
-                message: 'Có lỗi xảy ra, vui lòng thử lại sau',
+                message: `Có lỗi xảy ra: ${error || 'Unknown error'}`,
                 type: 'error'
             });
-            console.error('Login error:', error);
         } finally {
             setLoading(false);
         }
@@ -159,6 +200,15 @@ export default function Login() {
                                         icon="qr-code-outline"
                                         className="mt-2"
                                     />
+
+                                    {/* Tính năng phát triển */}
+                                    {/* <Button
+                                        title="Đăng nhập bằng hình ảnh"
+                                        onPress={() => router.push('/image-auth')}
+                                        variant="outline"
+                                        icon="images-outline"
+                                        className="mt-2"
+                                    /> */}
 
                                     <TextLink
                                         href="/register"

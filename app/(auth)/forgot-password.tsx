@@ -9,6 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
+import {authService} from '@/src/api/services/authService';
 
 export default function ForgotPassword() {
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -40,8 +41,19 @@ export default function ForgotPassword() {
         try {
             // TODO: Implement actual password reset API call
             // This is a mock implementation
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const result = await authService.forgotPassword({
+                phone: phoneNumber
+            });
 
+            console.log('Password reset response:', phoneNumber, result);
+            if (!result.success) {
+                setToast({
+                    visible: true,
+                    message: result.message || 'Có lỗi xảy ra, vui lòng thử lại sau',
+                    type: 'error'
+                });
+                return;
+            }
             setToast({
                 visible: true,
                 message: 'Mã xác thực đã được gửi đến số điện thoại của bạn',
@@ -50,7 +62,10 @@ export default function ForgotPassword() {
 
             // Navigate to verification screen after 2 seconds
             setTimeout(() => {
-                router.push('./verify-reset-code');
+                router.push({
+                    pathname: '/(auth)/verify-reset-code',
+                    params: { phone: phoneNumber }
+                });
             }, 2000);
         } catch (error) {
             setToast({
