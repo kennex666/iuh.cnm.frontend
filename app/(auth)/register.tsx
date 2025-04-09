@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
+import {KeyboardAvoidingView, Platform, ScrollView, View, Text, TouchableOpacity, Modal} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
@@ -9,21 +9,45 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
+import {Picker} from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function Register() {
+    // Value
     const [phoneNumber, setPhoneNumber] = useState('');
     const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [gender, setGender] = useState<'male' | 'female' | 'other'>('other');
+    const [dob, setDob] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showGenderPicker, setShowGenderPicker] = useState(false);
+
+    // State
     const [loading, setLoading] = useState(false);
+
+    // Toast
     const [toast, setToast] = useState({
         visible: false,
         message: '',
         type: 'success' as 'success' | 'error'
     });
+
+    // Router
     const router = useRouter();
     const insets = useSafeAreaInsets();
 
+    const getGenderLabel = (value: string) => {
+        switch(value) {
+            case 'male': return 'Nam';
+            case 'female': return 'Nữ';
+            case 'other': return 'Khác';
+            default: return 'Chọn giới tính';
+        }
+    };
+
+    // Validate form
     const validateForm = () => {
         if (!phoneNumber) {
             setToast({
@@ -37,6 +61,22 @@ export default function Register() {
             setToast({
                 visible: true,
                 message: 'Vui lòng nhập họ tên',
+                type: 'error'
+            });
+            return false;
+        }
+        if (!email) {
+            setToast({
+                visible: true,
+                message: 'Vui lòng nhập email',
+                type: 'error'
+            });
+            return false;
+        }
+        if (!email.includes('@')) {
+            setToast({
+                visible: true,
+                message: 'Email không hợp lệ',
                 type: 'error'
             });
             return false;
@@ -58,6 +98,13 @@ export default function Register() {
             return false;
         }
         return true;
+    };
+
+    const handleDateChange = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(false);
+        if (selectedDate) {
+            setDob(selectedDate);
+        }
     };
 
     const handleRegister = async () => {
@@ -129,6 +176,104 @@ export default function Register() {
                                         onChangeText={setName}
                                         editable={!loading}
                                     />
+
+                                    <FormInput
+                                        icon="mail-outline"
+                                        placeholder="Email"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                        editable={!loading}
+                                    />
+
+                                    {Platform.OS === 'web' ? (
+                                        <View className="border border-gray-300 rounded-lg px-4 py-3">
+                                            <select
+                                                value={gender}
+                                                onChange={(e) => setGender(e.target.value as 'male' | 'female' | 'other')}
+                                                className="w-full bg-transparent outline-none text-base"
+                                                disabled={loading}
+                                            >
+                                                <option value="male">Nam</option>
+                                                <option value="female">Nữ</option>
+                                                <option value="other">Khác</option>
+                                            </select>
+                                        </View>
+                                    ) : Platform.select({
+                                        native: (
+                                            <>
+                                                <TouchableOpacity 
+                                                    onPress={() => setShowGenderPicker(true)}
+                                                    className="bg-white border border-gray-300 rounded-lg h-14 justify-center px-4"
+                                                >
+                                                    <Text className="text-base text-black">
+                                                        {getGenderLabel(gender)}
+                                                    </Text>
+                                                </TouchableOpacity>
+
+                                                <Modal
+                                                    visible={showGenderPicker}
+                                                    transparent={true}
+                                                    animationType="slide"
+                                                >
+                                                    <View className="flex-1 justify-end bg-black/50">
+                                                        <View className="bg-white w-full p-4">
+                                                            <View className="flex-row justify-between items-center mb-4">
+                                                                <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
+                                                                    <Text className="text-blue-500 text-lg">Hủy</Text>
+                                                                </TouchableOpacity>
+                                                                <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
+                                                                    <Text className="text-blue-500 text-lg">Xong</Text>
+                                                                </TouchableOpacity>
+                                                            </View>
+                                                            <Picker
+                                                                selectedValue={gender}
+                                                                onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}
+                                                                enabled={!loading}
+                                                            >
+                                                                <Picker.Item label="Nam" value="male" color='black' />
+                                                                <Picker.Item label="Nữ" value="female" color='black' />
+                                                                <Picker.Item label="Khác" value="other" color='black' />
+                                                            </Picker>
+                                                        </View>
+                                                    </View>
+                                                </Modal>
+                                            </>
+                                        ),
+                                        default: null
+                                    })}
+
+                                    {Platform.OS === 'web' ? (
+                                        <View className="border border-gray-300 rounded-lg px-4 py-3">
+                                            <input
+                                                type="date"
+                                                value={dob.toISOString().split('T')[0]}
+                                                onChange={(e) => setDob(new Date(e.target.value))}
+                                                className="w-full bg-transparent outline-none text-base"
+                                                disabled={loading}
+                                                max={new Date().toISOString().split('T')[0]}
+                                            />
+                                        </View>
+                                    ) : (
+                                        <TouchableOpacity 
+                                        onPress={() => setShowDatePicker(true)}
+                                        className="bg-white border border-gray-300 rounded-lg h-14 justify-center px-4 relative"
+                                    >
+                                        <Text className="text-base text-black">{dob.toLocaleDateString('vi-VN')}</Text>
+                                        <View className="absolute inset-0 justify-center items-center">
+                                        {showDatePicker && (
+                                            <DateTimePicker
+                                                value={dob}
+                                                mode="date"
+                                                display="default"
+                                                onChange={handleDateChange}
+                                                maximumDate={new Date()}
+                                            />
+                                        )}
+                                        </View>
+                                    </TouchableOpacity>
+                                    )}
 
                                     <FormInput
                                         icon="lock-closed-outline"
