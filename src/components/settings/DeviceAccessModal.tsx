@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from '@/src/components/ui/Toast';
 import Button from '@/src/components/ui/Button';
+import { authService } from '@/src/api/services/authService';
+import { useAuth } from '@/src/contexts/userContext';
+import { router } from "expo-router";
+
 
 interface Device {
   id: string;
@@ -21,6 +25,7 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
   const [loading, setLoading] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const { logout } = useAuth(); // Assuming you have a logout function in your auth context
   const [toast, setToast] = useState({
     visible: false,
     message: '',
@@ -29,35 +34,76 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
 
   // Mock data for devices
   const [devices, setDevices] = useState<Device[]>([
-    {
-      id: '1',
-      name: 'iPhone 13 Pro',
-      deviceType: 'mobile',
-      lastActive: 'Đang sử dụng',
-      isCurrentDevice: true
-    },
-    {
-      id: '2',
-      name: 'MacBook Pro',
-      deviceType: 'desktop',
-      lastActive: '2 giờ trước',
-      isCurrentDevice: false
-    },
-    {
-      id: '3',
-      name: 'Samsung Galaxy S21',
-      deviceType: 'mobile',
-      lastActive: '1 ngày trước',
-      isCurrentDevice: false
-    },
-    {
-      id: '4',
-      name: 'iPad Pro',
-      deviceType: 'tablet',
-      lastActive: '3 ngày trước',
-      isCurrentDevice: false
-    }
+    // {
+    //   id: '1',
+    //   name: 'iPhone 13 Pro',
+    //   deviceType: 'mobile',
+    //   lastActive: 'Đang sử dụng',
+    //   isCurrentDevice: true
+    // },
+    // {
+    //   id: '2',
+    //   name: 'MacBook Pro',
+    //   deviceType: 'desktop',
+    //   lastActive: '2 giờ trước',
+    //   isCurrentDevice: false
+    // },
+    // {
+    //   id: '3',
+    //   name: 'Samsung Galaxy S21',
+    //   deviceType: 'mobile',
+    //   lastActive: '1 ngày trước',
+    //   isCurrentDevice: false
+    // },
+    // {
+    //   id: '4',
+    //   name: 'iPad Pro',
+    //   deviceType: 'tablet',
+    //   lastActive: '3 ngày trước',
+    //   isCurrentDevice: false
+    // }
   ]);
+
+  useEffect(() => {
+    // API
+    authService.getDevices().then((response) => {
+      if (response.success) {
+        if (!response.data){
+          setDevices([]); // Reset devices if no data
+          return;
+        }
+        response.data = response.data.map((value: any) => {
+          return {
+            id: value.jwtId,
+            name: value.deviceName || "Thiết bị không xác định",
+            deviceType: value.deviceType || "desktop",
+            lastActive: new Date(value.createdAt).toLocaleDateString("vi-VN", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+            isCurrentDevice: value.isCurrentDevice || false,
+          };
+        });
+			setDevices(response.data);
+      } else {
+        setToast({
+          visible: true,
+          message: response.message || 'Fail to get current devices',
+          type: 'error'
+        });
+      }
+    }).catch((error) => {
+      console.error('Error fetching devices:', error);
+      setToast({
+        visible: true,
+        message: 'Có lỗi xảy ra, vui lòng thử lại',
+        type: 'error'
+      });
+    });
+  }, []);
 
   const getDeviceIcon = (deviceType: string) => {
     switch (deviceType) {
@@ -118,15 +164,29 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
     setLoading(true);
     try {
       // TODO: Implement API call to logout all devices
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await authService.logoutAll();
+
+      if (!response.success) {
+        setToast({
+          visible: true,
+          message: response.message || 'Có lỗi xảy ra, vui lòng thử lại',
+          type: 'error'
+        });
+        return;
+      }
       
       // Keep only current device
-      setDevices(devices.filter(device => device.isCurrentDevice));
       setToast({
         visible: true,
-        message: 'Đã đăng xuất tất cả thiết bị thành công',
+        message: 'Đã đăng xuất tất cả thiết bị thành công. Vui lòng đăng nhập lại!',
         type: 'success'
       });
+      await logout();
+			
+      setTimeout(() => {
+        router.replace("/(auth)");
+      }, 3000);
+      
     } catch (error) {
       setToast({
         visible: true,
@@ -190,7 +250,7 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
                         )}
                       </View>
                       <Text className="text-sm text-gray-600">
-                        Hoạt động cuối: {device.lastActive}
+                        Ngày đăng nhập: {device.lastActive}
                       </Text>
                     </View>
                   ))}
