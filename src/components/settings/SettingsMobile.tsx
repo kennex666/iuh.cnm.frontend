@@ -1,10 +1,25 @@
-import React, { Component } from "react";
+import React, { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from '@/src/contexts/userContext';
+import { router } from 'expo-router';
+import ChangePasswordModal from './ChangePasswordModal';
 
-export class SettingsMobile extends Component {
-  render() {
-    return (
+export default function SettingsMobile() {
+  const { logout } = useAuth();
+  const [showChangePassword, setShowChangePassword] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  return (
+    <>
       <ScrollView className="flex-1 p-4">
         <View className="space-y-4">
           {/* Security Settings */}
@@ -17,7 +32,7 @@ export class SettingsMobile extends Component {
 
             <TouchableOpacity
               className="flex-row items-center p-4 border-b border-gray-100"
-              onPress={() => {}}
+              onPress={() => setShowChangePassword(true)}
             >
               <Ionicons name="lock-closed-outline" size={24} color="#4B5563" />
               <Text className="ml-3 text-gray-700 text-base flex-1">
@@ -65,7 +80,7 @@ export class SettingsMobile extends Component {
           {/* Logout Button */}
           <TouchableOpacity
             className="flex-row items-center justify-center p-4 bg-red-50 rounded-xl mt-4"
-            onPress={() => {}}
+            onPress={handleLogout}
           >
             <Ionicons name="log-out-outline" size={24} color="#EF4444" />
             <Text className="ml-2 text-red-500 text-base font-medium">
@@ -74,8 +89,11 @@ export class SettingsMobile extends Component {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    );
-  }
-}
 
-export default SettingsMobile;
+      <ChangePasswordModal 
+        visible={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
+    </>
+  );
+}
