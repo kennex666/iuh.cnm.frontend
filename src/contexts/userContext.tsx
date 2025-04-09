@@ -69,15 +69,19 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     const update = async (updatedUser: Partial<User>) => {
         try {
             if (!user) return {success: false, message: 'Không có thông tin người dùng!'};
-
             const mergedUser = {...user, ...updatedUser};
             const isComplete = isUserComplete(mergedUser);
-
             if (!isComplete) return {success: false, message: 'Thiếu thông tin người dùng bắt buộc'};
 
             const completeUser = mergedUser as User;
-            setUser(completeUser);
-            await storage.saveUser(completeUser);
+
+            const result = await userService.update(completeUser);
+            if (!result.success) {
+                return { success: false, message: result.message || 'Cập nhật thông tin thất bại!' };
+            }
+            const updatedUserResponse = result.user || completeUser;
+            setUser(updatedUserResponse);
+            await storage.saveUser(updatedUserResponse);
             return {success: true, message: 'Cập nhật thông tin thành công!'};
         } catch (error) {
             console.error('Error updating user:', error);
