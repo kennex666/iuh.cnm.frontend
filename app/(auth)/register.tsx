@@ -16,7 +16,6 @@ export default function Register() {
     // Value
     const [phoneNumber, setPhoneNumber] = useState('');
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
     const [gender, setGender] = useState<'male' | 'female' | 'other'>('other');
     const [dob, setDob] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
@@ -61,22 +60,6 @@ export default function Register() {
             setToast({
                 visible: true,
                 message: 'Vui lòng nhập họ tên',
-                type: 'error'
-            });
-            return false;
-        }
-        if (!email) {
-            setToast({
-                visible: true,
-                message: 'Vui lòng nhập email',
-                type: 'error'
-            });
-            return false;
-        }
-        if (!email.includes('@')) {
-            setToast({
-                visible: true,
-                message: 'Email không hợp lệ',
                 type: 'error'
             });
             return false;
@@ -174,16 +157,6 @@ export default function Register() {
                                         placeholder="Họ và tên"
                                         value={name}
                                         onChangeText={setName}
-                                        editable={!loading}
-                                    />
-
-                                    <FormInput
-                                        icon="mail-outline"
-                                        placeholder="Email"
-                                        value={email}
-                                        onChangeText={setEmail}
-                                        keyboardType="email-address"
-                                        autoCapitalize="none"
                                         editable={!loading}
                                     />
 

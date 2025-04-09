@@ -59,7 +59,7 @@ export default function Login() {
         setLoading(true);
         try {
             console.log('Attempting login with:', phoneNumber, password);
-            const result = await login(phoneNumber, password);
+            const result = await login({phone: phoneNumber, password});
             console.log('Login result:', result);
 
             if (result.success) {
@@ -68,18 +68,27 @@ export default function Login() {
                     message: 'Đăng nhập thành công! Vui lòng nhập mã 2FA',
                     type: 'success'
                 });
-                setTimeout(() => {
-                    router.push(
-                        {
-                            pathname: '/(auth)/verify-2fa',
-                            params: {
-                                phone: phoneNumber,
-                                password: password
-                            }
-                        }
-                    );
-                }, 2000);
             } else {
+                if (result.errorCode == 203) {
+                    setToast({
+                        visible: true,
+                        message: 'Hãy nhập mã xác thực 2FA',
+                        type: 'success'
+                    });
+                    
+                    setTimeout(() => {
+                        router.push(
+                            {
+                                pathname: '/(auth)/verify-2fa',
+                                params: {
+                                    phone: phoneNumber,
+                                    password: password
+                                }
+                            }
+                        );
+                    }, 2000);
+                    return;
+                }
                 setToast({
                     visible: true,
                     message: result.message || 'Đăng nhập thất bại',

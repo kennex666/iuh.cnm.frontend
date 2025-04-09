@@ -29,20 +29,28 @@ export interface LoginResponse {
 }
 
 export const authService = {
-    async login(phone: string, password: string): Promise<{
+    async login({phone, password, otp = null}: any): Promise<{
         success: boolean;
         user?: Partial<User>;
         accessToken?: string;
         refreshToken?: string;
-        message?: string
+        message?: string;
+        errorCode?: number | string;
     }> {
         try {
             console.log('Calling login API with:', { phone, password });
 
-            const response = await axios.post<LoginResponse>(`${API_URL}/auth/login`, {
-                phone,
-                password,
-            });
+            const response = otp 
+            ? 
+                await axios.post<LoginResponse>(`${API_URL}/auth/login-2fa`, {
+                    phone,
+                    password,
+                    otp
+                }) 
+            :   await axios.post<LoginResponse>(`${API_URL}/auth/login`, {
+                    phone,
+                    password,
+                }) ;
 
             console.log('API response status:', response.status);
 
@@ -74,7 +82,8 @@ export const authService = {
 
             return {
                 success: false,
-                message: response.data.errorMessage || 'Login failed'
+                message: response.data.errorMessage || 'Login failed',
+                errorCode: response?.data?.errorCode || 0
             };
         } catch (error: any) {
             console.error('Login error details:', {

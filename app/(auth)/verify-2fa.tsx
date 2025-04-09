@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
-import {useRouter} from 'expo-router';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
@@ -9,8 +9,11 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
+import {authService} from '@/src/api/services/authService';
+import { useAuth } from '@/src/contexts/userContext';
 
 export default function Verify2FA() {
+    const {login, user} = useAuth();
     const [verificationCode, setVerificationCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState({
@@ -20,6 +23,38 @@ export default function Verify2FA() {
     });
     const router = useRouter();
     const insets = useSafeAreaInsets();
+
+    const [phone, setPhone] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const params = useLocalSearchParams();
+
+    useEffect(() => {
+        if (params.phone) {
+          setPhone(params.phone as string);
+        } else {
+          // Xử lý khi không có phone
+          setToast({
+            visible: true,
+            message: "Không tìm thấy thông tin số điện thoại",
+            type: "error",
+          });
+          setTimeout(() => router.back(), 1500);
+        }
+      }, [params?.phone]);
+
+    useEffect(() => {
+        if (params.password) {
+            setPassword(params.password as string);
+            } else {
+            // Xử lý khi không có phone
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy mật khẩu',
+                type: 'error'
+            });
+            setTimeout(() => router.back(), 1500);
+            }
+    }, [params?.password]);
 
     const validateForm = () => {
         if (!verificationCode) {
@@ -48,7 +83,24 @@ export default function Verify2FA() {
         try {
             // TODO: Implement actual 2FA verification API call
             // This is a mock implementation
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            const response = await login(
+                {
+                    phone: phone,
+                    password: password,
+                    otp: verificationCode
+                }
+            );
+
+            console.log('2FA verification response:', response);
+
+            if (!response.success) {
+                setToast({
+                    visible: true,
+                    message: 'Mã xác thực không hợp lệ',
+                    type: 'error'
+                });
+                return;
+            }
 
             setToast({
                 visible: true,

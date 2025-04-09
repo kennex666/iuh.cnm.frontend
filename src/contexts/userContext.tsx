@@ -34,9 +34,15 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
         });
     }, []);
 
-    const login = async (phone: string, password: string) => {
+    interface LoginParams {
+        phone: string;
+        password: string;
+        otp?: string | null;
+    }
+
+    const login = async ({phone, password, otp = null}: LoginParams) => {
         try {
-            const result = await authService.login(phone, password);
+            const result = await authService.login({phone, password, otp});
 
             if (result.success && result.user && result.accessToken && result.refreshToken) {
                 // Lưu thông tin người dùng
@@ -49,7 +55,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
                 return {success: true, message: 'Đăng nhập thành công!'};
             }
 
-            return {success: false, message: result.message || 'Đăng nhập thất bại!'};
+            return {success: false, message: result.message || 'Đăng nhập thất bại!', errorCode: result?.errorCode || 0};
         } catch (error) {
             console.error('Login error:', error);
             return {success: false, message: 'Có lỗi xảy ra, vui lòng thử lại sau'};

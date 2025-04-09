@@ -14,7 +14,7 @@ export default function SettingsMobile() {
   const handleLogout = async () => {
     try {
       await logout();
-      router.replace('/');
+      router.replace('/(auth)');
     } catch (error) {
       console.error('Logout failed:', error);
     }
