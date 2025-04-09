@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
 import AppLogo from '@/src/components/auth/AppLogo';
@@ -9,10 +10,11 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import Divider from '@/src/components/ui/Divider';
-import { useAuth } from '@/src/contexts/userContext';
+import {useAuth} from '@/src/contexts/userContext';
+import {authService} from '@/src/api/services/authService';
 
 export default function Login() {
-    const { login } = useAuth();
+    const {login, user} = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -22,6 +24,14 @@ export default function Login() {
         type: 'success' as 'success' | 'error'
     });
     const router = useRouter();
+    // useSafeAreaInsets is used to get the insets of the device
+    const insets = useSafeAreaInsets();
+
+    useEffect(() => {
+        if (user) {
+            router.push('/(main)');
+        }
+    }, [user]);
 
     const validateForm = () => {
         if (!phoneNumber) {
@@ -48,21 +58,37 @@ export default function Login() {
 
         setLoading(true);
         try {
-            // Gọi API đăng nhập thực tế
-            const result = await login(phoneNumber, password);
-            
+            console.log('Attempting login with:', phoneNumber, password);
+            const result = await login({phone: phoneNumber, password});
+            console.log('Login result:', result);
+
             if (result.success) {
                 setToast({
                     visible: true,
-                    message: 'Đăng nhập thành công!',
+                    message: 'Đăng nhập thành công! Vui lòng nhập mã 2FA',
                     type: 'success'
                 });
-                
-                // Đợi toast hiển thị xong rồi chuyển trang
-                setTimeout(() => {
-                    router.replace('/(main)');
-                }, 2000);
             } else {
+                if (result.errorCode == 203) {
+                    setToast({
+                        visible: true,
+                        message: 'Hãy nhập mã xác thực 2FA',
+                        type: 'success'
+                    });
+                    
+                    setTimeout(() => {
+                        router.push(
+                            {
+                                pathname: '/(auth)/verify-2fa',
+                                params: {
+                                    phone: phoneNumber,
+                                    password: password
+                                }
+                            }
+                        );
+                    }, 2000);
+                    return;
+                }
                 setToast({
                     visible: true,
                     message: result.message || 'Đăng nhập thất bại',
@@ -70,79 +96,114 @@ export default function Login() {
                 });
             }
         } catch (error) {
+            console.error('Login error:', error);
             setToast({
                 visible: true,
-                message: 'Có lỗi xảy ra, vui lòng thử lại sau',
+                message: `Có lỗi xảy ra: ${error || 'Unknown error'}`,
                 type: 'error'
             });
-            console.error('Login error:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    const handleQrCodeLogin = () => {
+        // Handle QR code login here
+        console.log('QR code login pressed');
+        router.push('/qrcode');
+    }
+
     return (
         <GradientBackground>
-            {/* Phần UI không thay đổi */}
-            <View className="flex-1 justify-center items-center px-4 py-8 sm:px-6 md:px-8 lg:px-10">
-                <View className="w-full max-w-[420px]">
-                    <AppLogo/>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                className="flex-1"
+            >
+                <ScrollView
+                    contentContainerStyle={{flexGrow: 1}}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View
+                        className="flex-1 justify-start items-center px-4 pt-8 sm:justify-center sm:px-6 md:px-8 lg:px-10"
+                        style={{paddingTop: Math.max(insets.top + 20, 40)}}
+                    >
+                        <View className="w-full max-w-[100%] sm:max-w-[420px]">
+                            <AppLogo/>
 
-                    <AuthHeader
-                        title="Welcome Back!"
-                        subtitle={'Đăng nhập để kết nối với bạn bè và\nngười thân của bạn'}
-                    />
+                            <View className="mt-4 sm:mt-6">
+                                <AuthHeader
+                                    title="Welcome Back!"
+                                    subtitle={'Đăng nhập để kết nối với bạn bè và\nngười thân của bạn'}
+                                />
 
-                    <View className="space-y-4 sm:space-y-5">
-                        <FormInput
-                            icon="person-outline"
-                            placeholder="Số điện thoại"
-                            value={phoneNumber}
-                            onChangeText={setPhoneNumber}
-                            editable={!loading}
-                        />
+                                <View className="mt-4 space-y-3 sm:space-y-4">
+                                    <FormInput
+                                        icon="person-outline"
+                                        placeholder="Số điện thoại"
+                                        value={phoneNumber}
+                                        onChangeText={setPhoneNumber}
+                                        editable={!loading}
+                                        keyboardType="phone-pad"
+                                    />
 
-                        <FormInput
-                            icon="lock-closed-outline"
-                            placeholder="Mật khẩu"
-                            value={password}
-                            onChangeText={setPassword}
-                            secureTextEntry
-                            showTogglePassword
-                            editable={!loading}
-                        />
+                                    <FormInput
+                                        icon="lock-closed-outline"
+                                        placeholder="Mật khẩu"
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        secureTextEntry
+                                        showTogglePassword
+                                        editable={!loading}
+                                    />
 
-                        <TouchableOpacity className="self-end" activeOpacity={0.6} onPress={() => router.push('/forgot-password')}>
-                            <Text className="text-blue-500 font-medium text-xs sm:text-sm">
-                                Quên mật khẩu?
-                            </Text>
-                        </TouchableOpacity>
+                                    <TouchableOpacity
+                                        className="self-end"
+                                        activeOpacity={0.6}
+                                        onPress={() => router.push('/forgot-password')}
+                                    >
+                                        <Text className="text-blue-500 font-medium text-xs sm:text-sm py-2">
+                                            Quên mật khẩu?
+                                        </Text>
+                                    </TouchableOpacity>
 
-                        <Button
-                            title="Đăng nhập"
-                            onPress={handleLogin}
-                            loading={loading}
-                            className="mt-4"
-                        />
+                                    <Button
+                                        title="Đăng nhập"
+                                        onPress={handleLogin}
+                                        loading={loading}
+                                        className="mt-2"
+                                    />
 
-                        <Divider text="Hoặc"/>
+                                    <Divider text="Hoặc" className="mt-3"/>
 
-                        <Button
-                            title="Đăng nhập bằng mã QR"
-                            onPress={() => {}}
-                            variant="outline"
-                            icon="qr-code-outline"
-                        />
+                                    <Button
+                                        title="Đăng nhập bằng mã QR"
+                                        onPress={handleQrCodeLogin}
+                                        variant="outline"
+                                        icon="qr-code-outline"
+                                        className="mt-2"
+                                    />
 
-                        <TextLink
-                            href="/register"
-                            text="Chưa có tài khoản?"
-                            linkText="Đăng ký ngay"
-                            className="mt-6 sm:mt-8"
-                        />
+                                    {/* Tính năng phát triển */}
+                                    {/* <Button
+                                        title="Đăng nhập bằng hình ảnh"
+                                        onPress={() => router.push('/image-auth')}
+                                        variant="outline"
+                                        icon="images-outline"
+                                        className="mt-2"
+                                    /> */}
+
+                                    <TextLink
+                                        href="/register"
+                                        text="Chưa có tài khoản?"
+                                        linkText="Đăng ký ngay"
+                                        className="mt-4"
+                                    />
+                                </View>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             <Toast
                 visible={toast.visible}

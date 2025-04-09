@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
 import {useRouter} from 'expo-router';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
 import AppLogo from '@/src/components/auth/AppLogo';
@@ -8,6 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
+import {authService} from '@/src/api/services/authService';
 
 export default function ForgotPassword() {
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -18,6 +20,7 @@ export default function ForgotPassword() {
         type: 'success' as 'success' | 'error'
     });
     const router = useRouter();
+    const insets = useSafeAreaInsets();
 
     const validateForm = () => {
         if (!phoneNumber) {
@@ -38,17 +41,31 @@ export default function ForgotPassword() {
         try {
             // TODO: Implement actual password reset API call
             // This is a mock implementation
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
+            const result = await authService.forgotPassword({
+                phone: phoneNumber
+            });
+
+            console.log('Password reset response:', phoneNumber, result);
+            if (!result.success) {
+                setToast({
+                    visible: true,
+                    message: result.message || 'Có lỗi xảy ra, vui lòng thử lại sau',
+                    type: 'error'
+                });
+                return;
+            }
             setToast({
                 visible: true,
                 message: 'Mã xác thực đã được gửi đến số điện thoại của bạn',
                 type: 'success'
             });
-            
+
             // Navigate to verification screen after 2 seconds
             setTimeout(() => {
-                router.push('./verify-reset-code');
+                router.push({
+                    pathname: '/(auth)/verify-reset-code',
+                    params: { phone: phoneNumber }
+                });
             }, 2000);
         } catch (error) {
             setToast({
@@ -64,41 +81,56 @@ export default function ForgotPassword() {
 
     return (
         <GradientBackground>
-            <View className="flex-1 justify-center items-center px-4 py-8 sm:px-6 md:px-8 lg:px-10">
-                <View className="w-full max-w-[420px]">
-                    <AppLogo/>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                className="flex-1"
+            >
+                <ScrollView
+                    contentContainerStyle={{flexGrow: 1}}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View
+                        className="flex-1 justify-end items-center px-4 pb-6"
+                        style={{paddingTop: Math.max(insets.top, 20)}}
+                    >
+                        <View className="w-full max-w-[100%] sm:max-w-[420px]">
+                            <AppLogo/>
 
-                    <AuthHeader
-                        title="Quên mật khẩu"
-                        subtitle={'Nhập số điện thoại để nhận mã xác thực\nvà đặt lại mật khẩu của bạn'}
-                    />
+                            <View className="mt-4">
+                                <AuthHeader
+                                    title="Quên mật khẩu"
+                                    subtitle={'Nhập số điện thoại để nhận mã xác thực\nvà đặt lại mật khẩu của bạn'}
+                                />
 
-                    <View className="space-y-4 sm:space-y-5">
-                        <FormInput
-                            icon="person-outline"
-                            placeholder="Số điện thoại"
-                            value={phoneNumber}
-                            onChangeText={setPhoneNumber}
-                            editable={!loading}
-                            keyboardType="phone-pad"
-                        />
+                                <View className="mt-4 space-y-3">
+                                    <FormInput
+                                        icon="person-outline"
+                                        placeholder="Số điện thoại"
+                                        value={phoneNumber}
+                                        onChangeText={setPhoneNumber}
+                                        editable={!loading}
+                                        keyboardType="phone-pad"
+                                    />
 
-                        <Button
-                            title="Gửi mã xác thực"
-                            onPress={handleResetPassword}
-                            loading={loading}
-                            className="mt-4"
-                        />
+                                    <Button
+                                        title="Gửi mã xác thực"
+                                        onPress={handleResetPassword}
+                                        loading={loading}
+                                        className="mt-2"
+                                    />
 
-                        <TextLink
-                            href="/"
-                            text="Đã nhớ mật khẩu?"
-                            linkText="Đăng nhập"
-                            className="mt-6 sm:mt-8"
-                        />
+                                    <TextLink
+                                        href="/"
+                                        text="Đã nhớ mật khẩu?"
+                                        linkText="Đăng nhập"
+                                        className="mt-4"
+                                    />
+                                </View>
+                            </View>
+                        </View>
                     </View>
-                </View>
-            </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             <Toast
                 visible={toast.visible}

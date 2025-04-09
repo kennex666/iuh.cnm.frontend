@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
+import {shadows} from '@/src/styles/shadow';
 
 interface FormInputProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -29,7 +30,8 @@ const FormInput = ({
 
     return (
         <View
-            className="bg-white shadow-sm border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-200 focus-within:shadow-md focus-within:border-blue-200">
+            className="bg-white border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden"
+            style={shadows.sm}>
             <View className="flex-row items-center px-3 sm:px-4">
                 <Ionicons name={icon} size={20} color="#9CA3AF"/>
                 <TextInput
