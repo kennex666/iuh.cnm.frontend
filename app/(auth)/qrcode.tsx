@@ -4,11 +4,13 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { shadows } from "@/src/styles/shadow";
-import QRCode from "@/src/components/ui/QRCode";
 
 export default function QrCode() {
   const [showScanner, setShowScanner] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [qrValue, setQrValue] = useState("");
+
+  // Router
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -63,20 +65,48 @@ export default function QrCode() {
           <Text className="mt-4 text-gray-500">Đang xử lý...</Text>
         </View>
       ) : showScanner ? (
-        <View>
-          <Text className="text-center text-gray-500 mt-4">
-            Quét mã QR để đăng nhập
-          </Text>
-          <QRCode onClose={handleClose} />
+        // Mở camera để quét mã QR
+        <View className="flex-1">
+         
         </View>
       ) : (
-        <View>
-          <Text className="text-center text-gray-500 mt-4">
-            Chờ quét mã QR từ thiết bị khác
-          </Text>
-          <Text className="text-center text-gray-500 mt-2">
-            Hoặc nhập mã QR bằng tay
-          </Text>
+        // Chờ quét mã QR từ thiết bị khác
+        <View className="flex-1 items-center justify-center p-6">
+          <View className="">
+            {/* Phần tiêu đề */}
+            <View className="mb-6">
+              <Text className="text-center text-xl font-bold text-gray-800 mb-2">
+                Mã QR đăng nhập
+              </Text>
+              <Text className="text-center text-sm text-gray-500">
+                Sử dụng thiết bị khác để quét mã này
+              </Text>
+            </View>
+          </View>
+          {/* Phần QR code */}
+          <View className="bg-white p-4 rounded-2xl border-2 border-gray-100">
+            <Text>Ma QR show</Text>
+          </View>
+          {/* Thông tin bổ sung */}
+          <View className="mt-6">
+            <Text className="text-center text-sm text-gray-500">
+              Mã QR sẽ tự động làm mới sau
+            </Text>
+            <Text className="text-center text-lg font-semibold text-blue-500">
+              04:59
+            </Text>
+          </View>
+          {/* Nút làm mới */}
+          <TouchableOpacity
+            className="mt-6 bg-blue-500 py-3 px-6 rounded-full"
+            onPress={() => {
+              /* handle refresh */
+            }}
+          >
+            <Text className="text-white text-center font-semibold">
+              Tạo mã QR mới
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
