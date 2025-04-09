@@ -29,8 +29,6 @@ export default function Login() {
     useEffect(() => {
         if (user) {
             router.push('/(main)');
-        } else {
-            router.push('/');
         }
     }, [user]);
 
