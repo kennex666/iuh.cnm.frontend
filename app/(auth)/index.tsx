@@ -89,7 +89,7 @@ export default function Login() {
                     }, 2000);
                     return;
                 }
-                if(result.errorCode == 407) {
+                if(result.errorCode == 207) {
                     setToast({
                         visible: true,
                         message: 'Tai khoản chưa được xác thực. Vui lòng kiểm tra tin nhắn SMS để xác thực tài khoản của bạn.',
