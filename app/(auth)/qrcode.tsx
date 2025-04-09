@@ -67,7 +67,35 @@ export default function QrCode() {
       ) : showScanner ? (
         // Mở camera để quét mã QR
         <View className="flex-1">
-         
+          {/* Overlay hướng dẫn */}
+          <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center">
+            {/* Khung quét */}
+            <View className="w-72 h-72 border-2 border-white rounded-lg">
+              <View className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-blue-500" />
+              <View className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-blue-500" />
+              <View className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-blue-500" />
+              <View className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-blue-500" />
+            </View>
+
+            {/* Hướng dẫn */}
+            <View className="absolute bottom-20 left-0 right-0 items-center">
+              <View className="bg-black/50 px-6 py-4 rounded-2xl">
+                <Text className="text-white text-center text-base">
+                  Đặt mã QR vào khung hình để quét
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Nút bật/tắt đèn flash */}
+          <TouchableOpacity
+            className="absolute top-6 right-6 bg-black/30 p-3 rounded-full"
+            onPress={() => {
+              /* handle toggle flash */
+            }}
+          >
+            <Ionicons name="flash-outline" size={24} color="white" />
+          </TouchableOpacity>
         </View>
       ) : (
         // Chờ quét mã QR từ thiết bị khác
