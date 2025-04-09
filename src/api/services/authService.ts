@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { User } from '@/src/models/User';
 
-const API_URL = 'http://192.168.1.25:8087/api';
+const API_URL = 'https://b5bb37091da2151d3629e4e7077ad91f.loophole.site/api';
 
 export interface LoginResponse {
     data: {
@@ -118,7 +118,7 @@ export const authService = {
             return { success: false, message: error.message || 'Network error occurred' };
         }
     },
-    async register({name, phone, gender, password, dob, otp = null}: any): Promise<{
+    async register({name, phone, gender, password, dob}: any): Promise<{
         success: boolean;
         message?: string;
         errorCode?: number | string;
@@ -130,7 +130,6 @@ export const authService = {
                 gender,
                 password,
                 dob,
-                otp,
             });
 
             if (response.data.errorCode == 200) {

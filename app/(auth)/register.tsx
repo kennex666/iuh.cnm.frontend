@@ -105,6 +105,15 @@ export default function Register() {
                 dob: dob.toISOString().split('T')[0]
             });
 
+            if (result.errorCode === 400) {
+                setToast({
+                    visible: true,
+                    message: 'Số điện thoại đã tồn tại',
+                    type: 'error'
+                });
+                return;
+            }
+            
             if(!result.success) {
                 setToast({
                     visible: true,
@@ -123,7 +132,7 @@ export default function Register() {
             // Đợi toast hiển thị xong rồi chuyển trang
             setTimeout(() => {
                 router.push({
-                    pathname: '/verify-account',
+                    pathname: '/(auth)/verify-account',
                     params: {
                         phone: phoneNumber,
                     }
