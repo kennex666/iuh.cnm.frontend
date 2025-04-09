@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { shadows } from "@/src/styles/shadow";
+import QRCode from "@/src/components/ui/QRCode";
 
 export default function QrCode() {
   const [showScanner, setShowScanner] = useState(false);
@@ -66,6 +67,7 @@ export default function QrCode() {
           <Text className="text-center text-gray-500 mt-4">
             Quét mã QR để đăng nhập
           </Text>
+          <QRCode onClose={handleClose} />
         </View>
       ) : (
         <View>
