@@ -51,8 +51,9 @@ export default function Login() {
 
         setLoading(true);
         try {
-            // Gọi API đăng nhập thực tế
+            console.log('Attempting login with:', phoneNumber, password);
             const result = await login(phoneNumber, password);
+            console.log('Login result:', result);
 
             if (result.success) {
                 setToast({
@@ -60,8 +61,6 @@ export default function Login() {
                     message: 'Đăng nhập thành công!',
                     type: 'success'
                 });
-
-                // Đợi toast hiển thị xong rồi chuyển trang
                 setTimeout(() => {
                     router.replace('/(main)');
                 }, 2000);
@@ -73,12 +72,12 @@ export default function Login() {
                 });
             }
         } catch (error) {
+            console.error('Login error:', error);
             setToast({
                 visible: true,
-                message: 'Có lỗi xảy ra, vui lòng thử lại sau',
+                message: `Có lỗi xảy ra: ${error || 'Unknown error'}`,
                 type: 'error'
             });
-            console.error('Login error:', error);
         } finally {
             setLoading(false);
         }
