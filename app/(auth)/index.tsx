@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -13,7 +13,7 @@ import Divider from '@/src/components/ui/Divider';
 import {useAuth} from '@/src/contexts/userContext';
 
 export default function Login() {
-    const {login} = useAuth();
+    const {login, user} = useAuth();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -25,6 +25,14 @@ export default function Login() {
     const router = useRouter();
     // useSafeAreaInsets is used to get the insets of the device
     const insets = useSafeAreaInsets();
+
+    useEffect(() => {
+        if (user) {
+            router.push('/(main)');
+        } else {
+            router.push('/');
+        }
+    }, [user]);
 
     const validateForm = () => {
         if (!phoneNumber) {
