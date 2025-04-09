@@ -1,9 +1,7 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
 import { authStorage } from '@/src/services/authStorage';
-
-const API_URL = '192.168.1.25:8087';
-
+import { API_DOMAIN } from '@/src/constants/ApiConstant';
 
 export const userService = {
     // async getUserByPhone(phone: string): Promise<User | null> {
@@ -53,7 +51,7 @@ export const userService = {
 
             // Make the API request with authorization header
             const response = await axios.put(
-                `http://${API_URL}/api/user/update`,
+                `${API_DOMAIN.API_USER}/update`,
                 formattedData,
                 {
                     headers: {

@@ -1,7 +1,6 @@
+import { API_DOMAIN } from './../../constants/ApiConstant';
 import axios from 'axios';
 import { User } from '@/src/models/User';
-
-const API_URL = 'https://b5bb37091da2151d3629e4e7077ad91f.loophole.site/api';
 
 export interface LoginResponse {
     data: {
@@ -42,12 +41,12 @@ export const authService = {
 
             const response = otp 
             ? 
-                await axios.post<LoginResponse>(`${API_URL}/auth/login-2fa`, {
+                await axios.post<LoginResponse>(`${API_DOMAIN.API_AUTH}/login-2fa`, {
                     phone,
                     password,
                     otp
                 }) 
-            :   await axios.post<LoginResponse>(`${API_URL}/auth/login`, {
+            :   await axios.post<LoginResponse>(`${API_DOMAIN.API_AUTH}/login`, {
                     phone,
                     password,
                 }) ;
@@ -103,7 +102,7 @@ export const authService = {
         message?: string;
     }> {
         try {
-            const response = await axios.post(`${API_URL}/auth/forgot-password`, {
+            const response = await axios.post(`${API_DOMAIN.API_AUTH}/forgot-password`, {
                 phone,
                 otp,
                 password,
@@ -124,7 +123,7 @@ export const authService = {
         errorCode?: number | string;
     }> {
         try {
-            const response = await axios.post(`${API_URL}/auth/register`, {
+            const response = await axios.post(`${API_DOMAIN.API_AUTH}/register`, {
                 name,
                 phone,
                 gender,
@@ -148,7 +147,7 @@ export const authService = {
         errorCode?: number | string;
     }> {
         try {
-            const response = await axios.post(`${API_URL}/auth/verify-account`, {
+            const response = await axios.post(`${API_DOMAIN.API_AUTH}/verify-account`, {
                 phone,
                 otp,
             });
@@ -168,7 +167,7 @@ export const authService = {
         errorCode?: number | string;
     }> {
         try {
-            const response = await axios.post(`${API_URL}/auth/resend-otp`, {
+            const response = await axios.post(`${API_DOMAIN.API_AUTH}/resend-otp`, {
                 phone,
             });
 
