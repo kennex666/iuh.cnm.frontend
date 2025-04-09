@@ -144,7 +144,11 @@ export default function Login() {
 
                                     <Button
                                         title="Đăng nhập"
-                                        onPress={handleLogin}
+                                        onPress={
+                                            () => {
+                                               router.push('/(main)')
+                                            }
+                                        }
                                         loading={loading}
                                         className="mt-2"
                                     />
