@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { shadows } from "@/src/styles/shadow";
+import Loading from "@/src/components/loading/loading";
 
 export default function QrCode() {
   const [showScanner, setShowScanner] = useState(false);
@@ -47,11 +48,11 @@ export default function QrCode() {
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text className="text-lg font-semibold text-gray-800">
-          {showScanner ? "Quét mã QR" : "Mã QR đăng nhập"}
+          {Platform.OS === 'web' ? "Mã QR đăng nhập" :  "Quét mã QR"}
         </Text>
         <TouchableOpacity onPress={() => setShowScanner(!showScanner)}>
           <Ionicons
-            name={showScanner ? "qr-code-outline" : "scan-outline"}
+            name={Platform.OS === 'web' ? "qr-code-outline" : "scan-outline"}
             size={24}
             color="#333"
           />
@@ -60,44 +61,8 @@ export default function QrCode() {
 
       {/* Content */}
       {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0068FF" />
-          <Text className="mt-4 text-gray-500">Đang xử lý...</Text>
-        </View>
-      ) : showScanner ? (
-        // Mở camera để quét mã QR
-        <View className="flex-1">
-          {/* Overlay hướng dẫn */}
-          <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center">
-            {/* Khung quét */}
-            <View className="w-72 h-72 border-2 border-white rounded-lg">
-              <View className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-blue-500" />
-              <View className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-blue-500" />
-              <View className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-blue-500" />
-              <View className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-blue-500" />
-            </View>
-
-            {/* Hướng dẫn */}
-            <View className="absolute bottom-20 left-0 right-0 items-center">
-              <View className="bg-black/50 px-6 py-4 rounded-2xl">
-                <Text className="text-white text-center text-base">
-                  Đặt mã QR vào khung hình để quét
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Nút bật/tắt đèn flash */}
-          <TouchableOpacity
-            className="absolute top-6 right-6 bg-black/30 p-3 rounded-full"
-            onPress={() => {
-              /* handle toggle flash */
-            }}
-          >
-            <Ionicons name="flash-outline" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
-      ) : (
+        <Loading />
+      ) : Platform.OS === "web" ? (
         // Chờ quét mã QR từ thiết bị khác
         <View className="flex-1 items-center justify-center p-6">
           <View className="">
@@ -134,6 +99,39 @@ export default function QrCode() {
             <Text className="text-white text-center font-semibold">
               Tạo mã QR mới
             </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        // Mở camera để quét mã QR
+        <View className="flex-1">
+          {/* Overlay hướng dẫn */}
+          <View className="absolute top-0 left-0 right-0 bottom-0 items-center justify-center">
+            {/* Khung quét */}
+            <View className="w-72 h-72 border-2 border-white rounded-lg">
+              <View className="absolute -top-2 -left-2 w-8 h-8 border-t-4 border-l-4 border-blue-500" />
+              <View className="absolute -top-2 -right-2 w-8 h-8 border-t-4 border-r-4 border-blue-500" />
+              <View className="absolute -bottom-2 -left-2 w-8 h-8 border-b-4 border-l-4 border-blue-500" />
+              <View className="absolute -bottom-2 -right-2 w-8 h-8 border-b-4 border-r-4 border-blue-500" />
+            </View>
+
+            {/* Hướng dẫn */}
+            <View className="absolute bottom-20 left-0 right-0 items-center">
+              <View className="bg-black/50 px-6 py-4 rounded-2xl">
+                <Text className="text-white text-center text-base">
+                  Đặt mã QR vào khung hình để quét
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Nút bật/tắt đèn flash */}
+          <TouchableOpacity
+            className="absolute top-6 right-6 bg-black/30 p-3 rounded-full"
+            onPress={() => {
+              /* handle toggle flash */
+            }}
+          >
+            <Ionicons name="flash-outline" size={24} color="white" />
           </TouchableOpacity>
         </View>
       )}
