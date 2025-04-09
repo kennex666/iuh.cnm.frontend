@@ -317,4 +317,112 @@ export const authService = {
 			};
 		}
 	},
+
+	// router.post("/2fa/enable", authMiddleware, AuthController.enable2FA); secret, otp
+	async enable2FA({ secret, otp }: any): Promise<{
+		success: boolean;
+		message?: string;
+	}> {
+		try {
+			const token = await authStorage.getAccessToken();
+			if (!token) {
+				return { success: false, message: "No access token found" };
+			}
+
+			const response = await axios.post(
+				`${API_DOMAIN.API_AUTH}/2fa/enable`,
+				{
+					secret,
+					otp,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.data.success) {
+				return { success: true };
+			}
+			return { success: false, message: response.data.errorMessage };
+		} catch (error: any) {
+			console.error("Enable 2FA error:", error);
+			return {
+				success: false,
+				message: error.message || "Network error occurred",
+			};
+		}
+	},
+	
+	// router.post("/2fa/disable", authMiddleware, AuthController.disable2FA);
+	async disable2FA({ otp }: any): Promise<{
+		success: boolean;
+		message?: string;
+	}> {
+		try {
+			const token = await authStorage.getAccessToken();
+			if (!token) {
+				return { success: false, message: "No access token found" };
+			}
+
+			const response = await axios.post(
+				`${API_DOMAIN.API_AUTH}/2fa/disable`,
+				{
+					otp,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.data.success) {
+				return { success: true };
+			}
+			return { success: false, message: response.data.errorMessage };
+		} catch (error: any) {
+			console.error("Disable 2FA error:", error);
+			return {
+				success: false,
+				message: error.message || "Network error occurred",
+			};
+		}
+	},
+
+	async get2FAStatus(): Promise<{
+		success: boolean;
+		data?: {
+			isEnabled: boolean;
+		};
+		message?: string;
+	}> {
+		try {
+			const token = await authStorage.getAccessToken();
+			if (!token) {
+				return { success: false, message: "No access token found" };
+			}
+
+			const response = await axios.get(
+				`${API_DOMAIN.API_AUTH}/2fa/status`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.data.success) {
+				return { success: true, data: response.data.data };
+			}
+			return { success: false, message: response.data.errorMessage };
+		} catch (error: any) {
+			console.error("Get 2FA status error:", error);
+			return {
+				success: false,
+				message: error.message || "Network error occurred",
+			};
+		}
+	}
 };
