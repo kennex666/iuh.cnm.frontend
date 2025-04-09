@@ -1,10 +1,10 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Alert, Animated, Dimensions, Modal, Platform, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
+import {Animated, Dimensions, Modal, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
 import Toast from '@/src/components/ui/Toast';
-import * as ImagePicker from 'expo-image-picker';
 import {useUser} from "@/src/hooks/useUser";
 import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
+import {pickAvatar, pickCover} from '@/src/utils/imagePicker';
 
 type ProfileModalProps = {
     visible: boolean;
@@ -54,51 +54,17 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         }
     }, [editMode]);
 
-    const requestMediaLibraryPermission = async () => {
-        if (Platform.OS !== 'web') {
-            const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
-                Alert.alert('Thông báo', 'Cần quyền truy cập vào thư viện ảnh để sử dụng tính năng này!');
-                return false;
-            }
-            return true;
-        }
-        return true;
-    };
-
     const handlePickAvatar = async () => {
-        const hasPermission = await requestMediaLibraryPermission();
-
-        if (!hasPermission) return;
-
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images", "videos"],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.7,
-        });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            setAvatarUri(result.assets[0].uri);
-            Alert.alert('Thành công', 'Đã cập nhật ảnh đại diện!');
+        const uri = await pickAvatar();
+        if (uri) {
+            setAvatarUri(uri);
         }
     };
 
     const handlePickCover = async () => {
-        const hasPermission = await requestMediaLibraryPermission();
-
-        if (!hasPermission) return;
-
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images", "videos"],
-            allowsEditing: true,
-            aspect: [16, 9],
-            quality: 0.7,
-        });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            setCoverUri(result.assets[0].uri);
-            Alert.alert('Thành công', 'Đã cập nhật ảnh bìa!');
+        const uri = await pickCover();
+        if (uri) {
+            setCoverUri(uri);
         }
     };
 
