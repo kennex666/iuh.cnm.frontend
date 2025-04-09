@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import {Alert, Dimensions, Modal, Platform, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
+import React, {useEffect, useRef, useState} from "react";
+import {Alert, Animated, Dimensions, Modal, Platform, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
 import Toast from '@/src/components/ui/Toast';
 import * as ImagePicker from 'expo-image-picker';
 import {useUser} from "@/src/hooks/useUser";
@@ -23,9 +23,36 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         type: 'success' as 'success' | 'error'
     });
 
+    // Animation values
+    const slideAnim = useRef(new Animated.Value(0)).current;
+    const [animating, setAnimating] = useState(false);
+
     const {width, height} = Dimensions.get('window');
     const modalWidth = width >= 768 ? width * 0.25 : width * 0.8;
     const modalHeight = height * 0.8;
+
+    // Handle animation when editMode changes
+    useEffect(() => {
+        if (editMode) {
+            setAnimating(true);
+            Animated.timing(slideAnim, {
+                toValue: -1,
+                duration: 300,
+                useNativeDriver: true
+            }).start(() => {
+                setAnimating(false);
+            });
+        } else {
+            setAnimating(true);
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true
+            }).start(() => {
+                setAnimating(false);
+            });
+        }
+    }, [editMode]);
 
     const requestMediaLibraryPermission = async () => {
         if (Platform.OS !== 'web') {
@@ -107,6 +134,17 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         onClose();
     };
 
+    // Calculate transform values for the animation
+    const infoTranslateX = slideAnim.interpolate({
+        inputRange: [-1, 0],
+        outputRange: [-(modalWidth), 0]
+    });
+
+    const editTranslateX = slideAnim.interpolate({
+        inputRange: [-1, 0],
+        outputRange: [0, modalWidth]
+    });
+
     return (
         <>
             <Modal
@@ -131,24 +169,47 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                                 overflow: 'hidden'
                             }}>
                                 <SafeAreaView className="flex-1">
-                                    {editMode ? (
-                                        <ProfileUserEdit
-                                            editUser={editUser}
-                                            onSave={handleEdit}
-                                            onCancel={handleCancel}
-                                            onChangeUser={setEditUser}
-                                        />
-                                    ) : (
-                                        <ProfileUserInfo
-                                            user={fetchedUser}
-                                            avatarSource={avatarSource}
-                                            coverSource={coverSource}
-                                            onPickAvatar={handlePickAvatar}
-                                            onPickCover={handlePickCover}
-                                            onEditPress={toggleEdit}
-                                            onClose={closeModal}
-                                        />
-                                    )}
+                                    <View style={{flex: 1, position: 'relative'}}>
+                                        {/* Always render both screens but control visibility with animation */}
+                                        {(editMode || animating) && (
+                                            <Animated.View
+                                                style={{
+                                                    position: 'absolute',
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    transform: [{translateX: editTranslateX}]
+                                                }}
+                                            >
+                                                <ProfileUserEdit
+                                                    editUser={editUser}
+                                                    onSave={handleEdit}
+                                                    onCancel={handleCancel}
+                                                    onChangeUser={setEditUser}
+                                                />
+                                            </Animated.View>
+                                        )}
+
+                                        {(!editMode || animating) && (
+                                            <Animated.View
+                                                style={{
+                                                    position: 'absolute',
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    transform: [{translateX: infoTranslateX}]
+                                                }}
+                                            >
+                                                <ProfileUserInfo
+                                                    user={fetchedUser}
+                                                    avatarSource={avatarSource}
+                                                    coverSource={coverSource}
+                                                    onPickAvatar={handlePickAvatar}
+                                                    onPickCover={handlePickCover}
+                                                    onEditPress={toggleEdit}
+                                                    onClose={closeModal}
+                                                />
+                                            </Animated.View>
+                                        )}
+                                    </View>
                                 </SafeAreaView>
                             </View>
                         </TouchableWithoutFeedback>
