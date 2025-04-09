@@ -58,11 +58,11 @@ export default function Login() {
             if (result.success) {
                 setToast({
                     visible: true,
-                    message: 'Đăng nhập thành công!',
+                    message: 'Đăng nhập thành công! Vui lòng nhập mã 2FA',
                     type: 'success'
                 });
                 setTimeout(() => {
-                    router.replace('/(main)');
+                    router.push('/verify-2fa');
                 }, 2000);
             } else {
                 setToast({
@@ -158,6 +158,15 @@ export default function Login() {
                                         icon="qr-code-outline"
                                         className="mt-2"
                                     />
+
+                                    {/* Tính năng phát triển */}
+                                    {/* <Button
+                                        title="Đăng nhập bằng hình ảnh"
+                                        onPress={() => router.push('/image-auth')}
+                                        variant="outline"
+                                        icon="images-outline"
+                                        className="mt-2"
+                                    /> */}
 
                                     <TextLink
                                         href="/register"
