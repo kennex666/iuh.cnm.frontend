@@ -20,35 +20,26 @@ import CoverImage from "@/src/components/profile/CoverImage";
 import AvatarImage from "@/src/components/profile/AvatarImage";
 import ProfileInfoItem from "@/src/components/profile/ProfileInfoItem";
 import RadioButton from "@/src/components/profile/RadioButton";
+import {useUser} from "@/src/hooks/useUser";
+import {formatDate} from "@/src/utils/datetime";
 
 type ProfileModalProps = {
     visible: boolean;
     onClose: () => void;
-}
+};
 
 export default function ProfileModal({visible, onClose}: ProfileModalProps) {
+    const {user: fetchedUser} = useUser(); // Lấy dữ liệu từ useUser
     const [editMode, setEditMode] = useState(false);
-    const [user, setUser] = useState({
-        displayName: "Thiên Phú",
-        gender: "Nam",
-        dob: "08 tháng 03, 2002",
-        phone: "+84 337 104 900",
-        email: "thienphu@gmail.com",
-        bio: "Xin chào, tôi là Thiên Phú. Tôi thích lập trình và du lịch.",
-        avatar: require("@/resources/assets/profile/avatar.png"),
-        cover: require("@/resources/assets/profile/cover.png"),
-    });
-
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [coverUri, setCoverUri] = useState<string | null>(null);
-    const [editUser, setEditUser] = useState({...user});
+    const [editUser, setEditUser] = useState({...fetchedUser});
     const [toast, setToast] = useState({
         visible: false,
         message: '',
         type: 'success' as 'success' | 'error'
     });
 
-    // Get screen dimensions
     const {width, height} = Dimensions.get('window');
     const modalWidth = width >= 768 ? width * 0.25 : width * 0.8;
     const modalHeight = height * 0.8;
@@ -79,7 +70,6 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
             setAvatarUri(result.assets[0].uri);
-            console.log('Avatar URI:', result.assets[0].uri);
             Alert.alert('Thành công', 'Đã cập nhật ảnh đại diện!');
         }
     };
@@ -98,36 +88,34 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
             setCoverUri(result.assets[0].uri);
-            console.log('Cover URI:', result.assets[0].uri);
             Alert.alert('Thành công', 'Đã cập nhật ảnh bìa!');
         }
     };
 
     const avatarSource = avatarUri
         ? {uri: avatarUri}
-        : user.avatar;
+        : {uri: fetchedUser?.avatarURL};
 
     const coverSource = coverUri
         ? {uri: coverUri}
-        : user.cover;
+        : {uri: fetchedUser?.coverURL};
 
     const handleEdit = () => {
-        setUser({...editUser});
-        setEditMode(false);
         setToast({
             visible: true,
             message: 'Cập nhật thông tin thành công!',
             type: 'success'
         });
+        setEditMode(false);
     };
 
     const handleCancel = () => {
-        setEditUser({...user});
+        setEditUser({...fetchedUser});
         setEditMode(false);
     };
 
     const toggleEdit = () => {
-        setEditUser({...user});
+        setEditUser({...fetchedUser});
         setEditMode(true);
     };
 
@@ -136,19 +124,22 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         onClose();
     };
 
+    const dob = formatDate(fetchedUser?.dob || 0);
+
     const InfoScreen = () => (
         <View className="flex-1 bg-white">
             <ModalHeader
                 title="Thông tin tài khoản"
-                onLeftPress={closeModal}
+                onRightPress={closeModal}
+                rightIconName="close"
             />
 
             <ScrollView className="flex-1 bg-gray-100">
                 <View className="items-center mb-2 mt-4 bg-white p-2">
-                    <CoverImage source={coverSource} onPickImage={handlePickCover}/>
-                    <AvatarImage source={avatarSource} onPickImage={handlePickAvatar}/>
+                    <CoverImage customSource={coverSource} onPickImage={handlePickCover}/>
+                    <AvatarImage customSource={avatarSource} onPickImage={handlePickAvatar}/>
 
-                    <Text className="text-xl font-bold">{user.displayName}</Text>
+                    <Text className="text-xl font-bold">{fetchedUser?.name}</Text>
                     <TouchableOpacity onPress={toggleEdit} className="mt-2 flex-row items-center">
                         <Ionicons name="pencil-outline" size={16} color="#1E88E5"/>
                         <Text className="text-blue-500 ml-1">Cập nhật</Text>
@@ -158,9 +149,9 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 <View className="mt-2 bg-white p-4">
                     <Text className="text-base font-bold text-gray-800 mb-4">Thông tin cá nhân</Text>
 
-                    <ProfileInfoItem label="Giới tính" value={user.gender}/>
-                    <ProfileInfoItem label="Ngày sinh" value={user.dob}/>
-                    <ProfileInfoItem label="Điện thoại" value={user.phone}/>
+                    <ProfileInfoItem label="Giới tính" value={fetchedUser?.gender || ''}/>
+                    <ProfileInfoItem label="Ngày sinh" value={dob}/>
+                    <ProfileInfoItem label="Điện thoại" value={fetchedUser?.phone || ''}/>
 
                     <View className="mb-2">
                         <Text className="text-xs text-gray-500 mt-2">
@@ -188,8 +179,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                     <FormInput
                         icon="person-outline"
                         placeholder="Tên hiển thị"
-                        value={editUser.displayName}
-                        onChangeText={(text) => setEditUser({...editUser, displayName: text})}
+                        value={editUser?.name || ''}
+                        onChangeText={(text) => setEditUser({...editUser, name: text})}
                     />
                 </View>
 
@@ -199,12 +190,12 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                     <View className="flex-row mb-2">
                         <RadioButton
                             label="Nam"
-                            selected={editUser.gender === 'Nam'}
+                            selected={editUser?.gender === 'Nam'}
                             onPress={() => setEditUser({...editUser, gender: 'Nam'})}
                         />
                         <RadioButton
                             label="Nữ"
-                            selected={editUser.gender === 'Nữ'}
+                            selected={editUser?.gender === 'Nữ'}
                             onPress={() => setEditUser({...editUser, gender: 'Nữ'})}
                         />
                     </View>
@@ -215,17 +206,17 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                     <View className="flex-row">
                         <View className="flex-1 mr-2">
                             <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                <Text>08</Text>
+                                <Text>{dob.split('/')[0]}</Text>
                             </TouchableOpacity>
                         </View>
                         <View className="flex-1 mr-2">
                             <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                <Text>03</Text>
+                                <Text>{dob.split('/')[1]}</Text>
                             </TouchableOpacity>
                         </View>
                         <View className="flex-1">
                             <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                <Text>2002</Text>
+                                <Text>{dob.split('/')[2]}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

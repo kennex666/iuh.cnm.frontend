@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, ScrollView, KeyboardAvoidingView, Platform} from 'react-native';
+import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
@@ -66,20 +66,20 @@ export default function ForgotPassword() {
 
     return (
         <GradientBackground>
-            <KeyboardAvoidingView 
+            <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 className="flex-1"
             >
-                <ScrollView 
+                <ScrollView
                     contentContainerStyle={{flexGrow: 1}}
                     keyboardShouldPersistTaps="handled"
                 >
-                    <View 
-                        className="flex-1 justify-end items-center px-4 pb-6" 
+                    <View
+                        className="flex-1 justify-end items-center px-4 pb-6"
                         style={{paddingTop: Math.max(insets.top, 20)}}
                     >
                         <View className="w-full max-w-[100%] sm:max-w-[420px]">
-                            <AppLogo />
+                            <AppLogo/>
 
                             <View className="mt-4">
                                 <AuthHeader

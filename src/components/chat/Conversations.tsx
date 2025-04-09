@@ -1,7 +1,7 @@
 import React from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {Conversation, useConversations} from '../../hook/useConversations';
+import {Conversation, useConversations} from '@/src/hooks/useConversations';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;

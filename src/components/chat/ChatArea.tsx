@@ -11,8 +11,8 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import {useMessages} from '../../hook/useMessages';
-import {Conversation} from '../../hook/useConversations';
+import {useMessages} from '@/src/hooks/useMessages';
+import {Conversation} from '@/src/hooks/useConversations';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';

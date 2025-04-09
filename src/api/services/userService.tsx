@@ -1,14 +1,12 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
 
-const API_BASE_URL = 'https://67f506d5913986b16fa2e323.mockapi.io';
+const ENDPOINT = 'https://67f506d5913986b16fa2e323.mockapi.io';
 
 export const userService = {
-    // Lấy user theo số điện thoại
     async getUserByPhone(phone: string): Promise<User | null> {
         try {
-            const response = await axios.get(`${API_BASE_URL}/User`);
-            // Fetch all users and filter manually to ensure exact match
+            const response = await axios.get(`${ENDPOINT}/User`);
             const matchedUser = response.data.find(
                 (user: User) => user.phone === phone
             );
@@ -19,7 +17,6 @@ export const userService = {
         }
     },
 
-    // Đăng nhập với số điện thoại và mật khẩu
     async login(phone: string, password: string): Promise<{ success: boolean; user?: User; message?: string }> {
         try {
             const user = await this.getUserByPhone(phone);
