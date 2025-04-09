@@ -16,6 +16,8 @@ export default function Verify2FA() {
     const {login, user} = useAuth();
     const [verificationCode, setVerificationCode] = useState('');
     const [loading, setLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [countdown, setCountdown] = useState(0);
     const [toast, setToast] = useState({
         visible: false,
         message: '',
@@ -29,10 +31,18 @@ export default function Verify2FA() {
     const params = useLocalSearchParams();
 
     useEffect(() => {
+        if (countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(countdown - 1);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [countdown]);
+
+    useEffect(() => {
         if (params.phone) {
           setPhone(params.phone as string);
         } else {
-          // Xử lý khi không có phone
           setToast({
             visible: true,
             message: "Không tìm thấy thông tin số điện thoại",
@@ -46,7 +56,6 @@ export default function Verify2FA() {
         if (params.password) {
             setPassword(params.password as string);
             } else {
-            // Xử lý khi không có phone
             setToast({
                 visible: true,
                 message: 'Không tìm thấy mật khẩu',
@@ -55,6 +64,43 @@ export default function Verify2FA() {
             setTimeout(() => router.back(), 1500);
             }
     }, [params?.password]);
+
+    const handleResendOTP = async () => {
+        if (countdown > 0) return;
+        
+        setResendLoading(true);
+        try {
+            const result = await authService.login({
+                phone: phone,
+                password: password
+            });
+
+            if (!result.success) {
+                setToast({
+                    visible: true,
+                    message: result.message || 'Có lỗi xảy ra, vui lòng thử lại sau',
+                    type: 'error'
+                });
+                return;
+            }
+            
+            setToast({
+                visible: true,
+                message: 'Mã xác thực đã được gửi lại',
+                type: 'success'
+            });
+            
+            setCountdown(60);
+        } catch (error) {
+            setToast({
+                visible: true,
+                message: 'Có lỗi xảy ra, vui lòng thử lại sau',
+                type: 'error'
+            });
+        } finally {
+            setResendLoading(false);
+        }
+    };
 
     const validateForm = () => {
         if (!verificationCode) {
@@ -81,8 +127,6 @@ export default function Verify2FA() {
 
         setLoading(true);
         try {
-            // TODO: Implement actual 2FA verification API call
-            // This is a mock implementation
             const response = await login(
                 {
                     phone: phone,
@@ -90,8 +134,6 @@ export default function Verify2FA() {
                     otp: verificationCode
                 }
             );
-
-            console.log('2FA verification response:', response);
 
             if (!response.success) {
                 setToast({
@@ -108,7 +150,6 @@ export default function Verify2FA() {
                 type: 'success'
             });
 
-            // Navigate to main screen after 2 seconds
             setTimeout(() => {
                 router.replace('/(main)');
             }, 2000);
@@ -118,7 +159,6 @@ export default function Verify2FA() {
                 message: 'Có lỗi xảy ra, vui lòng thử lại sau',
                 type: 'error'
             });
-            console.error('2FA verification error:', error);
         } finally {
             setLoading(false);
         }
@@ -163,6 +203,14 @@ export default function Verify2FA() {
                                         loading={loading}
                                         className="mt-2"
                                     />
+
+                                    <View className="flex-row justify-center mt-4">
+                                        <TextLink
+                                            href="/(auth)/verify-2fa"
+                                            text="Không nhận được mã?"
+                                            linkText={countdown > 0 ? `Gửi lại (${countdown}s)` : "Gửi lại"}
+                                        />
+                                    </View>
 
                                     <TextLink
                                         href="/"
