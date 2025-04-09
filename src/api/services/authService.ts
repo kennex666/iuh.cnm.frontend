@@ -354,7 +354,7 @@ export const authService = {
 			};
 		}
 	},
-	
+
 	// router.post("/2fa/disable", authMiddleware, AuthController.disable2FA);
 	async disable2FA({ otp }: any): Promise<{
 		success: boolean;
@@ -424,5 +424,46 @@ export const authService = {
 				message: error.message || "Network error occurred",
 			};
 		}
-	}
+	},
+
+	// change-password {oldPassword, newPassword}
+	async changePassword({
+		oldPassword,
+		newPassword,
+	}: any): Promise<{
+		success: boolean;
+		message?: string;
+	}> {
+		try {
+			const token = await authStorage.getAccessToken();
+			if (!token) {
+				return { success: false, message: "No access token found" };
+			}
+
+			const response = await axios.post(
+				`${API_DOMAIN.API_AUTH}/change-password`,
+				{
+					oldPassword,
+					newPassword,
+				},
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
+			if (response.data.success) {
+				return { success: true };
+			}
+			return { success: false, message: response.data.errorMessage };
+		} catch (error: any) {
+			console.error("Change password error:", error);
+			return {
+				success: false,
+				message: error.message || "Network error occurred",
+			};
+		}
+	},
+
 };
