@@ -84,6 +84,12 @@ export default function Login() {
         }
     };
 
+    const handleQrCodeLogin = () => {
+        // Handle QR code login here
+        console.log('QR code login pressed');
+        router.push('/qr-code-login');
+    }
+
     return (
         <GradientBackground>
             <KeyboardAvoidingView 
@@ -148,7 +154,7 @@ export default function Login() {
 
                                     <Button
                                         title="Đăng nhập bằng mã QR"
-                                        onPress={() => {}}
+                                        onPress={handleQrCodeLogin}
                                         variant="outline"
                                         icon="qr-code-outline"
                                         className="mt-2"
