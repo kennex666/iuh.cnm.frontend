@@ -5,6 +5,8 @@ import {useUser} from "@/src/hooks/useUser";
 import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
 import {pickAvatar, pickCover} from '@/src/utils/imagePicker';
+import {useRouter} from "expo-router";
+import {useAuth} from "@/src/contexts/userContext";
 
 type ProfileModalProps = {
     visible: boolean;
@@ -12,6 +14,8 @@ type ProfileModalProps = {
 };
 
 export default function ProfileModal({visible, onClose}: ProfileModalProps) {
+    const router = useRouter();
+    const {user, update} = useAuth();
     const {user: fetchedUser} = useUser();
     const [editMode, setEditMode] = useState(false);
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -55,16 +59,46 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     }, [editMode]);
 
     const handlePickAvatar = async () => {
-        const uri = await pickAvatar();
-        if (uri) {
-            setAvatarUri(uri);
+        const result = await pickAvatar();
+        if (result.success) {
+            setAvatarUri(result.uri);
+
+            await update({
+                ...user,
+                avatarURL: result.uri || fetchedUser?.avatarURL
+            });
+
+            setToast({
+                visible: true,
+                message: result.message,
+                type: 'success'
+            });
+
+            setTimeout(() => {
+                router.replace('/(main)');
+            }, 2000);
         }
     };
 
     const handlePickCover = async () => {
-        const uri = await pickCover();
-        if (uri) {
-            setCoverUri(uri);
+        const result = await pickCover();
+        if (result.success) {
+            setCoverUri(result.uri);
+
+            await update({
+                ...user,
+                coverURL: result.uri || fetchedUser?.coverURL
+            });
+
+            setToast({
+                visible: true,
+                message: result.message,
+                type: 'success'
+            });
+
+            setTimeout(() => {
+                router.replace('/(main)');
+            }, 2000);
         }
     };
 

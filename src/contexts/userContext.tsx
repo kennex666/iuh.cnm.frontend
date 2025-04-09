@@ -1,42 +1,26 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {User} from '@/src/models/User';
+import {isUserComplete, User} from '@/src/models/User';
 import {storage} from '@/src/services/userStorage';
 import {userService} from '@/src/api/services/userService';
 import {AuthContextType} from "@/src/models/AuthContextType";
 import {AuthProviderProps} from "@/src/models/AuthProviderProps";
-
+import {authService} from '@/src/api/services/authService';
+import {authStorage} from '@/src/services/authStorage';
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
     login: async () => ({success: false}),
-    logout: async () => {}
+    logout: async () => {},
+    update: async () => ({success: false}),
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-/*
-* AuthProvider là một component cung cấp context cho toàn bộ ứng dụng.
-*
-* Nó sẽ lưu trữ thông tin người dùng và trạng thái đăng nhập.
-*
-* Các component con có thể sử dụng useAuth để truy cập thông tin này.
-*
-* Tự động tải thông tin người dùng từ local storage khi khởi tạo.
-*
-* - user: Thông tin người dùng hiện tại. Null nếu chưa đăng nhập.
-* - isLoading: Trạng thái đang tải thông tin người dùng.
-* - login: Hàm đăng nhập, nhận số điện thoại và mật khẩu.
-* - logout: Hàm đăng xuất.
- */
 export const AuthProvider = ({children}: AuthProviderProps) => {
     const [user, setUser] = useState<Partial<User> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Hàm này sẽ được gọi khi component AuthProvider được mount
-    // Tự động kiểm tra xem có thông tin người dùng trong local storage có tồn tại không
-    // Nếu có, cập nhật state user và isLoading
-    // Nếu không, set isLoading thành false
     useEffect(() => {
         const loadUser = async () => {
             const storedUser = await storage.getUser();
@@ -51,26 +35,59 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     }, []);
 
     const login = async (phone: string, password: string) => {
-        const result = await userService.login(phone, password);
+        try {
+            const result = await authService.login(phone, password);
 
-        if (result.success && result.user) {
-            setUser(result.user);
-            await storage.saveUser(result.user);
+            if (result.success && result.user && result.accessToken && result.refreshToken) {
+                // Lưu thông tin người dùng
+                setUser(result.user);
+                await storage.saveUser(result.user as User);
+
+                // Lưu tokens
+                await authStorage.saveTokens(result.accessToken, result.refreshToken);
+
+                return {success: true, message: 'Đăng nhập thành công!'};
+            }
+
+            return {success: false, message: result.message || 'Đăng nhập thất bại!'};
+        } catch (error) {
+            console.error('Login error:', error);
+            return {success: false, message: 'Có lỗi xảy ra, vui lòng thử lại sau'};
         }
-
-        return {
-            success: result.success,
-            message: result.message
-        };
     };
 
     const logout = async () => {
         await storage.removeUser();
+        await authStorage.removeTokens();
         setUser(null);
     };
 
+    const update = async (updatedUser: Partial<User>) => {
+        try {
+            if (!user) return {success: false, message: 'Không có thông tin người dùng!'};
+            const mergedUser = {...user, ...updatedUser};
+            const isComplete = isUserComplete(mergedUser);
+
+            if (!isComplete) return {success: false, message: 'Thiếu thông tin người dùng bắt buộc'};
+
+            const completeUser = mergedUser as User;
+
+            const result = await userService.update(completeUser);
+            if (!result.success) {
+                return { success: false, message: result.message || 'Cập nhật thông tin thất bại!' };
+            }
+            const updatedUserResponse = result.user || completeUser;
+            setUser(updatedUserResponse);
+            await storage.saveUser(updatedUserResponse);
+            return {success: true, message: 'Cập nhật thông tin thành công!'};
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return {success: false, message: 'Cập nhật thông tin thất bại!'};
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{user, isLoading, login, logout}}>
+        <AuthContext.Provider value={{user, isLoading, login, logout, update}}>
             {children}
         </AuthContext.Provider>
     );
