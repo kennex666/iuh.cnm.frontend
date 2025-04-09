@@ -124,7 +124,7 @@ export default function AppLayout() {
 
             {!isDesktop ? (
                 <View
-                    className="absolute bottom-[-32px] left-0 right-0 flex-row bg-white border-t border-gray-200"
+                    className="absolute bottom-0 left-0 right-0 flex-row bg-white border-t border-gray-200"
                     style={{
                         paddingBottom: insets.bottom,
                         height: 54 + insets.bottom,
