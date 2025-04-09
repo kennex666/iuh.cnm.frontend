@@ -87,7 +87,7 @@ export default function Login() {
     const handleQrCodeLogin = () => {
         // Handle QR code login here
         console.log('QR code login pressed');
-        router.push('/qr-code-login');
+        router.push('/qrcode');
     }
 
     return (
