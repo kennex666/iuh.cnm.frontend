@@ -15,8 +15,8 @@ const requestMediaLibraryPermission = async () => {
 
 export const pickAvatar = async () => {
     const hasPermission = await requestMediaLibraryPermission();
-
-    if (!hasPermission) return null;
+    if (!hasPermission)
+        return {success: false, uri: null, message: 'Không có quyền truy cập vào thư viện ảnh!'}
 
     let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images", "videos"],
@@ -25,18 +25,16 @@ export const pickAvatar = async () => {
         quality: 0.7,
     });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-        Alert.alert('Thành công', 'Đã cập nhật ảnh đại diện!');
-        return result.assets[0].uri;
-    }
+    if (!result.canceled && result.assets && result.assets.length > 0)
+        return {success: true, uri: result.assets[0].uri, message: 'Đã cập nhật ảnh đại diện!'};
 
-    return null;
+    return {success: false, uri: null, message: 'Không có ảnh nào được chọn!'};
 };
 
 export const pickCover = async () => {
     const hasPermission = await requestMediaLibraryPermission();
-
-    if (!hasPermission) return null;
+    if (!hasPermission)
+        return {success: false, uri: null, message: 'Không có quyền truy cập vào thư viện ảnh!'}
 
     let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images", "videos"],
@@ -45,10 +43,8 @@ export const pickCover = async () => {
         quality: 0.7,
     });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-        Alert.alert('Thành công', 'Đã cập nhật ảnh bìa!');
-        return result.assets[0].uri;
-    }
+    if (!result.canceled && result.assets && result.assets.length > 0)
+        return {success: true, uri: result.assets[0].uri, message: 'Đã cập nhật ảnh bìa!'};
 
-    return null;
+    return {success: false, uri: null, message: 'Không có ảnh nào được chọn!'};
 };

@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {User} from '@/src/models/User';
+import {isUserComplete, User} from '@/src/models/User';
 import {storage} from '@/src/services/userStorage';
 import {userService} from '@/src/api/services/userService';
 import {AuthContextType} from "@/src/models/AuthContextType";
@@ -10,7 +10,9 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
     login: async () => ({success: false}),
-    logout: async () => {}
+    logout: async () => {
+    },
+    update: async () => ({success: false}),
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -52,16 +54,11 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
 
     const login = async (phone: string, password: string) => {
         const result = await userService.login(phone, password);
-
         if (result.success && result.user) {
             setUser(result.user);
             await storage.saveUser(result.user);
         }
-
-        return {
-            success: result.success,
-            message: result.message
-        };
+        return {success: result.success, message: result.message};
     };
 
     const logout = async () => {
@@ -69,8 +66,27 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
         setUser(null);
     };
 
+    const update = async (updatedUser: Partial<User>) => {
+        try {
+            if (!user) return {success: false, message: 'Không có thông tin người dùng!'};
+
+            const mergedUser = {...user, ...updatedUser};
+            const isComplete = isUserComplete(mergedUser);
+
+            if (!isComplete) return {success: false, message: 'Thiếu thông tin người dùng bắt buộc'};
+
+            const completeUser = mergedUser as User;
+            setUser(completeUser);
+            await storage.saveUser(completeUser);
+            return {success: true, message: 'Cập nhật thông tin thành công!'};
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return {success: false, message: 'Cập nhật thông tin thất bại!'};
+        }
+    }
+
     return (
-        <AuthContext.Provider value={{user, isLoading, login, logout}}>
+        <AuthContext.Provider value={{user, isLoading, login, logout, update}}>
             {children}
         </AuthContext.Provider>
     );
