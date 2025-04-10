@@ -195,11 +195,7 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
         message: 'Đã đăng xuất tất cả thiết bị thành công. Vui lòng đăng nhập lại!',
         type: 'success'
       });
-      await logout();
-			
-      setTimeout(() => {
-        router.replace("/(auth)");
-      }, 3000);
+      await logout().then( () => router.replace("/(auth)") );
       
     } catch (error) {
       setToast({
