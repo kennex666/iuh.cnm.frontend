@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {isUserComplete, User} from '@/src/models/User';
+import {User} from '@/src/models/User';
 import {UserStorage} from '@/src/services/UserStorage';
 import {UserService} from '@/src/api/services/UserService';
 import {AuthContextType, AuthLogin} from "@/src/models/props/AuthContextType";
@@ -11,8 +11,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
     login: async () => ({success: false}),
-    logout: async () => {
-    },
+    logout: async () => {},
     update: async () => ({success: false}),
 });
 
@@ -24,11 +23,18 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUser = await UserStorage.getUser();
-            setUser(storedUser);
-            setIsLoading(false);
+            try {
+                const storedUser = await UserStorage.getUser();
+                if (storedUser) {
+                    setUser(storedUser);
+                    setIsLoading(false);
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+            } finally {
+                setIsLoading(false);
+            }
         };
-
         loadUser().catch((error) => {
             console.error('Error loading user:', error);
             setIsLoading(false);
@@ -40,13 +46,9 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
             const result = await AuthService.login({phone, password, otp});
 
             if (result.success && result.user && result.accessToken && result.refreshToken) {
-                // Lưu thông tin người dùng
                 setUser(result.user);
                 await UserStorage.saveUser(result.user as User);
-
-                // Lưu tokens
                 await AuthStorage.saveTokens(result.accessToken, result.refreshToken);
-
                 return {success: true, message: 'Đăng nhập thành công!'};
             }
 
@@ -62,26 +64,26 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
     };
 
     const logout = async () => {
-        await UserStorage.removeUser();
-        await AuthStorage.removeTokens();
-        setUser(null);
+        try {
+            await UserStorage.removeUser();
+            await AuthStorage.removeTokens();
+            setUser(null);
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
     };
 
     const update = async (updatedUser: Partial<User>) => {
         try {
             if (!user) return {success: false, message: 'Không có thông tin người dùng!'};
-            const mergedUser = {...user, ...updatedUser};
-            const isComplete = isUserComplete(mergedUser);
 
-            // if (!isComplete) return {success: false, message: 'Thiếu thông tin người dùng bắt buộc'};
+            const result = await UserService.update(updatedUser);
 
-            const completeUser = mergedUser as User;
-
-            const result = await UserService.update(completeUser);
             if (!result.success) {
                 return {success: false, message: result.message || 'Cập nhật thông tin thất bại!'};
             }
-            const updatedUserResponse = result.user || completeUser;
+
+            const updatedUserResponse = result.user || {...user, ...updatedUser};
             setUser(updatedUserResponse);
             await UserStorage.saveUser(updatedUserResponse);
             return {success: true, message: 'Cập nhật thông tin thành công!'};

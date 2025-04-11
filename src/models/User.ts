@@ -1,16 +1,16 @@
 export interface User {
     id: string;
     name: string;
-    email: string;
+    email: string | null;
     phone: string;
     gender: string;
     password: string;
     avatarURL: string;
     coverURL: string;
-    dob: number;
+    dob: string;
     isOnline: boolean;
-    createdAt: number;
-    updatedAt: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const requiredFields: (keyof User)[] = [

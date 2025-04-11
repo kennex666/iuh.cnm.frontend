@@ -4,58 +4,57 @@ import {AuthStorage} from '@/src/services/AuthStorage';
 import {Domains} from '@/src/constants/ApiConstant';
 
 export const UserService = {
-    async update(userData: Partial<User>): Promise<{ success: boolean; user?: User; message?: string; data?: any }> {
+    async update(userData: Partial<User>): Promise<{
+        success: boolean;
+        user?: User;
+        message?: string;
+    }> {
         try {
-            console.log('Updating user with data:', userData);
-
-            // Get the access token
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                console.error('No access token found');
-                return {success: false, message: 'Không tìm thấy token xác thực'};
+                return {success: false, message: "No access token found"};
             }
 
-            // Format the data - convert timestamp to ISO date string if dob exists
-            const formattedData = {...userData};
-            if (formattedData.dob) {
-                // Convert timestamp to ISO date format (YYYY-MM-DD)
-                const date = new Date(formattedData.dob);
-                formattedData.dob = date.toISOString().split('T')[0];
-                console.log('Converted dob to ISO format:', formattedData.dob);
+            if (userData.dob) {
+                userData.dob = new Date(userData.dob).toISOString();
             }
 
-            // Make the API request with authorization header
             const response = await axios.put(
                 `${Domains.API_USER}/update`,
-                formattedData,
+                userData,
                 {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
 
-            console.log('Update API response:', response.data);
-
             if (response.data.success) {
-                return {
-                    success: true,
-                    user: response.data.data,
-                    message: response.data.errorMessage || 'Cập nhật thông tin thành công!',
-                    data: response.data.data
+                const apiUser = response.data.data;
+                const appUser: User = {
+                    id: apiUser.id,
+                    name: apiUser.name,
+                    email: apiUser.email,
+                    phone: apiUser.phone,
+                    gender: apiUser.gender,
+                    password: "",
+                    avatarURL: apiUser.avatarUrl,
+                    coverURL: apiUser.coverUrl,
+                    dob: apiUser.dob,
+                    isOnline: apiUser.isOnline,
+                    createdAt: apiUser.createdAt,
+                    updatedAt: apiUser.updatedAt,
                 };
-            } else {
-                return {
-                    success: false,
-                    message: response.data.errorMessage || 'Cập nhật thông tin thất bại'
-                };
+
+                return {success: true, user: appUser};
             }
-        } catch (error) {
-            console.error('Error updating user:', error);
+
+            return {success: false, message: response.data.errorMessage || "Update failed"};
+        } catch (error: any) {
+            console.error("Update user error:", error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : 'Lỗi không xác định khi cập nhật thông tin'
+                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
             };
         }
     }
