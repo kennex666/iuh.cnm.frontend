@@ -12,7 +12,7 @@ import {
     View
 } from 'react-native';
 import {UseMessage} from '@/src/hooks/UseMessage';
-import {Conversation} from '@/src/hooks/UseConversation';
+import {Conversation} from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
