@@ -1,5 +1,9 @@
+const HOST = "localhost";
+const PORT = "8087";
+const BASE_URL = `http://${HOST}:${PORT}`;
+
 export const API_DOMAIN = {
-	API_AUTH: "http://192.168.164.138:8087/api/auth",
-    API_USER: "http://192.168.164.138:8087/api/user",
-    API_2FA: "http://192.168.164.138:8087/api/2fa",
+    API_AUTH: `${BASE_URL}/api/auth`,
+    API_USER: `${BASE_URL}/api/user`,
+    API_2FA: `${BASE_URL}/api/2fa`,
 };
