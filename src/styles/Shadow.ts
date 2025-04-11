@@ -2,43 +2,19 @@ import {StyleSheet} from 'react-native';
 
 export const Shadows = StyleSheet.create({
     sm: {
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 1,
-        },
-        shadowOpacity: 0.05,
-        shadowRadius: 1.41,
+        boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
         elevation: 1,
     },
     md: {
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
+        boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
         elevation: 3,
     },
     lg: {
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 5.46,
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
         elevation: 5,
     },
     xl: {
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 6,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 7.49,
+        boxShadow: '0px 6px 8px rgba(0, 0, 0, 0.15)',
         elevation: 7,
     },
 });

@@ -6,6 +6,7 @@ export interface AuthLogin {
     password: string;
     otp?: string | null;
 }
+
 export interface AuthContextType {
     user: Partial<User> | null;
     isLoading: boolean;
