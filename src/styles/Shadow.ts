@@ -41,4 +41,4 @@ export const Shadows = StyleSheet.create({
         shadowRadius: 7.49,
         elevation: 7,
     },
-}); 
+});
