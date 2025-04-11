@@ -1,29 +1,44 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {Conversation} from "@/src/models/Conversation";
+
+const CONVERSATIONS_API_URL = 'https://6458c5718badff578efa564b.mockapi.io/api/conversations';
 
 export function useConversation() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchConversations = async () => {
-            try {
-                const response = await fetch('https://6458c5718badff578efa564b.mockapi.io/api/conversations');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch conversations');
-                }
-                const data = await response.json();
-                setConversations(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An error occurred');
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchConversations = useCallback(async () => {
+        setLoading(true);
+        setError(null);
 
-        fetchConversations();
+        try {
+            const response = await fetch(CONVERSATIONS_API_URL);
+
+            if (!response.ok) {
+                setError(`Failed to fetch conversations: ${response.status}`);
+                return;
+            }
+
+            const data = await response.json();
+            setConversations(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    return {conversations, loading, error};
+    useEffect(() => {
+        fetchConversations().catch((err) => {
+            setError(err instanceof Error ? err.message : 'An error occurred');
+        });
+    }, [fetchConversations]);
+
+    return {
+        conversations,
+        loading,
+        error,
+        refetch: fetchConversations
+    };
 }
