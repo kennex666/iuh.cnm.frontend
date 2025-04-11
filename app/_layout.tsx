@@ -5,37 +5,26 @@ import {AuthProvider} from '@/src/contexts/UserContext';
 import "../global.css";
 import {setupAxios} from "@/src/api/AxiosConfig";
 
-export {
-    ErrorBoundary,
-} from 'expo-router';
+export {ErrorBoundary} from 'expo-router';
 
-export const unstable_settings = {
-    initialRouteName: '(auth)',
-};
+export const unstable_settings = {initialRouteName: '(auth)'};
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(console.warn);
 
 export default function RootLayout() {
     const [loaded, error] = useFonts({});
 
     useEffect(() => {
+        setupAxios().catch(console.warn);
+
         if (error) throw error;
-    }, [error]);
 
-    useEffect(() => {
         if (loaded) {
-            SplashScreen.hideAsync();
+            SplashScreen.hideAsync().catch(console.warn);
         }
-    }, [loaded]);
+    }, [loaded, error]);
 
-    if (!loaded) {
-        return null;
-    }
-
-    useEffect(() => {
-        // Setup axios with authentication
-        setupAxios();
-    }, []);
+    if (!loaded) return null;
 
     return (
         <AuthProvider>
