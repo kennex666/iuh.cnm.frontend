@@ -4,7 +4,7 @@ import Toast from '@/src/components/ui/Toast';
 import {useUser} from "@/src/hooks/useUser";
 import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
-import {pickAvatar, pickCover} from '@/src/utils/imagePicker';
+import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
 import {useAuth} from "@/src/contexts/userContext";
 

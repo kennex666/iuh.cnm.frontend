@@ -5,7 +5,7 @@ import CoverImage from "@/src/components/profile/CoverImage";
 import AvatarImage from "@/src/components/profile/AvatarImage";
 import ProfileInfoItem from "@/src/components/profile/ProfileInfoItem";
 import ModalHeader from "@/src/components/profile/ModelHeader";
-import {formatDate} from "@/src/utils/datetime";
+import {formatDate} from "@/src/utils/DateTime";
 import {User} from "@/src/models/User";
 
 type ProfileInfoProps = {

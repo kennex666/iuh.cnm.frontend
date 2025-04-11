@@ -3,7 +3,7 @@ import { ScrollView, Text, TouchableOpacity, View, Platform, Modal } from "react
 import FormInput from "@/src/components/ui/FormInput";
 import RadioButton from "@/src/components/profile/RadioButton";
 import ModalHeader from "@/src/components/profile/ModelHeader";
-import { formatDate } from "@/src/utils/datetime";
+import { formatDate } from "@/src/utils/DateTime";
 import { User } from "@/src/models/User";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
