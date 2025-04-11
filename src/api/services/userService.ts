@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
-import { authStorage } from '@/src/services/authStorage';
+import { AuthStorage } from '@/src/services/AuthStorage';
 import { Domains } from '@/src/constants/ApiConstant';
 
 export const userService = {
@@ -9,7 +9,7 @@ export const userService = {
             console.log('Updating user with data:', userData);
 
             // Get the access token
-            const token = await authStorage.getAccessToken();
+            const token = await AuthStorage.getAccessToken();
             if (!token) {
                 console.error('No access token found');
                 return { success: false, message: 'Không tìm thấy token xác thực' };

@@ -6,7 +6,7 @@ import {StorageKeys} from "@/src/constants/StorageKeyConstant";
 // Một hằng số lưu trữ khóa. Được sử dụng để lưu trữ thông tin người dùng trong bộ nhớ.
 const USER_STORAGE_KEY = StorageKeys.USER
 
-export const userStorage = {
+export const UserStorage = {
 
     /*
     * Lưu thông tin người dùng vào bộ nhớ

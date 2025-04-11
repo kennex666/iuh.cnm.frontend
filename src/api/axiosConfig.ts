@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { authStorage } from '@/src/services/authStorage';
+import { AuthStorage } from '@/src/services/AuthStorage';
 import { Platform } from 'react-native';
 
 // API URL based on platform
@@ -33,7 +33,7 @@ export const setupAxios = async () => {
             console.log(`[Axios Request] ${config.method?.toUpperCase()} ${config.url}`);
 
             // Get the token from storage
-            const token = await authStorage.getAccessToken();
+            const token = await AuthStorage.getAccessToken();
 
             // If token exists, add it to the headers
             if (token) {

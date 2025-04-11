@@ -1,7 +1,7 @@
 import { Domains } from './../../constants/ApiConstant';
 import axios from 'axios';
 import { User } from '@/src/models/User';
-import { authStorage } from '@/src/services/authStorage';
+import { AuthStorage } from '@/src/services/AuthStorage';
 
 export interface LoginResponse {
     data: {
@@ -225,7 +225,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}
@@ -255,7 +255,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}
@@ -288,7 +288,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}
@@ -324,7 +324,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}
@@ -361,7 +361,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}
@@ -399,7 +399,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}
@@ -435,7 +435,7 @@ export const authService = {
 		message?: string;
 	}> {
 		try {
-			const token = await authStorage.getAccessToken();
+			const token = await AuthStorage.getAccessToken();
 			if (!token) {
 				return { success: false, message: "No access token found" };
 			}

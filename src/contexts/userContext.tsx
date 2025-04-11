@@ -1,11 +1,11 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
-import {userStorage} from '@/src/services/userStorage';
+import {UserStorage} from '@/src/services/UserStorage';
 import {userService} from '@/src/api/services/userService';
 import {AuthContextType} from "@/src/models/props/AuthContextType";
 import {AuthProviderProp} from "@/src/models/types/AuthProviderProp";
 import {authService} from '@/src/api/services/authService';
-import {authStorage} from '@/src/services/authStorage';
+import {AuthStorage} from '@/src/services/AuthStorage';
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -23,7 +23,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUser = await userStorage.getUser();
+            const storedUser = await UserStorage.getUser();
             setUser(storedUser);
             setIsLoading(false);
         };
@@ -47,10 +47,10 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
             if (result.success && result.user && result.accessToken && result.refreshToken) {
                 // Lưu thông tin người dùng
                 setUser(result.user);
-                await userStorage.saveUser(result.user as User);
+                await UserStorage.saveUser(result.user as User);
 
                 // Lưu tokens
-                await authStorage.saveTokens(result.accessToken, result.refreshToken);
+                await AuthStorage.saveTokens(result.accessToken, result.refreshToken);
 
                 return {success: true, message: 'Đăng nhập thành công!'};
             }
@@ -63,8 +63,8 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
     };
 
     const logout = async () => {
-        await userStorage.removeUser();
-        await authStorage.removeTokens();
+        await UserStorage.removeUser();
+        await AuthStorage.removeTokens();
         setUser(null);
     };
 
@@ -84,7 +84,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
             }
             const updatedUserResponse = result.user || completeUser;
             setUser(updatedUserResponse);
-            await userStorage.saveUser(updatedUserResponse);
+            await UserStorage.saveUser(updatedUserResponse);
             return {success: true, message: 'Cập nhật thông tin thành công!'};
         } catch (error) {
             console.error('Error updating user:', error);
