@@ -1,15 +1,5 @@
 import {useEffect, useState} from 'react';
-
-export interface Message {
-    id: string;
-    conversationId: string;
-    senderId: string;
-    content: string;
-    type: string;
-    repliedToId: string | null;
-    sentAt: string;
-    readBy: string[];
-}
+import {Message} from '@/src/models/Message'
 
 export function UseMessage(conversationId?: string) {
     const [messages, setMessages] = useState<Message[]>([]);
