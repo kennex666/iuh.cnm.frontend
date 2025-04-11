@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {StorageKeys} from "@/src/constants/StorageKeyConstant";
 
-const ACCESS_TOKEN_KEY = '@IUH_CNM_APP:accessToken';
-const REFRESH_TOKEN_KEY = '@IUH_CNM_APP:refreshToken';
+const ACCESS_TOKEN_KEY = StorageKeys.ACCESS_TOKEN;
+const REFRESH_TOKEN_KEY = StorageKeys.REFRESH_TOKEN;
 
 export const authStorage = {
     async saveTokens(accessToken: string, refreshToken: string): Promise<void> {

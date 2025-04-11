@@ -1,6 +1,6 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
-import {storage} from '@/src/services/userStorage';
+import {userStorage} from '@/src/services/userStorage';
 import {userService} from '@/src/api/services/userService';
 import {AuthContextType} from "@/src/models/AuthContextType";
 import {AuthProviderProps} from "@/src/models/AuthProviderProps";
@@ -23,7 +23,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
 
     useEffect(() => {
         const loadUser = async () => {
-            const storedUser = await storage.getUser();
+            const storedUser = await userStorage.getUser();
             setUser(storedUser);
             setIsLoading(false);
         };
@@ -47,7 +47,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             if (result.success && result.user && result.accessToken && result.refreshToken) {
                 // Lưu thông tin người dùng
                 setUser(result.user);
-                await storage.saveUser(result.user as User);
+                await userStorage.saveUser(result.user as User);
 
                 // Lưu tokens
                 await authStorage.saveTokens(result.accessToken, result.refreshToken);
@@ -63,7 +63,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
     };
 
     const logout = async () => {
-        await storage.removeUser();
+        await userStorage.removeUser();
         await authStorage.removeTokens();
         setUser(null);
     };
@@ -84,7 +84,7 @@ export const AuthProvider = ({children}: AuthProviderProps) => {
             }
             const updatedUserResponse = result.user || completeUser;
             setUser(updatedUserResponse);
-            await storage.saveUser(updatedUserResponse);
+            await userStorage.saveUser(updatedUserResponse);
             return {success: true, message: 'Cập nhật thông tin thành công!'};
         } catch (error) {
             console.error('Error updating user:', error);
