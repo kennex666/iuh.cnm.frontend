@@ -155,7 +155,7 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
 
                 // Update the fetched user data to reflect changes
                 if (fetchedUser) {
-                    const updatedFetchedUser = { ...fetchedUser, ...updateData };
+                    const updatedFetchedUser = {...fetchedUser, ...updateData};
                     // We would typically update the user state here,
                     // but since we're using context, it will be updated automatically
                 }

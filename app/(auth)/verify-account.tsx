@@ -10,7 +10,7 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {AuthService} from '@/src/api/services/AuthService';
-import { useAuth } from '@/src/contexts/UserContext';
+import {useAuth} from '@/src/contexts/UserContext';
 
 export default function Verify2FA() {
     const {login, user} = useAuth();
@@ -29,17 +29,17 @@ export default function Verify2FA() {
 
     useEffect(() => {
         if (params.phone) {
-          setPhone(params.phone as string);
+            setPhone(params.phone as string);
         } else {
-          // Xử lý khi không có phone
-          setToast({
-            visible: true,
-            message: "Không tìm thấy thông tin số điện thoại",
-            type: "error",
-          });
-          setTimeout(() => router.back(), 1500);
+            // Xử lý khi không có phone
+            setToast({
+                visible: true,
+                message: "Không tìm thấy thông tin số điện thoại",
+                type: "error",
+            });
+            setTimeout(() => router.back(), 1500);
         }
-      }, [params?.phone]);
+    }, [params?.phone]);
 
     const validateForm = () => {
         if (!verificationCode) {

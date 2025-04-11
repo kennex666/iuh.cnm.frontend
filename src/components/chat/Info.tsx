@@ -37,7 +37,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                     <View className="h-14 px-4 border-b border-gray-200 flex-row items-center">
                         {onBackPress && (
                             <TouchableOpacity onPress={onBackPress} className="mr-3">
-                                <Ionicons name="arrow-back" size={24} color="#666" />
+                                <Ionicons name="arrow-back" size={24} color="#666"/>
                             </TouchableOpacity>
                         )}
                         <Text className="text-lg font-semibold text-gray-900">Thông tin người dùng</Text>
@@ -134,7 +134,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                 <View className="h-14 px-4 border-b border-gray-200 flex-row items-center">
                     {onBackPress && (
                         <TouchableOpacity onPress={onBackPress} className="mr-3">
-                            <Ionicons name="arrow-back" size={24} color="#666" />
+                            <Ionicons name="arrow-back" size={24} color="#666"/>
                         </TouchableOpacity>
                     )}
                     <Text className="text-lg font-semibold text-gray-900">Thông tin nhóm</Text>

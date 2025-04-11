@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
-import {router, useLocalSearchParams, useRouter} from 'expo-router';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
@@ -21,7 +21,7 @@ export default function VerifyResetCode() {
     });
     const insets = useSafeAreaInsets();
     const router = useRouter();
-    
+
     const [phone, setPhone] = useState<string>('');
     const params = useLocalSearchParams();
 
@@ -92,7 +92,7 @@ export default function VerifyResetCode() {
             setTimeout(() => {
                 router.push({
                     pathname: '/(auth)/reset-password',
-                    params: { phone, otp: verificationCode }
+                    params: {phone, otp: verificationCode}
                 });
             }, 2000);
         } catch (error) {

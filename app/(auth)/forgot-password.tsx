@@ -64,7 +64,7 @@ export default function ForgotPassword() {
             setTimeout(() => {
                 router.push({
                     pathname: '/(auth)/verify-reset-code',
-                    params: { phone: phoneNumber }
+                    params: {phone: phoneNumber}
                 });
             }, 2000);
         } catch (error) {

@@ -199,7 +199,7 @@ export default function StickerPicker({setMessage, toggleModelSticker}: StickerP
     };
 
     return (
-        <View 
+        <View
             style={{
                 width: containerWidth,
                 backgroundColor: 'white',

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
-import { AuthStorage } from '@/src/services/AuthStorage';
-import { Domains } from '@/src/constants/ApiConstant';
+import {AuthStorage} from '@/src/services/AuthStorage';
+import {Domains} from '@/src/constants/ApiConstant';
 
 export const UserService = {
     async update(userData: Partial<User>): Promise<{ success: boolean; user?: User; message?: string; data?: any }> {
@@ -12,7 +12,7 @@ export const UserService = {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
                 console.error('No access token found');
-                return { success: false, message: 'Không tìm thấy token xác thực' };
+                return {success: false, message: 'Không tìm thấy token xác thực'};
             }
 
             // Format the data - convert timestamp to ISO date string if dob exists

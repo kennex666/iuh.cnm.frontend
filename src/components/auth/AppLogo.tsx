@@ -14,7 +14,7 @@ const AppLogo = ({
                  }: AppLogoProps) => {
     return (
         <View className="items-center mb-6">
-            <View 
+            <View
                 className="bg-white rounded-2xl p-2"
                 style={Shadows.sm}>
                 <Image

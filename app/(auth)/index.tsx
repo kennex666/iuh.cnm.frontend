@@ -11,7 +11,6 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import Divider from '@/src/components/ui/Divider';
 import {useAuth} from '@/src/contexts/UserContext';
-import {AuthService} from '@/src/api/services/AuthService';
 
 export default function Login() {
     const {login, user} = useAuth();
@@ -75,7 +74,7 @@ export default function Login() {
                         message: 'Hãy nhập mã xác thực 2FA',
                         type: 'success'
                     });
-                    
+
                     setTimeout(() => {
                         router.push(
                             {
@@ -89,7 +88,7 @@ export default function Login() {
                     }, 2000);
                     return;
                 }
-                if(result.errorCode == 207) {
+                if (result.errorCode == 207) {
                     setToast({
                         visible: true,
                         message: 'Tai khoản chưa được xác thực. Vui lòng kiểm tra tin nhắn SMS để xác thực tài khoản của bạn.',

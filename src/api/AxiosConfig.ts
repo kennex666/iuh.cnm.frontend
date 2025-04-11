@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { AuthStorage } from '@/src/services/AuthStorage';
-import { Platform } from 'react-native';
+import {AuthStorage} from '@/src/services/AuthStorage';
+import {Platform} from 'react-native';
 
 // API URL based on platform
 const getApiUrl = () => {

@@ -1,6 +1,6 @@
 import {Href, Link, Redirect, Stack, usePathname, useRouter} from "expo-router";
 import {FontAwesome} from "@expo/vector-icons";
-import {Alert, Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
+import {Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
