@@ -1,4 +1,4 @@
-import {Domains} from './../../constants/ApiConstant';
+import {Domains} from '@/src/constants/ApiConstant';
 import axios from 'axios';
 import {User} from '@/src/models/User';
 import {AuthStorage} from '@/src/services/AuthStorage';
@@ -71,10 +71,10 @@ export const AuthService = {
                     gender: user.gender,
                     avatarURL: user.avatarUrl,
                     coverURL: user.coverUrl,
-                    dob: new Date(user.dob).getTime(),
+                    dob: user.dob,
                     isOnline: user.isOnline,
-                    createdAt: new Date(user.createdAt).getTime(),
-                    updatedAt: new Date(user.updatedAt).getTime(),
+                    createdAt: user.dob,
+                    updatedAt: user.dob,
                 };
 
                 return {

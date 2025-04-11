@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {User} from '@/src/models/User';
+import {isUserComplete, User} from '@/src/models/User';
 import {UserStorage} from '@/src/services/UserStorage';
 import {UserService} from '@/src/api/services/UserService';
 import {AuthContextType, AuthLogin} from "@/src/models/props/AuthContextType";
@@ -84,9 +84,15 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
             }
 
             const updatedUserResponse = result.user || {...user, ...updatedUser};
-            setUser(updatedUserResponse);
-            await UserStorage.saveUser(updatedUserResponse);
-            return {success: true, message: 'Cập nhật thông tin thành công!'};
+
+            if (isUserComplete(updatedUserResponse)) {
+                setUser(updatedUserResponse);
+                await UserStorage.saveUser(updatedUserResponse);
+                return {success: true, message: 'Cập nhật thông tin thành công!'};
+            } else {
+                console.error('Incomplete user data:', updatedUserResponse);
+                return {success: false, message: 'Cập nhật thông tin thất bại: dữ liệu không đầy đủ'};
+            }
         } catch (error) {
             console.error('Error updating user:', error);
             return {success: false, message: 'Cập nhật thông tin thất bại!'};

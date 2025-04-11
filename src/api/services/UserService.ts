@@ -2,6 +2,7 @@ import axios from 'axios';
 import {User} from '@/src/models/User';
 import {AuthStorage} from '@/src/services/AuthStorage';
 import {Domains} from '@/src/constants/ApiConstant';
+import {UserStorage} from "@/src/services/UserStorage";
 
 export const UserService = {
     async update(userData: Partial<User>): Promise<{
