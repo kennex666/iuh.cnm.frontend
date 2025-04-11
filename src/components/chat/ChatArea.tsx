@@ -16,7 +16,7 @@ import {Conversation} from '@/src/hooks/useConversations';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
-import {shadows} from '@/src/styles/shadow';
+import {Shadows} from '@/src/styles/Shadow';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -218,7 +218,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                             >
                                 <View 
                                     className="bg-white rounded-lg p-4 w-[300px]"
-                                    style={shadows.md}>
+                                    style={Shadows.md}>
                                     <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
 
                                     <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
@@ -244,7 +244,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         {isModelSticker && (
                             <View
                                 className='absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200'
-                                style={shadows.xl}>
+                                style={Shadows.xl}>
                                 <StickerPicker
                                     setMessage={setMessage}
                                     toggleModelSticker={toggleModelSticker}
@@ -288,7 +288,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                             isModelEmoji && (
                                 <View
                                     className='absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200'
-                                    style={shadows.xl}>
+                                    style={Shadows.xl}>
                                     <EmojiPicker setMessage={setMessage} toggleModelEmoji={toggleModelEmoji}/>
                                 </View>
                             )

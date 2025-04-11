@@ -10,7 +10,7 @@ import {
     View
 } from 'react-native'
 import {Ionicons} from '@expo/vector-icons';
-import {shadows} from '@/src/styles/shadow';
+import {Shadows} from '@/src/styles/Shadow';
 
 interface Category {
     id: string;
@@ -204,7 +204,7 @@ export default function StickerPicker({setMessage, toggleModelSticker}: StickerP
                 width: containerWidth,
                 backgroundColor: 'white',
                 borderRadius: 8,
-                ...shadows.lg
+                ...Shadows.lg
             }}>
             {/* Search Bar - Chỉ hiển thị khi không có category được chọn */}
             {!selectedCategory && (

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { shadows } from "@/src/styles/shadow";
+import { Shadows } from "@/src/styles/Shadow";
 import Loading from "@/src/components/loading/loading";
 import QRCodeDisplay from "@/src/components/ui/QRCodeDisplay";
 import QrScanner from "@/src/components/ui/QrScanner";
@@ -43,7 +43,7 @@ export default function QrCode() {
       {/* Header */}
       <View
         className="flex-row items-center justify-between px-4 py-3 border-b border-gray-100"
-        style={shadows.sm}
+        style={Shadows.sm}
       >
         <TouchableOpacity onPress={handleClose}>
           <Ionicons name="arrow-back" size={24} color="#333" />
