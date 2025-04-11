@@ -2,8 +2,8 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
 import {userStorage} from '@/src/services/userStorage';
 import {userService} from '@/src/api/services/userService';
-import {AuthContextType} from "@/src/models/AuthContextType";
-import {AuthProviderProps} from "@/src/models/AuthProviderProps";
+import {AuthContextType} from "@/src/models/props/AuthContextType";
+import {AuthProviderProp} from "@/src/models/types/AuthProviderProp";
 import {authService} from '@/src/api/services/authService';
 import {authStorage} from '@/src/services/authStorage';
 
@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({children}: AuthProviderProps) => {
+export const AuthProvider = ({children}: AuthProviderProp) => {
     const [user, setUser] = useState<Partial<User> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
