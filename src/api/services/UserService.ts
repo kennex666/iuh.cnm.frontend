@@ -3,7 +3,7 @@ import {User} from '@/src/models/User';
 import { AuthStorage } from '@/src/services/AuthStorage';
 import { Domains } from '@/src/constants/ApiConstant';
 
-export const userService = {
+export const UserService = {
     async update(userData: Partial<User>): Promise<{ success: boolean; user?: User; message?: string; data?: any }> {
         try {
             console.log('Updating user with data:', userData);

@@ -11,7 +11,7 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import Divider from '@/src/components/ui/Divider';
 import {useAuth} from '@/src/contexts/UserContext';
-import {authService} from '@/src/api/services/AuthService';
+import {AuthService} from '@/src/api/services/AuthService';
 
 export default function Login() {
     const {login, user} = useAuth();

@@ -1,7 +1,7 @@
 import {User} from "@/src/models/User";
 
 
-interface AuthLogin {
+export interface AuthLogin {
     phone: string;
     password: string;
     otp?: string | null;

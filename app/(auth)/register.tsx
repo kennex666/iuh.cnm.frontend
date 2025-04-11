@@ -11,7 +11,7 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { authService } from '@/src/api/services/AuthService';
+import { AuthService } from '@/src/api/services/AuthService';
 
 export default function Register() {
     // Value
@@ -97,7 +97,7 @@ export default function Register() {
         setLoading(true);
         try {
             // Giả lập API call
-            const result = await authService.register({
+            const result = await AuthService.register({
                 name: name,
                 phone: phoneNumber,
                 gender: gender,

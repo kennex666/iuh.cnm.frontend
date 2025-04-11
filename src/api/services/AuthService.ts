@@ -28,7 +28,7 @@ export interface LoginResponse {
     errorMessage: string;
 }
 
-export const authService = {
+export const AuthService = {
 	async login({ phone, password, otp = null }: any): Promise<{
 		success: boolean;
 		user?: Partial<User>;

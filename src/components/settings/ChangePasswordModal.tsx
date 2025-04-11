@@ -10,7 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import FormInput from "@/src/components/ui/FormInput";
 import Toast from "@/src/components/ui/Toast";
-import { authService } from "@/src/api/services/AuthService";
+import { AuthService } from "@/src/api/services/AuthService";
 
 interface ChangePasswordModalProps {
 	visible: boolean;
@@ -53,7 +53,7 @@ export default function ChangePasswordModal({
 		setLoading(true);
 		try {
 			// TODO: Gọi API đổi mật khẩu tại đây
-			const result = await authService.changePassword({
+			const result = await AuthService.changePassword({
         oldPassword: currentPassword,
         newPassword,
       });

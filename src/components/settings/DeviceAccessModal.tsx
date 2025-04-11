@@ -3,7 +3,7 @@ import { Modal, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from '@/src/components/ui/Toast';
 import Button from '@/src/components/ui/Button';
-import { authService } from '@/src/api/services/AuthService';
+import { AuthService } from '@/src/api/services/AuthService';
 import { useAuth } from '@/src/contexts/UserContext';
 import { router } from "expo-router";
 
@@ -66,7 +66,7 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
 
   useEffect(() => {
     // API
-    authService.getDevices().then((response) => {
+    AuthService.getDevices().then((response) => {
       if (response.success) {
         if (!response.data){
           setDevices([]); // Reset devices if no data
@@ -139,7 +139,7 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
 		setLoading(true);
 		try {
 			// TODO: Implement API call to logout device
-			const response = await authService.logoutDevice({deviceId: selectedDevice.id});
+			const response = await AuthService.logoutDevice({deviceId: selectedDevice.id});
 
 			if (!response.success) {
 				setToast({
@@ -178,7 +178,7 @@ export default function DeviceAccessModal({ visible, onClose }: DeviceAccessModa
     setLoading(true);
     try {
       // TODO: Implement API call to logout all devices
-      const response = await authService.logoutAll();
+      const response = await AuthService.logoutAll();
 
       if (!response.success) {
         setToast({

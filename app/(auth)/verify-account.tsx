@@ -9,7 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/AuthService';
+import {AuthService} from '@/src/api/services/AuthService';
 import { useAuth } from '@/src/contexts/UserContext';
 
 export default function Verify2FA() {
@@ -68,7 +68,7 @@ export default function Verify2FA() {
         try {
             // TODO: Implement actual 2FA verification API call
             // This is a mock implementation
-            const response = await authService.verifyAccount({
+            const response = await AuthService.verifyAccount({
                 phone: phone,
                 otp: verificationCode
             });

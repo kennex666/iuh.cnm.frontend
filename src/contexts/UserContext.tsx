@@ -1,10 +1,10 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
 import {UserStorage} from '@/src/services/UserStorage';
-import {userService} from '@/src/api/services/UserService';
-import {AuthContextType} from "@/src/models/props/AuthContextType";
+import {UserService} from '@/src/api/services/UserService';
+import {AuthLogin, AuthContextType} from "@/src/models/props/AuthContextType";
 import {AuthProviderProp} from "@/src/models/types/AuthProviderProp";
-import {authService} from '@/src/api/services/AuthService';
+import {AuthService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/services/AuthStorage';
 
 const AuthContext = createContext<AuthContextType>({
@@ -34,15 +34,9 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
         });
     }, []);
 
-    interface LoginParams {
-        phone: string;
-        password: string;
-        otp?: string | null;
-    }
-
-    const login = async ({phone, password, otp = null}: LoginParams) => {
+    const login = async ({phone, password, otp = null}: AuthLogin) => {
         try {
-            const result = await authService.login({phone, password, otp});
+            const result = await AuthService.login({phone, password, otp});
 
             if (result.success && result.user && result.accessToken && result.refreshToken) {
                 // Lưu thông tin người dùng
@@ -78,7 +72,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
 
             const completeUser = mergedUser as User;
 
-            const result = await userService.update(completeUser);
+            const result = await UserService.update(completeUser);
             if (!result.success) {
                 return { success: false, message: result.message || 'Cập nhật thông tin thất bại!' };
             }

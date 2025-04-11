@@ -9,7 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/AuthService';
+import {AuthService} from '@/src/api/services/AuthService';
 import { useAuth } from '@/src/contexts/UserContext';
 
 export default function Verify2FA() {
@@ -70,7 +70,7 @@ export default function Verify2FA() {
         
         setResendLoading(true);
         try {
-            const result = await authService.login({
+            const result = await AuthService.login({
                 phone: phone,
                 password: password
             });

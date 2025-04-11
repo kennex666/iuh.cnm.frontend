@@ -6,7 +6,7 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import QRCodeDisplay from '../ui/QRCodeDisplay';
 import { Domains } from '@/src/constants/ApiConstant';
-import { authService } from '@/src/api/services/AuthService';
+import { AuthService } from '@/src/api/services/AuthService';
 
 interface TwoFactorAuthModalProps {
   visible: boolean;
@@ -41,7 +41,7 @@ export default function TwoFactorAuthModal({ visible, onClose }: TwoFactorAuthMo
   useEffect(() => {
     const fetch2FAStatus = async () => {
       try {
-        const response = await authService.get2FAStatus();
+        const response = await AuthService.get2FAStatus();
         if (response.success) {
           setIsEnabled(true);
         } else {
@@ -72,7 +72,7 @@ export default function TwoFactorAuthModal({ visible, onClose }: TwoFactorAuthMo
     setLoading(true);
     try {
       // TODO: Implement API call to verify 2FA code and toggle 2FA
-      const result = !isEnabled ? await authService.enable2FA({ secret: content, otp: verificationCode }) : await authService.disable2FA({ otp: verificationCode });
+      const result = !isEnabled ? await AuthService.enable2FA({ secret: content, otp: verificationCode }) : await AuthService.disable2FA({ otp: verificationCode });
       
       if (!result.success) {
         setToast({

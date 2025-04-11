@@ -9,7 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/AuthService';
+import {AuthService} from '@/src/api/services/AuthService';
 
 export default function ForgotPassword() {
     const [phoneNumber, setPhoneNumber] = useState('');
@@ -41,7 +41,7 @@ export default function ForgotPassword() {
         try {
             // TODO: Implement actual password reset API call
             // This is a mock implementation
-            const result = await authService.forgotPassword({
+            const result = await AuthService.forgotPassword({
                 phone: phoneNumber
             });
 

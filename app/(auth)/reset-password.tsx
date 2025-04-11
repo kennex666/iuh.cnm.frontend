@@ -16,7 +16,7 @@ import GradientBackground from "@/src/components/auth/GradientBackground";
 import AppLogo from "@/src/components/auth/AppLogo";
 import AuthHeader from "@/src/components/auth/AuthHeader";
 import Button from "@/src/components/ui/Button";
-import { authService } from "@/src/api/services/AuthService";
+import { AuthService } from "@/src/api/services/AuthService";
 
 export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState("");
@@ -100,7 +100,7 @@ export default function ResetPasswordScreen() {
     setLoading(true);
     try {
       // TODO: Implement API call to reset password with token
-      const result = await authService.forgotPassword({
+      const result = await AuthService.forgotPassword({
         phone,
         otp,
         password: newPassword,
