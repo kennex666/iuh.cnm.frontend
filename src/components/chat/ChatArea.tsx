@@ -11,8 +11,8 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import {useMessages} from '@/src/hooks/useMessages';
-import {Conversation} from '@/src/hooks/useConversations';
+import {UseMessage} from '@/src/hooks/UseMessage';
+import {Conversation} from '@/src/hooks/UseConversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
@@ -36,7 +36,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     const [inputHeight, setInputHeight] = useState(28);
 
-    const {messages, loading, error} = useMessages(selectedChat?.id || undefined);
+    const {messages, loading, error} = UseMessage(selectedChat?.id || undefined);
 
     const handleReactionToggle = (messageId: string) => {
         if (activeReactionId === messageId) {

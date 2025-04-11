@@ -1,7 +1,7 @@
-import {useAuth} from '@/src/contexts/userContext';
+import {useAuth} from '@/src/contexts/UserContext';
 import {Profile} from '@/src/models/Profile';
 
-export function useUser() {
+export function UseUser() {
     const {user} = useAuth();
 
     // Kiểm tra xem người dùng đã được xác thực hay chưa

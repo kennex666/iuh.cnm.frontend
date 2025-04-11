@@ -3,8 +3,8 @@ import { Modal, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from '@/src/components/ui/Toast';
 import Button from '@/src/components/ui/Button';
-import { authService } from '@/src/api/services/authService';
-import { useAuth } from '@/src/contexts/userContext';
+import { authService } from '@/src/api/services/AuthService';
+import { useAuth } from '@/src/contexts/UserContext';
 import { router } from "expo-router";
 
 interface Device {

@@ -16,7 +16,7 @@ import GradientBackground from "@/src/components/auth/GradientBackground";
 import AppLogo from "@/src/components/auth/AppLogo";
 import AuthHeader from "@/src/components/auth/AuthHeader";
 import Button from "@/src/components/ui/Button";
-import { authService } from "@/src/api/services/authService";
+import { authService } from "@/src/api/services/AuthService";
 
 export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState("");

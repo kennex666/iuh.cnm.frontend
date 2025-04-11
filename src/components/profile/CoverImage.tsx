@@ -1,7 +1,7 @@
 import {Image, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {ImageConstants} from "@/src/constants/ImageConstant";
-import {useUser} from "@/src/hooks/useUser";
+import {UseUser} from "@/src/hooks/UseUser";
 
 interface CoverImageProps {
     onPickImage: () => void;
@@ -9,7 +9,7 @@ interface CoverImageProps {
 }
 
 const CoverImage = ({onPickImage, customSource}: CoverImageProps) => {
-    const {profile} = useUser();
+    const {profile} = UseUser();
 
     // Use customSource if provided, otherwise use profile.coverURL
     const source = customSource ||

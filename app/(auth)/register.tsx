@@ -11,7 +11,7 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { authService } from '@/src/api/services/authService';
+import { authService } from '@/src/api/services/AuthService';
 
 export default function Register() {
     // Value

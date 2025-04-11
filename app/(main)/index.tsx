@@ -3,7 +3,7 @@ import {useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/chat/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
 import Info from '@/src/components/chat/Info';
-import {Conversation} from '@/src/hooks/useConversations';
+import {Conversation} from '@/src/hooks/UseConversation';
 
 export default function MessagesScreen() {
     // slectedChat state to manage the currently selected chat

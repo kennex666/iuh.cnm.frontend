@@ -1,12 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Animated, Dimensions, Modal, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
 import Toast from '@/src/components/ui/Toast';
-import {useUser} from "@/src/hooks/useUser";
+import {UseUser} from "@/src/hooks/UseUser";
 import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
 import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
-import {useAuth} from "@/src/contexts/userContext";
+import {useAuth} from "@/src/contexts/UserContext";
 
 type ProfileModalProps = {
     visible: boolean;
@@ -16,7 +16,7 @@ type ProfileModalProps = {
 export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const router = useRouter();
     const {user, update} = useAuth();
-    const {user: fetchedUser} = useUser();
+    const {user: fetchedUser} = UseUser();
     const [editMode, setEditMode] = useState(false);
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [coverUri, setCoverUri] = useState<string | null>(null);

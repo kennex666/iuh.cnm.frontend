@@ -2,7 +2,7 @@ import { router } from 'expo-router'
 import React, { Component, useEffect, useState } from 'react'
 import { Text, TouchableOpacity, View, Platform, ScrollView } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { useAuth } from '@/src/contexts/userContext'
+import { useAuth } from '@/src/contexts/UserContext'
 import SettingsMobile from '@/src/components/settings/SettingsMobile'
 import SettingsDesktop from '@/src/components/settings/SettingsDesktop'
 export class settings extends Component {

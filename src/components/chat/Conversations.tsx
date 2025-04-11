@@ -1,7 +1,7 @@
 import React from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {Conversation, useConversations} from '@/src/hooks/useConversations';
+import {Conversation, useConversation} from '@/src/hooks/UseConversation';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -9,7 +9,7 @@ interface ConversationsProps {
 }
 
 export default function Conversations({selectedChat, onSelectChat}: ConversationsProps) {
-    const {conversations, loading, error} = useConversations();
+    const {conversations, loading, error} = useConversation();
 
     const formatTime = (dateString: string) => {
         const date = new Date(dateString);

@@ -11,7 +11,7 @@ export interface Message {
     readBy: string[];
 }
 
-export function useMessages(conversationId?: string) {
+export function UseMessage(conversationId?: string) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

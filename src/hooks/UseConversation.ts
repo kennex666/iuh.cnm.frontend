@@ -24,7 +24,7 @@ export interface Conversation {
     updatedAt: string;
 }
 
-export function useConversations() {
+export function useConversation() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

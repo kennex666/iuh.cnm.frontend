@@ -1,7 +1,7 @@
 import {Image, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {ImageConstants} from "@/src/constants/ImageConstant";
-import {useUser} from "@/src/hooks/useUser";
+import {UseUser} from "@/src/hooks/UseUser";
 
 interface AvatarImageProps {
     onPickImage: () => void;
@@ -9,7 +9,7 @@ interface AvatarImageProps {
 }
 
 const AvatarImage = ({onPickImage, customSource}: AvatarImageProps) => {
-    const {profile} = useUser();
+    const {profile} = UseUser();
 
     // Use customSource if provided, otherwise use profile.avatarURL
     const source = customSource ||

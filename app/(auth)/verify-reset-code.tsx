@@ -9,7 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/authService';
+import {authService} from '@/src/api/services/AuthService';
 
 export default function VerifyResetCode() {
     const [verificationCode, setVerificationCode] = useState('');

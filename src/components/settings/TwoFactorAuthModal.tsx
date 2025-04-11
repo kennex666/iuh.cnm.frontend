@@ -6,7 +6,7 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import QRCodeDisplay from '../ui/QRCodeDisplay';
 import { Domains } from '@/src/constants/ApiConstant';
-import { authService } from '@/src/api/services/authService';
+import { authService } from '@/src/api/services/AuthService';
 
 interface TwoFactorAuthModalProps {
   visible: boolean;

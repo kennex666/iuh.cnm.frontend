@@ -1,10 +1,10 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
 import {UserStorage} from '@/src/services/UserStorage';
-import {userService} from '@/src/api/services/userService';
+import {userService} from '@/src/api/services/UserService';
 import {AuthContextType} from "@/src/models/props/AuthContextType";
 import {AuthProviderProp} from "@/src/models/types/AuthProviderProp";
-import {authService} from '@/src/api/services/authService';
+import {authService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/services/AuthStorage';
 
 const AuthContext = createContext<AuthContextType>({

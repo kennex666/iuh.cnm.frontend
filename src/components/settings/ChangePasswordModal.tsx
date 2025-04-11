@@ -10,7 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import FormInput from "@/src/components/ui/FormInput";
 import Toast from "@/src/components/ui/Toast";
-import { authService } from "@/src/api/services/authService";
+import { authService } from "@/src/api/services/AuthService";
 
 interface ChangePasswordModalProps {
 	visible: boolean;

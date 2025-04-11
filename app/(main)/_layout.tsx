@@ -4,7 +4,7 @@ import {Alert, Dimensions, Image, Text, TouchableOpacity, View} from "react-nati
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import {useAuth} from "@/src/contexts/userContext";
+import {useAuth} from "@/src/contexts/UserContext";
 
 type Route = {
     name: string;
