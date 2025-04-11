@@ -1,6 +1,6 @@
 import React from 'react';
 import {Image, ImageSourcePropType, View} from 'react-native';
-import {ImageConstant} from "@/src/constants/ImageConstant";
+import {ImageConstants} from "@/src/constants/ImageConstant";
 import {shadows} from '@/src/styles/shadow';
 
 interface AppLogoProps {
@@ -10,7 +10,7 @@ interface AppLogoProps {
 
 const AppLogo = ({
                      size = 80,
-                     logoSource = ImageConstant.logo,
+                     logoSource = ImageConstants.logo,
                  }: AppLogoProps) => {
     return (
         <View className="items-center mb-6">

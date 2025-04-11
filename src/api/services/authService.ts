@@ -1,4 +1,4 @@
-import { API_DOMAIN } from './../../constants/ApiConstant';
+import { Domains } from './../../constants/ApiConstant';
 import axios from 'axios';
 import { User } from '@/src/models/User';
 import { authStorage } from '@/src/services/authStorage';
@@ -42,7 +42,7 @@ export const authService = {
 
 			const response = otp
 				? await axios.post<LoginResponse>(
-						`${API_DOMAIN.API_AUTH}/login-2fa`,
+						`${Domains.API_AUTH}/login-2fa`,
 						{
 							phone,
 							password,
@@ -50,7 +50,7 @@ export const authService = {
 						}
 				  )
 				: await axios.post<LoginResponse>(
-						`${API_DOMAIN.API_AUTH}/login`,
+						`${Domains.API_AUTH}/login`,
 						{
 							phone,
 							password,
@@ -116,7 +116,7 @@ export const authService = {
 	}> {
 		try {
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/forgot-password`,
+				`${Domains.API_AUTH}/forgot-password`,
 				{
 					phone,
 					otp,
@@ -143,7 +143,7 @@ export const authService = {
 	}> {
 		try {
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/register`,
+				`${Domains.API_AUTH}/register`,
 				{
 					name,
 					phone,
@@ -173,7 +173,7 @@ export const authService = {
 	}> {
 		try {
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/verify-account`,
+				`${Domains.API_AUTH}/verify-account`,
 				{
 					phone,
 					otp,
@@ -199,7 +199,7 @@ export const authService = {
 	}> {
 		try {
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/resend-otp`,
+				`${Domains.API_AUTH}/resend-otp`,
 				{
 					phone,
 				}
@@ -230,7 +230,7 @@ export const authService = {
 				return { success: false, message: "No access token found" };
 			}
 
-			const response = await axios.get(`${API_DOMAIN.API_AUTH}/devices`, {
+			const response = await axios.get(`${Domains.API_AUTH}/devices`, {
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},
@@ -261,7 +261,7 @@ export const authService = {
 			}
 
 			const response = await axios.get(
-				`${API_DOMAIN.API_AUTH}/logout-all`,
+				`${Domains.API_AUTH}/logout-all`,
 				{
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -294,7 +294,7 @@ export const authService = {
 			}
 
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/logout-device`,
+				`${Domains.API_AUTH}/logout-device`,
 				{
 					deviceId,
 				},
@@ -330,7 +330,7 @@ export const authService = {
 			}
 
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/2fa/enable`,
+				`${Domains.API_AUTH}/2fa/enable`,
 				{
 					secret,
 					otp,
@@ -367,7 +367,7 @@ export const authService = {
 			}
 
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/2fa/disable`,
+				`${Domains.API_AUTH}/2fa/disable`,
 				{
 					otp,
 				},
@@ -405,7 +405,7 @@ export const authService = {
 			}
 
 			const response = await axios.get(
-				`${API_DOMAIN.API_AUTH}/2fa/status`,
+				`${Domains.API_AUTH}/2fa/status`,
 				{
 					headers: {
 						Authorization: `Bearer ${token}`,
@@ -441,7 +441,7 @@ export const authService = {
 			}
 
 			const response = await axios.post(
-				`${API_DOMAIN.API_AUTH}/change-password`,
+				`${Domains.API_AUTH}/change-password`,
 				{
 					oldPassword,
 					newPassword,

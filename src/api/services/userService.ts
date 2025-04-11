@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
 import { authStorage } from '@/src/services/authStorage';
-import { API_DOMAIN } from '@/src/constants/ApiConstant';
+import { Domains } from '@/src/constants/ApiConstant';
 
 export const userService = {
     async update(userData: Partial<User>): Promise<{ success: boolean; user?: User; message?: string; data?: any }> {
@@ -26,7 +26,7 @@ export const userService = {
 
             // Make the API request with authorization header
             const response = await axios.put(
-                `${API_DOMAIN.API_USER}/update`,
+                `${Domains.API_USER}/update`,
                 formattedData,
                 {
                     headers: {
