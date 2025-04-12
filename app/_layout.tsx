@@ -2,8 +2,8 @@ import {SplashScreen, Stack} from 'expo-router';
 import {useEffect} from 'react';
 import {useFonts} from 'expo-font';
 import {AuthProvider} from '@/src/contexts/UserContext';
-import "../global.css";
 import {setupAxios} from "@/src/api/AxiosConfig";
+import "../global.css";
 
 export {ErrorBoundary} from 'expo-router';
 

@@ -6,6 +6,7 @@ import {AuthContextType, AuthLogin} from "@/src/models/props/AuthContextType";
 import {AuthProviderProp} from "@/src/models/types/AuthProviderProp";
 import {AuthService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/services/AuthStorage';
+import { useRouter } from 'expo-router';
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -18,25 +19,47 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({children}: AuthProviderProp) => {
+    const router = useRouter();
     const [user, setUser] = useState<Partial<User> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const storedUser = await UserStorage.getUser();
-                if (storedUser) {
-                    setUser(storedUser);
-                    setIsLoading(false);
+    const loadUser = async () => {
+        try {
+            const token = await AuthStorage.getAccessToken();
+
+            if (token) {
+                const result = await UserService.me();
+
+                if (result.success && result.user) {
+                    console.log('Using fresh user data from server');
+                    setUser(result.user);
+                    await UserStorage.saveUser(result.user);
+                } else {
+                    console.warn('Failed to fetch fresh user data:', result.message);
+                    const storedUser = await UserStorage.getUser();
+                    if (storedUser) {
+                        console.log('Using cached user data from storage');
+                        setUser(storedUser);
+                    } else {
+                        console.warn('No valid user data available, logging out');
+                        await logout();
+                    }
                 }
-            } catch (error) {
-                console.error('Error loading user:', error);
-            } finally {
-                setIsLoading(false);
+            } else {
+                console.log('No access token found, logging out');
+                await logout();
+                router.replace("/(auth)");
             }
-        };
-        loadUser().catch((error) => {
+        } catch (error) {
             console.error('Error loading user:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadUser().catch((error) => {
+            console.error('Error in useEffect:', error);
             setIsLoading(false);
         });
     }, []);
