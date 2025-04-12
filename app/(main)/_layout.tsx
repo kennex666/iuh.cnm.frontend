@@ -73,11 +73,12 @@ export default function AppLayout() {
                             >
                                 <Image
                                     source={{
-                                        uri:
-                                            user?.avatarURL ||
-                                            `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${
-                                                user?.name?.charAt(0) || "U"
-                                            }`,
+                                        // uri:
+                                        //     user?.avatarURL ||
+                                        //     `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${
+                                        //         user?.name?.charAt(0) || "U"
+                                        //     }`,
+                                        uri: "https://static.wikia.nocookie.net/blue-archive/images/7/7b/Alice_Icon.png"
                                     }}
                                     className="w-10 h-10 rounded-full"
                                 />
