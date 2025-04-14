@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
 import {AuthStorage} from '@/src/services/AuthStorage';
-import {Domains} from '@/src/constants/ApiConstant';
+import {ApiEndpoints} from '@/src/constants/ApiConstant';
 
 export const UserService = {
     async update(userData: Partial<User>): Promise<{
@@ -20,7 +20,7 @@ export const UserService = {
             }
 
             const response = await axios.put(
-                `${Domains.API_USER}/update`,
+                `${ApiEndpoints.API_USER}/update`,
                 userData,
                 {
                     headers: {
@@ -71,7 +71,7 @@ export const UserService = {
             }
 
             const response = await axios.get(
-                `${Domains.API_AUTH}/me`,
+                `${ApiEndpoints.API_AUTH}/me`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
