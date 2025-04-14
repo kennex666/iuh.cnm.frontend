@@ -19,6 +19,7 @@ import {Shadows} from '@/src/styles/Shadow';
 import {Message, MessageType} from '@/src/models/Message';
 import {MessageService} from '@/src/api/services/MessageService';
 import {useAuth} from '@/src/contexts/UserContext';
+import { UserService } from '@/src/api/services/UserService';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -42,13 +43,37 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const scaleAnimation = useRef(new Animated.Value(0)).current;
 
     const [inputHeight, setInputHeight] = useState(28);
+    const [messageUsers, setMessageUsers] = useState<{[key: string]: any}>({});
+
+    const fetchUserInfo = async (userId: string) => {
+        try {
+            const response = await UserService.getUserById(userId);
+            if (response.success) {
+                setMessageUsers(prev => ({
+                    ...prev,
+                    [userId]: response.user
+                }));
+            }
+        } catch (err) {
+            console.error('Error fetching user:', err);
+        }
+    };
 
     useEffect(() => {
         if (selectedChat) {
             fetchMessages();
         }
-        console.log('Selected chat:', messages);
     }, [selectedChat]);
+
+    useEffect(() => {
+        // Fetch user info for each unique sender
+        const senderIds = [...new Set(messages.map(msg => msg.senderId))];
+        senderIds.forEach(id => {
+            if (!messageUsers[id]) {
+                fetchUserInfo(id);
+            }
+        });
+    }, [messages]);
 
     const fetchMessages = async () => {
         if (!selectedChat?.id) return;
@@ -214,7 +239,12 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     </View>
                 </View>
                 <View className="flex-row items-center">
-                    <TouchableOpacity className="p-2 mr-1">
+                    <TouchableOpacity className="p-2 mr-1"
+                        onPress={() => {
+                            console.log('Call button pressed');
+                            console.log(messageUsers);
+                        }}
+                    >
                         <Ionicons name="call-outline" size={22} color="#666"/>
                     </TouchableOpacity>
                     <TouchableOpacity className="p-2 mr-1">
@@ -248,7 +278,9 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     >
                         {msg.senderId !== user?.id && (
                             <Image
-                                source={{uri: 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
+                                source={{
+                                    uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                }}
                                 className="w-8 h-8 rounded-full mr-2"
                             />
                         )}

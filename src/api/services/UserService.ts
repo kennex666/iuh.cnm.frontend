@@ -2,6 +2,7 @@ import axios from 'axios';
 import {User} from '@/src/models/User';
 import {AuthStorage} from '@/src/services/AuthStorage';
 import {ApiEndpoints} from '@/src/constants/ApiConstant';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 export const UserService = {
     async update(userData: Partial<User>): Promise<{
@@ -110,6 +111,53 @@ export const UserService = {
                 message: error.response?.data?.errorMessage || error.message || "Network error occurred",
             };
         }
-    }
-
+    },
+    getUserById: async (userId: string): Promise<{
+        success: boolean;
+        user?: User;
+        message?: string;
+    }> => {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
+            }
+            const response = await axios.get(
+                `${ApiEndpoints.API_USER}/${userId}`,
+                {headers: {Authorization: `Bearer ${token}`}}
+            );
+            if (response.data.success) {
+                const apiUser = response.data.data;
+                const appUser: User = {
+                    id: apiUser.id,
+                    name: apiUser.name,
+                    email: apiUser.email || "",
+                    phone: apiUser.phone,
+                    gender: apiUser.gender,
+                    password: "",
+                    avatarURL: apiUser.avatarUrl,
+                    coverURL: apiUser.coverUrl,
+                    dob: apiUser.dob,
+                    isOnline: apiUser.isOnline,
+                    createdAt: apiUser.createdAt,
+                    updatedAt: apiUser.updatedAt,
+                };
+                return {success: true, user: appUser};
+            }
+            return {
+                success: false,
+                message: response.data.errorMessage || "Failed to fetch user profile"
+            };    
+        }
+        catch (error: any) {
+            console.error("Get user by ID error:", error);
+            return {
+                success: false,
+                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
+            };
+        }
+    },
 };
