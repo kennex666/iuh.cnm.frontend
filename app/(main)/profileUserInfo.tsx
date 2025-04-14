@@ -1,5 +1,5 @@
 import React from "react";
-import {ScrollView, Text, TouchableOpacity, View} from "react-native";
+import {ImageSourcePropType, ScrollView, Text, TouchableOpacity, View} from "react-native";
 import {Ionicons} from '@expo/vector-icons';
 import CoverImage from "@/src/components/profile/CoverImage";
 import AvatarImage from "@/src/components/profile/AvatarImage";
@@ -10,8 +10,8 @@ import {User} from "@/src/models/User";
 
 type ProfileInfoProps = {
     user: Partial<User> | null;
-    avatarSource: { uri: string | undefined };
-    coverSource: { uri: string | undefined };
+    avatar: ImageSourcePropType;
+    cover: ImageSourcePropType;
     onPickAvatar: () => Promise<void>;
     onPickCover: () => Promise<void>;
     onEditPress: () => void;
@@ -26,8 +26,8 @@ const genderMap = {
 
 export default function ProfileUserInfo({
                                             user,
-                                            avatarSource,
-                                            coverSource,
+                                            avatar,
+                                            cover,
                                             onPickAvatar,
                                             onPickCover,
                                             onEditPress,
@@ -45,8 +45,8 @@ export default function ProfileUserInfo({
 
             <ScrollView className="flex-1 bg-gray-100 pb-16">
                 <View className="items-center mb-2 mt-4 bg-white p-2">
-                    <CoverImage customSource={coverSource} onPickImage={onPickCover}/>
-                    <AvatarImage customSource={avatarSource} onPickImage={onPickAvatar}/>
+                    <CoverImage customSource={avatar} onPickImage={onPickCover}/>
+                    <AvatarImage customSource={cover} onPickImage={onPickAvatar}/>
 
                     <Text className="text-xl font-bold">{user?.name}</Text>
                 </View>

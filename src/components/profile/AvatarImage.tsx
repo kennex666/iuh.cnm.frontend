@@ -1,11 +1,11 @@
-import {Image, TouchableOpacity, View} from "react-native";
+import {Image, ImageSourcePropType, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {ImageConstants} from "@/src/constants/ImageConstant";
 import {UseUser} from "@/src/hooks/UseUser";
 
 interface AvatarImageProps {
     onPickImage: () => void;
-    customSource?: any; // Optional override
+    customSource?: ImageSourcePropType;
 }
 
 const AvatarImage = ({onPickImage, customSource}: AvatarImageProps) => {
