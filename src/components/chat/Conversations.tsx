@@ -77,7 +77,9 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                         className={`flex-row items-center p-4 ${
                             selectedChat?.id === conversation.id ? 'bg-blue-50' : ''
                         }`}
-                        onPress={() => onSelectChat(conversation)}
+                        onPress={() => {
+                            onSelectChat(conversation);
+                        }}
                     >
                         <View className="relative">
                             <Image
@@ -96,7 +98,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                                 </Text>
                                 {conversation.lastMessage?.sentAt && (
                                     <Text className="text-sm text-gray-500">
-                                        {formatTime(conversation.lastMessage.sentAt)}
+                                        {formatTime(conversation.lastMessage.sentAt as string)}
                                     </Text>
                                 )}
                             </View>

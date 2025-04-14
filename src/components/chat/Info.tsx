@@ -46,12 +46,15 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                     {/* Phần thông tin cá nhân - Avatar và tên người dùng */}
                     <View className="items-center pt-8 pb-6 border-b border-gray-100">
                         <Image
-                            source={{uri: selectedChat.avatarUrl || 'https://placehold.co/96x96/0068FF/FFFFFF/png'}}
+                            source={{uri: selectedChat.avatar || 'https://placehold.co/96x96/0068FF/FFFFFF/png'}}
                             className="w-24 h-24 rounded-full mb-4"
                         />
-                        <Text
-                            className="text-xl font-semibold text-gray-900">{selectedChat.name || 'Chưa có tên'}</Text>
-                        <Text className="text-sm text-gray-500 mt-1">{selectedChat.participantIds[0] || 'null'}</Text>
+                        <Text className="text-xl font-semibold text-gray-900">
+                            {selectedChat.name || 'Chưa có tên'}
+                        </Text>
+                        <Text className="text-sm text-gray-500 mt-1">
+                            {selectedChat.participants?.[0] || 'Chưa có thành viên'}
+                        </Text>
                     </View>
 
                     {/* Phần actions - Các nút tương tác chính */}
@@ -143,11 +146,15 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                 {/* Phần thông tin nhóm - Avatar, tên và số lượng thành viên */}
                 <View className="items-center pt-8 pb-6 border-b border-gray-100">
                     <Image
-                        source={{uri: selectedChat.avatarUrl || 'https://placehold.co/96x96/0068FF/FFFFFF/png'}}
+                        source={{uri: selectedChat.avatar || 'https://placehold.co/96x96/0068FF/FFFFFF/png'}}
                         className="w-24 h-24 rounded-full mb-4"
                     />
-                    <Text className="text-xl font-semibold text-gray-900">{selectedChat.name || 'Chưa có tên'}</Text>
-                    <Text className="text-sm text-gray-500 mt-1">{selectedChat.participantIds.length} thành viên</Text>
+                    <Text className="text-xl font-semibold text-gray-900">
+                        {selectedChat.name || 'Chưa có tên'}
+                    </Text>
+                    <Text className="text-sm text-gray-500 mt-1">
+                        {selectedChat.participants?.length || 0} thành viên
+                    </Text>
                 </View>
 
                 {/* Phần actions - Các nút tương tác chính */}

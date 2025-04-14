@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import {Ionicons} from '@expo/vector-icons';
 import {
     ActivityIndicator,
@@ -17,6 +17,9 @@ import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
 import {Shadows} from '@/src/styles/Shadow';
+import {Message, MessageType} from '@/src/models/Message';
+import {MessageService} from '@/src/api/services/MessageService';
+import {useAuth} from '@/src/contexts/UserContext';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -25,7 +28,11 @@ export interface ChatAreaProps {
 }
 
 export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
-    const [message, setMessage] = useState('');
+    const {user} = useAuth();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [newMessage, setNewMessage] = useState('');
     const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
     const [isModelChecked, setIsModelChecked] = useState(false);
     const [isModelImage, setIsModelImage] = useState(false);
@@ -36,7 +43,52 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     const [inputHeight, setInputHeight] = useState(28);
 
-    const {messages, loading, error} = UseMessage(selectedChat?.id || undefined);
+    useEffect(() => {
+        if (selectedChat) {
+            fetchMessages();
+        }
+    }, [selectedChat]);
+
+    const fetchMessages = async () => {
+        if (!selectedChat?.id) return;
+        
+        try {
+            setLoading(true);
+            const response = await MessageService.getMessages(selectedChat.id);
+            if (response.success) {
+                setMessages(response.messages);
+                setError(null);
+            } else {
+                setError(response.statusMessage);
+            }
+        } catch (err) {
+            setError('Failed to load messages');
+            console.error('Error fetching messages:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSendMessage = async () => {
+        if (!selectedChat?.id || !newMessage.trim() || !user) return;
+
+        try {
+            const messageData: Partial<Message> = {
+                conversationId: selectedChat.id,
+                content: newMessage.trim(),
+                type: MessageType.TEXT,
+                senderId: user.id
+            };
+
+            const response = await MessageService.sendMessage(messageData);
+            if (response.success) {
+                setMessages(prev => [...prev, response.message]);
+                setNewMessage('');
+            }
+        } catch (err) {
+            console.error('Error sending message:', err);
+        }
+    };
 
     const handleReactionToggle = (messageId: string) => {
         if (activeReactionId === messageId) {
@@ -92,7 +144,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     if (loading) {
         return (
             <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#0068FF"/>
+                <Text>Đang tải...</Text>
             </View>
         );
     }
@@ -100,14 +152,14 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     if (error) {
         return (
             <View className="flex-1 items-center justify-center">
-                <Text className="text-red-500">Error: {error}</Text>
+                <Text className="text-red-500">Lỗi: {error}</Text>
             </View>
         );
     }
 
     if (!selectedChat) {
         return (
-            <View className="flex-1 items-center justify-center">
+            <View className="flex-1 items-center justify-center bg-gray-50">
                 <Text className="text-gray-500">Chọn một cuộc trò chuyện để bắt đầu</Text>
             </View>
         );
@@ -124,20 +176,20 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{uri: selectedChat?.avatarUrl || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
+                        source={{uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                         className="w-10 h-10 rounded-full"
                     />
                     <View className="ml-3" style={{maxWidth: '45%'}}>
                         <Text className="font-semibold text-gray-900 text-base"
                               numberOfLines={1}
                               ellipsizeMode="tail">
-                            {selectedChat?.name || selectedChat?.participantIds.join(', ')}
+                            {selectedChat.name || selectedChat.participants.join(', ')}
                         </Text>
-                        {selectedChat?.isGroup && (
-                            <Text className="text-sm text-gray-500">{selectedChat.participantIds.length} thành
+                        {selectedChat.isGroup && (
+                            <Text className="text-sm text-gray-500">{selectedChat.participants.length} thành
                                 viên</Text>
                         )}
-                        {!selectedChat?.isGroup && selectedChat?.participantIds.length > 0 && (
+                        {!selectedChat.isGroup && selectedChat.participants.length > 0 && (
                             <Text className="text-sm text-green-500">Đang hoạt động</Text>
                         )}
                     </View>
@@ -247,7 +299,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                 className='absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200'
                                 style={Shadows.xl}>
                                 <StickerPicker
-                                    setMessage={setMessage}
+                                    setMessage={setNewMessage}
                                     toggleModelSticker={toggleModelSticker}
                                 />
                             </View>
@@ -257,8 +309,8 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         <TextInput
                             className="min-h-[26px] text-base text-gray-800"
                             placeholder="Nhập tin nhắn..."
-                            value={message}
-                            onChangeText={setMessage}
+                            value={newMessage}
+                            onChangeText={setNewMessage}
                             multiline
                             numberOfLines={1}
                             placeholderTextColor="#666"
@@ -290,13 +342,23 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                 <View
                                     className='absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200'
                                     style={Shadows.xl}>
-                                    <EmojiPicker setMessage={setMessage} toggleModelEmoji={toggleModelEmoji}/>
+                                    <EmojiPicker setMessage={setNewMessage} toggleModelEmoji={toggleModelEmoji}/>
                                 </View>
                             )
                         }
                     </View>
-                    <TouchableOpacity className="p-2">
-                        <Ionicons name="send" size={24} color="#0068FF"/>
+                    <TouchableOpacity
+                        className={`p-2 rounded-full ${
+                            newMessage.trim() ? 'bg-blue-500' : 'bg-gray-300'
+                        }`}
+                        onPress={handleSendMessage}
+                        disabled={!newMessage.trim()}
+                    >
+                        <Ionicons
+                            name="send"
+                            size={20}
+                            color={newMessage.trim() ? '#FFF' : '#999'}
+                        />
                     </TouchableOpacity>
                 </View>
             </View>
