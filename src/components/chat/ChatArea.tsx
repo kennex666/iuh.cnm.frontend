@@ -72,23 +72,40 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     };
 
     const handleSendMessage = async () => {
-        if (!selectedChat?.id || !newMessage.trim() || !user) return;
+        if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
+
+        const messageData: Message = {
+            id: new Date().getTime().toString(),
+            conversationId: selectedChat.id,
+            senderId: user.id,
+            content: newMessage.trim(),
+            type: MessageType.TEXT,
+            repliedToId: undefined,
+            readBy: [],
+            sentAt: new Date().toISOString()
+        };
 
         try {
-            const messageData: Partial<Message> = {
-                conversationId: selectedChat.id,
-                content: newMessage.trim(),
-                type: MessageType.TEXT,
-                senderId: user.id
-            };
-
+            // Send to server
             const response = await MessageService.sendMessage(messageData);
             if (response.success) {
-                setMessages(prev => [...prev, response.message]);
+                // Update with server response
+                setMessages(prev => [...prev, messageData]);
                 setNewMessage('');
+            } else {
+                // Remove failed message
+                setMessages(prev => 
+                    prev.filter(msg => msg.id !== messageData.id)
+                );
+                setError(response.statusMessage);
+                console.error('Failed to send message:', response.statusMessage);
             }
         } catch (err) {
             console.error('Error sending message:', err);
+            // Remove failed message
+            setMessages(prev => 
+                prev.filter(msg => msg.id !== messageData.id)
+            );
         }
     };
 
@@ -235,9 +252,8 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                 className="w-8 h-8 rounded-full mr-2"
                             />
                         )}
-                        <View className={`flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}>
-                            <View
-                                className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === user?.id ? 'bg-blue-500' : 'bg-gray-100'}`}>
+                        <View className={`max-w-[40%] flex flex-col  ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}>
+                            <View className={`rounded-2xl px-4 py-2 ${msg.senderId === user?.id ? 'bg-blue-500' : 'bg-gray-100'}`} >
                                 <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
                                     {msg.content}
                                 </Text>
@@ -363,11 +379,17 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         }
                     </View>
                     <TouchableOpacity
-                        className={`p-2 rounded-full ${
-                            newMessage.trim() ? 'bg-blue-500' : 'bg-gray-300'
+                        className={`p-3 rounded-full ${
+                            newMessage.trim() ? 'bg-blue-500' : 'bg-gray-200'
                         }`}
                         onPress={handleSendMessage}
                         disabled={!newMessage.trim()}
+                        style={[
+                            newMessage.trim() && Shadows.md,
+                            {
+                                transform: [{ scale: newMessage.trim() ? 1 : 0.95 }]
+                            }
+                        ]}
                     >
                         <Ionicons
                             name="send"
