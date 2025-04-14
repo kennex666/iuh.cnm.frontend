@@ -9,8 +9,8 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/authService';
-import { useAuth } from '@/src/contexts/userContext';
+import {AuthService} from '@/src/api/services/AuthService';
+import {useAuth} from '@/src/contexts/UserContext';
 
 export default function Verify2FA() {
     const {login, user} = useAuth();
@@ -41,36 +41,36 @@ export default function Verify2FA() {
 
     useEffect(() => {
         if (params.phone) {
-          setPhone(params.phone as string);
+            setPhone(params.phone as string);
         } else {
-          setToast({
-            visible: true,
-            message: "Không tìm thấy thông tin số điện thoại",
-            type: "error",
-          });
-          setTimeout(() => router.back(), 1500);
+            setToast({
+                visible: true,
+                message: "Không tìm thấy thông tin số điện thoại",
+                type: "error",
+            });
+            setTimeout(() => router.back(), 1500);
         }
-      }, [params?.phone]);
+    }, [params?.phone]);
 
     useEffect(() => {
         if (params.password) {
             setPassword(params.password as string);
-            } else {
+        } else {
             setToast({
                 visible: true,
                 message: 'Không tìm thấy mật khẩu',
                 type: 'error'
             });
             setTimeout(() => router.back(), 1500);
-            }
+        }
     }, [params?.password]);
 
     const handleResendOTP = async () => {
         if (countdown > 0) return;
-        
+
         setResendLoading(true);
         try {
-            const result = await authService.login({
+            const result = await AuthService.login({
                 phone: phone,
                 password: password
             });
@@ -83,13 +83,13 @@ export default function Verify2FA() {
                 });
                 return;
             }
-            
+
             setToast({
                 visible: true,
                 message: 'Mã xác thực đã được gửi lại',
                 type: 'success'
             });
-            
+
             setCountdown(60);
         } catch (error) {
             setToast({

@@ -5,7 +5,7 @@ import CoverImage from "@/src/components/profile/CoverImage";
 import AvatarImage from "@/src/components/profile/AvatarImage";
 import ProfileInfoItem from "@/src/components/profile/ProfileInfoItem";
 import ModalHeader from "@/src/components/profile/ModelHeader";
-import {formatDate} from "@/src/utils/datetime";
+import {formatDate} from "@/src/utils/DateTime";
 import {User} from "@/src/models/User";
 
 type ProfileInfoProps = {
@@ -17,6 +17,12 @@ type ProfileInfoProps = {
     onEditPress: () => void;
     onClose: () => void;
 };
+
+const genderMap = {
+    "male": "Nam",
+    "female": "Nữ",
+    "other": "Khác"
+}
 
 export default function ProfileUserInfo({
                                             user,
@@ -48,7 +54,7 @@ export default function ProfileUserInfo({
                 <View className="mt-2 bg-white p-4">
                     <Text className="text-base font-bold text-gray-800 mb-4">Thông tin cá nhân</Text>
 
-                    <ProfileInfoItem label="Giới tính" value={user?.gender || ''}/>
+                    <ProfileInfoItem label="Giới tính" value={genderMap[user?.gender]}/>
                     <ProfileInfoItem label="Ngày sinh" value={dob}/>
                     <ProfileInfoItem label="Điện thoại" value={user?.phone || ''}/>
 

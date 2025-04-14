@@ -1,7 +1,7 @@
 import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {FontAwesome} from '@expo/vector-icons';
-import {shadows} from '@/src/styles/shadow';
+import {Shadows} from '@/src/styles/Shadow';
 
 const REACTIONS = [
     {id: '1', icon: 'heart', color: '#E31B23'},      // Màu đỏ cho trái tim
@@ -41,7 +41,7 @@ export default function MessageReaction({messageId, isVisible, onReact, onToggle
                     className={`absolute top-0 bg-white rounded-full py-1 px-2 mt-6 flex-row items-center ${
                         isSender ? '-right-2' : '-left-2'
                     }`}
-                    style={shadows.lg}>
+                    style={Shadows.lg}>
                     {/* Map qua danh sách reaction để tạo các nút */}
                     {REACTIONS.map((reaction) => (
                         <TouchableOpacity

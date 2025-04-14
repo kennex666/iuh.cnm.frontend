@@ -1,5 +1,5 @@
 import {ReactNode} from "react";
 
-export interface AuthProviderProps {
+export interface AuthProviderProp {
     children: ReactNode;
 }

@@ -1,10 +1,10 @@
-import {Href, Link, Redirect, Stack, usePathname} from "expo-router";
+import {Href, Link, Redirect, Stack, usePathname, useRouter} from "expo-router";
 import {FontAwesome} from "@expo/vector-icons";
-import {Alert, Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
+import {Dimensions, Image, Text, TouchableOpacity, View} from "react-native";
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import {useAuth} from "@/src/contexts/userContext";
+import {useAuth} from "@/src/contexts/UserContext";
 
 type Route = {
     name: string;
@@ -15,39 +15,12 @@ type Route = {
 export default function AppLayout() {
     const {user, isLoading, logout} = useAuth();
     const [profileModalVisible, setProfileModalVisible] = useState(false);
+    const router = useRouter();
 
     const {width} = Dimensions.get("window");
     const isDesktop = width > 768;
     const insets = useSafeAreaInsets();
     const pathname = usePathname();
-
-    const handleLogout = () => {
-        Alert.alert(
-            "Đăng xuất",
-            "Bạn có chắc chắn muốn đăng xuất?",
-            [
-                {
-                    text: "Hủy",
-                    style: "cancel"
-                },
-                {
-                    text: "Đăng xuất",
-                    onPress: async () => {
-                        try {
-                            await logout();
-                            // After logout, user will be redirected to login screen
-                            // The useEffect with user dependency will handle this
-                        } catch (error) {
-                            console.error("Logout error:", error);
-                            Alert.alert("Lỗi", "Đã có lỗi xảy ra khi đăng xuất.");
-                        }
-                    },
-                    style: "destructive"
-                }
-            ],
-            { cancelable: true }
-        );
-    };
 
     if (!isLoading && !user) {
         return <Redirect href="/"/>;
@@ -100,11 +73,12 @@ export default function AppLayout() {
                             >
                                 <Image
                                     source={{
-                                        uri:
-                                            user?.avatarURL ||
-                                            `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${
-                                                user?.name?.charAt(0) || "U"
-                                            }`,
+                                        // uri:
+                                        //     user?.avatarURL ||
+                                        //     `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${
+                                        //         user?.name?.charAt(0) || "U"
+                                        //     }`,
+                                        uri: "https://static.wikia.nocookie.net/blue-archive/images/7/7b/Alice_Icon.png"
                                     }}
                                     className="w-10 h-10 rounded-full"
                                 />
@@ -140,7 +114,15 @@ export default function AppLayout() {
                         <View className="flex flex-col items-center justify-center py-4 relative">
                             <TouchableOpacity
                                 className="p-2 rounded-lg"
-                                onPress={handleLogout}
+                                onPress={async () => {
+                                    try {
+                                        await logout(); // Calls storage.removeUser() and authStorage.removeTokens()
+                                        router.replace('/(auth)'); // Navigate back to login/authentication screen
+                                    } catch (error) {
+                                        console.error('Error during logout:', error);
+                                        // Optionally add error notification here
+                                    }
+                                }}
                             >
                                 <FontAwesome name="sign-out" size={24} color="#FF0000"/>
                             </TouchableOpacity>

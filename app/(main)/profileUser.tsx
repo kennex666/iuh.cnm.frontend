@@ -1,12 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Animated, Dimensions, Modal, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
 import Toast from '@/src/components/ui/Toast';
-import {useUser} from "@/src/hooks/useUser";
+import {UseUser} from "@/src/hooks/UseUser";
 import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
-import {pickAvatar, pickCover} from '@/src/utils/imagePicker';
+import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
-import {useAuth} from "@/src/contexts/userContext";
+import {useAuth} from "@/src/contexts/UserContext";
 
 type ProfileModalProps = {
     visible: boolean;
@@ -16,7 +16,7 @@ type ProfileModalProps = {
 export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const router = useRouter();
     const {user, update} = useAuth();
-    const {user: fetchedUser} = useUser();
+    const {user: fetchedUser} = UseUser();
     const [editMode, setEditMode] = useState(false);
     const [avatarUri, setAvatarUri] = useState<string | null>(null);
     const [coverUri, setCoverUri] = useState<string | null>(null);
@@ -110,13 +110,78 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         ? {uri: coverUri}
         : {uri: fetchedUser?.coverURL};
 
-    const handleEdit = () => {
-        setToast({
-            visible: true,
-            message: 'Cập nhật thông tin thành công!',
-            type: 'success'
-        });
-        setEditMode(false);
+    const handleEdit = async () => {
+        console.log('Saving user profile changes:', editUser);
+
+        // Validation
+        if (!editUser?.name?.trim()) {
+            setToast({
+                visible: true,
+                message: 'Tên hiển thị không được để trống',
+                type: 'error'
+            });
+            return;
+        }
+
+        try {
+            // Show loading toast
+            setToast({
+                visible: true,
+                message: 'Đang cập nhật thông tin...',
+                type: 'success'
+            });
+
+            // Prepare data to be updated
+            const updateData = {
+                name: editUser.name,
+                gender: editUser.gender,
+                dob: editUser.dob
+            };
+
+            console.log('Sending update request with data:', updateData);
+
+            // Call the update method from context
+            const result = await update(updateData);
+
+            console.log('Update result:', result);
+
+            if (result.success) {
+                // Show success toast
+                setToast({
+                    visible: true,
+                    message: result.message || 'Cập nhật thông tin thành công!',
+                    type: 'success'
+                });
+
+                // Update the fetched user data to reflect changes
+                if (fetchedUser) {
+                    const updatedFetchedUser = {...fetchedUser, ...updateData};
+                    // We would typically update the user state here,
+                    // but since we're using context, it will be updated automatically
+                }
+
+                // Switch back to view mode
+                setEditMode(false);
+
+                // Reload the profile after a short delay
+                setTimeout(() => {
+                    router.replace('/(main)');
+                }, 1500);
+            } else {
+                setToast({
+                    visible: true,
+                    message: result.message || 'Cập nhật thông tin thất bại!',
+                    type: 'error'
+                });
+            }
+        } catch (error) {
+            console.error('Error during profile update:', error);
+            setToast({
+                visible: true,
+                message: 'Đã xảy ra lỗi khi cập nhật thông tin.',
+                type: 'error'
+            });
+        }
     };
 
     const handleCancel = () => {

@@ -9,8 +9,8 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/authService';
-import { useAuth } from '@/src/contexts/userContext';
+import {AuthService} from '@/src/api/services/AuthService';
+import {useAuth} from '@/src/contexts/UserContext';
 
 export default function Verify2FA() {
     const {login, user} = useAuth();
@@ -29,17 +29,17 @@ export default function Verify2FA() {
 
     useEffect(() => {
         if (params.phone) {
-          setPhone(params.phone as string);
+            setPhone(params.phone as string);
         } else {
-          // Xử lý khi không có phone
-          setToast({
-            visible: true,
-            message: "Không tìm thấy thông tin số điện thoại",
-            type: "error",
-          });
-          setTimeout(() => router.back(), 1500);
+            // Xử lý khi không có phone
+            setToast({
+                visible: true,
+                message: "Không tìm thấy thông tin số điện thoại",
+                type: "error",
+            });
+            setTimeout(() => router.back(), 1500);
         }
-      }, [params?.phone]);
+    }, [params?.phone]);
 
     const validateForm = () => {
         if (!verificationCode) {
@@ -68,7 +68,7 @@ export default function Verify2FA() {
         try {
             // TODO: Implement actual 2FA verification API call
             // This is a mock implementation
-            const response = await authService.verifyAccount({
+            const response = await AuthService.verifyAccount({
                 phone: phone,
                 otp: verificationCode
             });
@@ -125,14 +125,14 @@ export default function Verify2FA() {
 
                             <View className="mt-4">
                                 <AuthHeader
-                                    title="Xác thực 2FA"
-                                    subtitle={'Nhập mã xác thực 2FA từ ứng dụng\nauthenticator của bạn'}
+                                    title="Xác thực tài khoản"
+                                    subtitle={'Nhập mã xác thực đã được gửi đến\nsố điện thoại của bạn'}
                                 />
 
                                 <View className="mt-4 space-y-3">
                                     <FormInput
                                         icon="key-outline"
-                                        placeholder="Mã xác thực 2FA"
+                                        placeholder="Mã xác thực"
                                         value={verificationCode}
                                         onChangeText={(text) => setVerificationCode(text.slice(0, 6))}
                                         editable={!loading}

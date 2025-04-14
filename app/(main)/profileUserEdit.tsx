@@ -1,10 +1,11 @@
-import React from "react";
-import {ScrollView, Text, TouchableOpacity, View} from "react-native";
+import React, {useState} from "react";
+import {Platform, ScrollView, Text, TouchableOpacity, View} from "react-native";
 import FormInput from "@/src/components/ui/FormInput";
 import RadioButton from "@/src/components/profile/RadioButton";
 import ModalHeader from "@/src/components/profile/ModelHeader";
-import {formatDate} from "@/src/utils/datetime";
+import {formatDate} from "@/src/utils/DateTime";
 import {User} from "@/src/models/User";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 type ProfileEditProps = {
     editUser: Partial<User> | null;
@@ -19,7 +20,16 @@ export default function ProfileUserEdit({
                                             onCancel,
                                             onChangeUser
                                         }: ProfileEditProps) {
-    const dob = formatDate(editUser?.dob || 0);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const dob = editUser?.dob ? formatDate(editUser.dob) : formatDate(Date.now());
+
+    const handleDateChange = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(false);
+        if (selectedDate && event.type !== 'dismissed') {
+            console.log('Date selected:', selectedDate.toISOString());
+            onChangeUser({...editUser, dob: selectedDate.getTime()});
+        }
+    };
 
     return (
         <View className="flex-1 bg-white">
@@ -48,36 +58,54 @@ export default function ProfileUserEdit({
                     <View className="flex-row mb-2">
                         <RadioButton
                             label="Nam"
-                            selected={editUser?.gender === 'Nam'}
-                            onPress={() => onChangeUser({...editUser, gender: 'Nam'})}
+                            selected={editUser?.gender === 'male'}
+                            onPress={() => onChangeUser({...editUser, gender: 'male'})}
                         />
                         <RadioButton
                             label="Nữ"
-                            selected={editUser?.gender === 'Nữ'}
-                            onPress={() => onChangeUser({...editUser, gender: 'Nữ'})}
+                            selected={editUser?.gender === 'female'}
+                            onPress={() => onChangeUser({...editUser, gender: 'female'})}
+                        />
+                        <RadioButton
+                            label="Khác"
+                            selected={editUser?.gender === 'other'}
+                            onPress={() => onChangeUser({...editUser, gender: 'other'})}
                         />
                     </View>
                 </View>
 
                 <View className="mb-4">
                     <Text className="text-gray-600 mb-2">Ngày sinh</Text>
-                    <View className="flex-row">
-                        <View className="flex-1 mr-2">
-                            <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                <Text>{dob.split('/')[0]}</Text>
-                            </TouchableOpacity>
+                    {Platform.OS === 'web' ? (
+                        <View className="border border-gray-300 rounded-lg px-4 py-3">
+                            <input
+                                type="date"
+                                value={editUser?.dob ? new Date(editUser.dob).toISOString().split('T')[0] : ''}
+                                onChange={(e) => onChangeUser({...editUser, dob: new Date(e.target.value).getTime()})}
+                                className="w-full bg-transparent outline-none text-base"
+                                max={new Date().toISOString().split('T')[0]}
+                            />
                         </View>
-                        <View className="flex-1 mr-2">
-                            <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                <Text>{dob.split('/')[1]}</Text>
+                    ) : (
+                        <>
+                            <TouchableOpacity
+                                className="border border-gray-300 rounded-lg p-3"
+                                onPress={() => setShowDatePicker(true)}
+                            >
+                                <Text>{dob}</Text>
                             </TouchableOpacity>
-                        </View>
-                        <View className="flex-1">
-                            <TouchableOpacity className="border border-gray-300 rounded-lg p-3">
-                                <Text>{dob.split('/')[2]}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={editUser?.dob ? new Date(editUser.dob) : new Date()}
+                                    mode="date"
+                                    display="default"
+                                    onChange={handleDateChange}
+                                    maximumDate={new Date()}
+                                />
+                            )}
+                        </>
+                    )}
                 </View>
             </ScrollView>
         </View>

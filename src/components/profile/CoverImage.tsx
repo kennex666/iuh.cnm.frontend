@@ -1,7 +1,7 @@
 import {Image, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
-import {ImageConstant} from "@/src/constants/ImageConstant";
-import {useUser} from "@/src/hooks/useUser";
+import {ImageConstants} from "@/src/constants/ImageConstant";
+import {UseUser} from "@/src/hooks/UseUser";
 
 interface CoverImageProps {
     onPickImage: () => void;
@@ -9,11 +9,11 @@ interface CoverImageProps {
 }
 
 const CoverImage = ({onPickImage, customSource}: CoverImageProps) => {
-    const {profile} = useUser();
+    const {profile} = UseUser();
 
     // Use customSource if provided, otherwise use profile.coverURL
     const source = customSource ||
-        (profile?.coverURL ? {uri: profile.coverURL} : ImageConstant.profile.cover);
+        (profile?.coverURL ? {uri: profile.coverURL} : ImageConstants.profile.cover);
 
     return (
         <View className="w-full h-48">
@@ -21,7 +21,7 @@ const CoverImage = ({onPickImage, customSource}: CoverImageProps) => {
                 source={source}
                 className="w-full h-full"
                 style={{width: '100%', height: 192}}
-                defaultSource={ImageConstant.profile.cover}
+                defaultSource={ImageConstants.profile.cover}
             />
             <TouchableOpacity
                 className="absolute bottom-2 right-2 bg-gray-100 rounded-full p-2"

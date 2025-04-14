@@ -13,14 +13,14 @@ interface ButtonProps {
 }
 
 const Button = ({
-    onPress,
-    title,
-    loading = false,
-    disabled = false,
-    variant = 'primary',
-    icon,
-    className = '',
-}: ButtonProps) => {
+                    onPress,
+                    title,
+                    loading = false,
+                    disabled = false,
+                    variant = 'primary',
+                    icon,
+                    className = '',
+                }: ButtonProps) => {
     const isPrimary = variant === 'primary';
 
     return (
@@ -40,9 +40,9 @@ const Button = ({
             ) : (
                 <>
                     {icon && (
-                        <Ionicons 
-                            name={icon} 
-                            size={20} 
+                        <Ionicons
+                            name={icon}
+                            size={20}
                             color={isPrimary ? "#FFFFFF" : "#3B82F6"}
                             style={{marginRight: 8}}
                         />

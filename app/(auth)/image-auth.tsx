@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {KeyboardAvoidingView, Platform, ScrollView, View, Image, TouchableOpacity, Text} from 'react-native';
+import {Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
@@ -11,18 +11,18 @@ import TextLink from '@/src/components/ui/TextLink';
 
 // Sample images - in a real app, these would come from your backend
 const SAMPLE_IMAGES = [
-    { id: 1, name: "Hình 1", url: 'https://picsum.photos/200/200?random=1' },
-    { id: 2, name: "Hình 2", url: 'https://picsum.photos/200/200?random=2' },
-    { id: 3, name: "Hình 3", url: 'https://picsum.photos/200/200?random=3' },
-    { id: 4, name: "Hình 4", url: 'https://picsum.photos/200/200?random=4' },
-    { id: 5, name: "Hình 5", url: 'https://picsum.photos/200/200?random=5' },
-    { id: 6, name: "Hình 6", url: 'https://picsum.photos/200/200?random=6' },
-    { id: 7, name: "Hình 7", url: 'https://picsum.photos/200/200?random=7' },
-    { id: 8, name: "Hình 8", url: 'https://picsum.photos/200/200?random=8' },
-    { id: 9, name: "Hình 9", url: 'https://picsum.photos/200/200?random=9' },
-    { id: 10, name: "Hình 10", url: 'https://picsum.photos/200/200?random=10' },
-    { id: 11, name: "Hình 11", url: 'https://picsum.photos/200/200?random=11' },
-    { id: 12, name: "Hình 12", url: 'https://picsum.photos/200/200?random=12' },
+    {id: 1, name: "Hình 1", url: 'https://picsum.photos/200/200?random=1'},
+    {id: 2, name: "Hình 2", url: 'https://picsum.photos/200/200?random=2'},
+    {id: 3, name: "Hình 3", url: 'https://picsum.photos/200/200?random=3'},
+    {id: 4, name: "Hình 4", url: 'https://picsum.photos/200/200?random=4'},
+    {id: 5, name: "Hình 5", url: 'https://picsum.photos/200/200?random=5'},
+    {id: 6, name: "Hình 6", url: 'https://picsum.photos/200/200?random=6'},
+    {id: 7, name: "Hình 7", url: 'https://picsum.photos/200/200?random=7'},
+    {id: 8, name: "Hình 8", url: 'https://picsum.photos/200/200?random=8'},
+    {id: 9, name: "Hình 9", url: 'https://picsum.photos/200/200?random=9'},
+    {id: 10, name: "Hình 10", url: 'https://picsum.photos/200/200?random=10'},
+    {id: 11, name: "Hình 11", url: 'https://picsum.photos/200/200?random=11'},
+    {id: 12, name: "Hình 12", url: 'https://picsum.photos/200/200?random=12'},
 ];
 
 export default function ImageAuth() {
@@ -126,7 +126,7 @@ export default function ImageAuth() {
                                     <Text className="text-gray-600 mb-2 py-2">
                                         Đã chọn: {selectedImages.length}/3 hình ảnh
                                     </Text>
-                                    
+
                                     <View className="flex-row flex-wrap justify-between">
                                         {/* Render images */}
                                         {SAMPLE_IMAGES.map((image) => (
@@ -139,12 +139,12 @@ export default function ImageAuth() {
                                                         : 'border-transparent'
                                                 }`}
                                             >
-                                              
-                                              {/* <Text className="text-black text-center text-sm font-medium">
+
+                                                {/* <Text className="text-black text-center text-sm font-medium">
                                                         {image.name}
                                                     </Text> */}
                                                 <Image
-                                                    source={{ uri: image.url }}
+                                                    source={{uri: image.url}}
                                                     className="w-24 h-24 rounded-full"
                                                     resizeMode="cover"
                                                 />

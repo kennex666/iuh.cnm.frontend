@@ -1,47 +1,36 @@
 import {SplashScreen, Stack} from 'expo-router';
 import {useEffect} from 'react';
 import {useFonts} from 'expo-font';
-import {AuthProvider} from '@/src/contexts/userContext';
+import {AuthProvider} from '@/src/contexts/UserContext';
+import {setupAxios} from "@/src/api/AxiosConfig";
 import "../global.css";
-import {setupAxios} from "@/src/api/axiosConfig";
 
-export {
-    ErrorBoundary,
-} from 'expo-router';
+export {ErrorBoundary} from 'expo-router';
 
-export const unstable_settings = {
-    initialRouteName: '(auth)',
-};
+export const unstable_settings = {initialRouteName: '(auth)'};
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(console.warn);
 
 export default function RootLayout() {
     const [loaded, error] = useFonts({});
 
     useEffect(() => {
+        setupAxios().catch(console.warn);
+
         if (error) throw error;
-    }, [error]);
 
-    useEffect(() => {
         if (loaded) {
-            SplashScreen.hideAsync();
+            SplashScreen.hideAsync().catch(console.warn);
         }
-    }, [loaded]);
+    }, [loaded, error]);
 
-    if (!loaded) {
-        return null;
-    }
-
-    useEffect(() => {
-        // Setup axios with authentication
-        setupAxios();
-    }, []);
+    if (!loaded) return null;
 
     return (
         <AuthProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(main)" />
+            <Stack screenOptions={{headerShown: false}}>
+                <Stack.Screen name="(auth)"/>
+                <Stack.Screen name="(main)"/>
             </Stack>
         </AuthProvider>
     );

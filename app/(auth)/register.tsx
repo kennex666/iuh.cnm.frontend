@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {KeyboardAvoidingView, Platform, ScrollView, View, Text, TouchableOpacity, Modal} from 'react-native';
+import {KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
@@ -11,7 +11,7 @@ import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {Picker} from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { authService } from '@/src/api/services/authService';
+import {AuthService} from '@/src/api/services/AuthService';
 
 export default function Register() {
     // Value
@@ -39,11 +39,15 @@ export default function Register() {
     const insets = useSafeAreaInsets();
 
     const getGenderLabel = (value: string) => {
-        switch(value) {
-            case 'male': return 'Nam';
-            case 'female': return 'Nữ';
-            case 'other': return 'Khác';
-            default: return 'Chọn giới tính';
+        switch (value) {
+            case 'male':
+                return 'Nam';
+            case 'female':
+                return 'Nữ';
+            case 'other':
+                return 'Khác';
+            default:
+                return 'Chọn giới tính';
         }
     };
 
@@ -97,7 +101,7 @@ export default function Register() {
         setLoading(true);
         try {
             // Giả lập API call
-            const result = await authService.register({
+            const result = await AuthService.register({
                 name: name,
                 phone: phoneNumber,
                 gender: gender,
@@ -113,8 +117,8 @@ export default function Register() {
                 });
                 return;
             }
-            
-            if(!result.success) {
+
+            if (!result.success) {
                 setToast({
                     visible: true,
                     message: result.message || 'Đã có lỗi xảy ra, vui lòng thử lại',
@@ -206,7 +210,7 @@ export default function Register() {
                                     ) : Platform.select({
                                         native: (
                                             <>
-                                                <TouchableOpacity 
+                                                <TouchableOpacity
                                                     onPress={() => setShowGenderPicker(true)}
                                                     className="bg-white border border-gray-300 rounded-lg h-14 justify-center px-4"
                                                 >
@@ -222,11 +226,14 @@ export default function Register() {
                                                 >
                                                     <View className="flex-1 justify-end bg-black/50">
                                                         <View className="bg-white w-full p-4">
-                                                            <View className="flex-row justify-between items-center mb-4">
-                                                                <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
+                                                            <View
+                                                                className="flex-row justify-between items-center mb-4">
+                                                                <TouchableOpacity
+                                                                    onPress={() => setShowGenderPicker(false)}>
                                                                     <Text className="text-blue-500 text-lg">Hủy</Text>
                                                                 </TouchableOpacity>
-                                                                <TouchableOpacity onPress={() => setShowGenderPicker(false)}>
+                                                                <TouchableOpacity
+                                                                    onPress={() => setShowGenderPicker(false)}>
                                                                     <Text className="text-blue-500 text-lg">Xong</Text>
                                                                 </TouchableOpacity>
                                                             </View>
@@ -235,9 +242,9 @@ export default function Register() {
                                                                 onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}
                                                                 enabled={!loading}
                                                             >
-                                                                <Picker.Item label="Nam" value="male" color='black' />
-                                                                <Picker.Item label="Nữ" value="female" color='black' />
-                                                                <Picker.Item label="Khác" value="other" color='black' />
+                                                                <Picker.Item label="Nam" value="male" color='black'/>
+                                                                <Picker.Item label="Nữ" value="female" color='black'/>
+                                                                <Picker.Item label="Khác" value="other" color='black'/>
                                                             </Picker>
                                                         </View>
                                                     </View>
@@ -259,23 +266,24 @@ export default function Register() {
                                             />
                                         </View>
                                     ) : (
-                                        <TouchableOpacity 
-                                        onPress={() => setShowDatePicker(true)}
-                                        className="bg-white border border-gray-300 rounded-lg h-14 justify-center px-4 relative"
-                                    >
-                                        <Text className="text-base text-black">{dob.toLocaleDateString('vi-VN')}</Text>
-                                        <View className="absolute inset-0 justify-center items-center">
-                                        {showDatePicker && (
-                                            <DateTimePicker
-                                                value={dob}
-                                                mode="date"
-                                                display="default"
-                                                onChange={handleDateChange}
-                                                maximumDate={new Date()}
-                                            />
-                                        )}
-                                        </View>
-                                    </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={() => setShowDatePicker(true)}
+                                            className="bg-white border border-gray-300 rounded-lg h-14 justify-center px-4 relative"
+                                        >
+                                            <Text
+                                                className="text-base text-black">{dob.toLocaleDateString('vi-VN')}</Text>
+                                            <View className="absolute inset-0 justify-center items-center">
+                                                {showDatePicker && (
+                                                    <DateTimePicker
+                                                        value={dob}
+                                                        mode="date"
+                                                        display="default"
+                                                        onChange={handleDateChange}
+                                                        maximumDate={new Date()}
+                                                    />
+                                                )}
+                                            </View>
+                                        </TouchableOpacity>
                                     )}
 
                                     <FormInput

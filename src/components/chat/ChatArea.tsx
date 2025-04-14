@@ -11,12 +11,12 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import {useMessages} from '@/src/hooks/useMessages';
-import {Conversation} from '@/src/hooks/useConversations';
+import {UseMessage} from '@/src/hooks/UseMessage';
+import {Conversation} from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
-import {shadows} from '@/src/styles/shadow';
+import {Shadows} from '@/src/styles/Shadow';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -36,7 +36,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     const [inputHeight, setInputHeight] = useState(28);
 
-    const {messages, loading, error} = useMessages(selectedChat?.id || undefined);
+    const {messages, loading, error} = UseMessage(selectedChat?.id || undefined);
 
     const handleReactionToggle = (messageId: string) => {
         if (activeReactionId === messageId) {
@@ -120,21 +120,22 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 <View className="flex-row items-center flex-1">
                     {onBackPress && (
                         <TouchableOpacity onPress={onBackPress} className="mr-3">
-                            <Ionicons name="arrow-back" size={24} color="#666" />
+                            <Ionicons name="arrow-back" size={24} color="#666"/>
                         </TouchableOpacity>
                     )}
                     <Image
                         source={{uri: selectedChat?.avatarUrl || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                         className="w-10 h-10 rounded-full"
                     />
-                    <View className="ml-3" style={{ maxWidth: '45%' }}>
-                        <Text className="font-semibold text-gray-900 text-base" 
+                    <View className="ml-3" style={{maxWidth: '45%'}}>
+                        <Text className="font-semibold text-gray-900 text-base"
                               numberOfLines={1}
                               ellipsizeMode="tail">
                             {selectedChat?.name || selectedChat?.participantIds.join(', ')}
                         </Text>
                         {selectedChat?.isGroup && (
-                            <Text className="text-sm text-gray-500">{selectedChat.participantIds.length} thành viên</Text>
+                            <Text className="text-sm text-gray-500">{selectedChat.participantIds.length} thành
+                                viên</Text>
                         )}
                         {!selectedChat?.isGroup && selectedChat?.participantIds.length > 0 && (
                             <Text className="text-sm text-green-500">Đang hoạt động</Text>
@@ -216,9 +217,9 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                     }),
                                 }}
                             >
-                                <View 
+                                <View
                                     className="bg-white rounded-lg p-4 w-[300px]"
-                                    style={shadows.md}>
+                                    style={Shadows.md}>
                                     <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
 
                                     <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
@@ -244,7 +245,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         {isModelSticker && (
                             <View
                                 className='absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200'
-                                style={shadows.xl}>
+                                style={Shadows.xl}>
                                 <StickerPicker
                                     setMessage={setMessage}
                                     toggleModelSticker={toggleModelSticker}
@@ -288,7 +289,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                             isModelEmoji && (
                                 <View
                                     className='absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200'
-                                    style={shadows.xl}>
+                                    style={Shadows.xl}>
                                     <EmojiPicker setMessage={setMessage} toggleModelEmoji={toggleModelEmoji}/>
                                 </View>
                             )

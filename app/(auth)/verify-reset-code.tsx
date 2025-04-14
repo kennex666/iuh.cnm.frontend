@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {KeyboardAvoidingView, Platform, ScrollView, View} from 'react-native';
-import {router, useLocalSearchParams, useRouter} from 'expo-router';
+import {useLocalSearchParams, useRouter} from 'expo-router';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Toast from '@/src/components/ui/Toast';
 import GradientBackground from '@/src/components/auth/GradientBackground';
@@ -9,7 +9,7 @@ import AuthHeader from '@/src/components/auth/AuthHeader';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
-import {authService} from '@/src/api/services/authService';
+import {AuthService} from '@/src/api/services/AuthService';
 
 export default function VerifyResetCode() {
     const [verificationCode, setVerificationCode] = useState('');
@@ -21,7 +21,7 @@ export default function VerifyResetCode() {
     });
     const insets = useSafeAreaInsets();
     const router = useRouter();
-    
+
     const [phone, setPhone] = useState<string>('');
     const params = useLocalSearchParams();
 
@@ -67,7 +67,7 @@ export default function VerifyResetCode() {
         try {
             // TODO: Implement actual verification API call
             // This is a mock implementation
-            const response = await authService.forgotPassword(
+            const response = await AuthService.forgotPassword(
                 {
                     phone: phone,
                     otp: verificationCode
@@ -92,7 +92,7 @@ export default function VerifyResetCode() {
             setTimeout(() => {
                 router.push({
                     pathname: '/(auth)/reset-password',
-                    params: { phone, otp: verificationCode }
+                    params: {phone, otp: verificationCode}
                 });
             }, 2000);
         } catch (error) {
