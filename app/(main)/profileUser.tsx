@@ -138,14 +138,12 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         }
 
         try {
-            // Show loading toast
             setToast({
                 visible: true,
                 message: 'Đang cập nhật thông tin...',
                 type: 'success'
             });
 
-            // Prepare data to be updated
             const updateData = {
                 name: editUser.name,
                 gender: editUser.gender,
@@ -153,34 +151,18 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
             };
 
             console.log('Sending update request with data:', updateData);
-
-            // Call the update method from context
             const result = await update(updateData);
-
             console.log('Update result:', result);
 
             if (result.success) {
-                // Show success toast
                 setToast({
                     visible: true,
                     message: result.message || 'Cập nhật thông tin thành công!',
                     type: 'success'
                 });
 
-                // Update the fetched user data to reflect changes
-                if (fetchedUser) {
-                    const updatedFetchedUser = {...fetchedUser, ...updateData};
-                    // We would typically update the user state here,
-                    // but since we're using context, it will be updated automatically
-                }
-
-                // Switch back to view mode
                 setEditMode(false);
-
-                // Reload the profile after a short delay
-                setTimeout(() => {
-                    router.replace('/(main)');
-                }, 1500);
+                setTimeout(() => {router.replace('/(main)')}, 1000);
             } else {
                 setToast({
                     visible: true,
