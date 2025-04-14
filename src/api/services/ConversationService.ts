@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Domains } from "@/src/constants/ApiConstant";
+import { ApiEndpoints } from "@/src/constants/ApiConstant";
 import { AuthStorage } from "@/src/services/AuthStorage";
 import { Conversation } from "@/src/models/Conversation";
 
@@ -48,7 +48,7 @@ export const ConversationService: ConversationService = {
                 };
             }
 
-            const url = Domains.API_CONVERSATION;
+            const url = ApiEndpoints.API_CONVERSATION;
             
             console.log("Request URL:", url);
             console.log("Request Headers:", {
@@ -125,7 +125,7 @@ export const ConversationService: ConversationService = {
                 };
             }
 
-            const response = await axios.get(`${Domains.API_CONVERSATION}/${id}`, {
+                const response = await axios.get(`${ApiEndpoints.API_CONVERSATION}/${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -182,7 +182,7 @@ export const ConversationService: ConversationService = {
                 };
             }
 
-            const response = await axios.post(`${Domains.API_CONVERSATION}`, conversation, {
+            const response = await axios.post(`${ApiEndpoints.API_CONVERSATION}`, conversation, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -239,7 +239,7 @@ export const ConversationService: ConversationService = {
                 };
             }
 
-            const response = await axios.put(`${Domains.API_CONVERSATION}/${id}`, conversation, {
+            const response = await axios.put(`${ApiEndpoints.API_CONVERSATION}/${id}`, conversation, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -294,7 +294,7 @@ export const ConversationService: ConversationService = {
                 };
             }
 
-            const response = await axios.delete(`${Domains.API_CONVERSATION}/${id}`, {
+            const response = await axios.delete(`${ApiEndpoints.API_CONVERSATION}/${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

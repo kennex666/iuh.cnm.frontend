@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Message, MessageType } from "@/src/models/Message";
-import { Domains } from "@/src/constants/ApiConstant";
+import { ApiEndpoints } from "@/src/constants/ApiConstant";
 import { AuthStorage } from "@/src/services/AuthStorage";
 
 interface MessageService {
@@ -87,7 +87,7 @@ export const MessageService: MessageService = {
                 throw new Error("No token found");
             }
 
-            const url = Domains.API_MESSAGE;
+            const url = ApiEndpoints.API_MESSAGE;
 
             const response = await axios.post(url, message, {
                 headers: {
@@ -127,7 +127,7 @@ export const MessageService: MessageService = {
                 throw new Error("No token found");
             }
 
-            const url = `${Domains.API_MESSAGE}/${messageId}`;
+            const url = `${ApiEndpoints.API_MESSAGE}/${messageId}`;
 
             const response = await axios.put(url, 
                 { content },
@@ -170,7 +170,7 @@ export const MessageService: MessageService = {
                 throw new Error("No token found");
             }
 
-            const url = `${Domains.API_MESSAGE}/${messageId}`;
+            const url = `${ApiEndpoints.API_MESSAGE}/${messageId}`;
 
             const response = await axios.delete(url, {
                 headers: {

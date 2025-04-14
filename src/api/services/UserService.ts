@@ -1,7 +1,7 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
 import {AuthStorage} from '@/src/services/AuthStorage';
-import {Domains} from '@/src/constants/ApiConstant';
+import {ApiEndpoints} from '@/src/constants/ApiConstant';
 
 export const UserService = {
     async update(userData: Partial<User>): Promise<{
@@ -12,21 +12,18 @@ export const UserService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
-            if (userData.dob) {
-                userData.dob = new Date(userData.dob).toISOString();
-            }
+            if (userData.dob) userData.dob = new Date(userData.dob).toISOString();
 
             const response = await axios.put(
-                `${Domains.API_USER}/update`,
+                `${ApiEndpoints.API_USER}/update`,
                 userData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
@@ -46,10 +43,16 @@ export const UserService = {
                     updatedAt: apiUser.updatedAt,
                 };
 
-                return {success: true, user: appUser};
+                return {
+                    success: true,
+                    user: appUser
+                };
             }
 
-            return {success: false, message: response.data.errorMessage || "Update failed"};
+            return {
+                success: false,
+                message: response.data.errorMessage || "Update failed"
+            };
         } catch (error: any) {
             console.error("Update user error:", error);
             return {
@@ -67,16 +70,15 @@ export const UserService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.get(
-                `${Domains.API_AUTH}/me`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/me`,
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
@@ -105,9 +107,7 @@ export const UserService = {
             console.error("Get current user error:", error);
             return {
                 success: false,
-                message: error.response?.data?.errorMessage ||
-                    error.message ||
-                    "Network error occurred",
+                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
             };
         }
     }

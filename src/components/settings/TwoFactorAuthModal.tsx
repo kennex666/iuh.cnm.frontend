@@ -4,7 +4,7 @@ import Toast from '@/src/components/ui/Toast';
 import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import QRCodeDisplay from '../ui/QRCodeDisplay';
-import {Domains} from '@/src/constants/ApiConstant';
+import {ApiEndpoints} from '@/src/constants/ApiConstant';
 import {AuthService} from '@/src/api/services/AuthService';
 
 interface TwoFactorAuthModalProps {
@@ -25,7 +25,7 @@ export default function TwoFactorAuthModal({visible, onClose}: TwoFactorAuthModa
     });
 
     useEffect(() => {
-        fetch(Domains.API_2FA + '/generate').then((response) => {
+        fetch(ApiEndpoints.API_2FA + '/generate').then((response) => {
             if (response.ok) {
                 response.json().then((data) => {
                     setContent(data.base32 || "null"); // Assuming the API returns a JSON object with a 'content' field

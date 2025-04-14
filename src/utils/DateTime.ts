@@ -25,3 +25,27 @@ export function formatDateTime(
 ): string {
     return `${formatDate(value, dateSeparator)} ${formatTime(value, timeSeparator)}`;
 }
+
+export function formatDateString(value: string, dateSeparator: string = '/'): string {
+    const date = new Date(value);
+    const day = padZero(date.getDate());
+    const month = padZero(date.getMonth() + 1);
+    const year = date.getFullYear();
+    return `${day}${dateSeparator}${month}${dateSeparator}${year}`;
+}
+
+export function formatTimeString(value: string, timeSeparator: string = ':'): string {
+    const date = new Date(value);
+    const hours = padZero(date.getHours());
+    const minutes = padZero(date.getMinutes());
+    const seconds = padZero(date.getSeconds());
+    return `${hours}${timeSeparator}${minutes}${timeSeparator}${seconds}`;
+}
+
+export function formatDateTimeString(
+    value: string,
+    dateSeparator: string = '/',
+    timeSeparator: string = ':'
+): string {
+    return `${formatDateString(value, dateSeparator)} ${formatTimeString(value, timeSeparator)}`;
+}

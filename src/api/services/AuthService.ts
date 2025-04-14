@@ -1,4 +1,4 @@
-import {Domains} from '@/src/constants/ApiConstant';
+import {ApiEndpoints} from '@/src/constants/ApiConstant';
 import axios from 'axios';
 import {User} from '@/src/models/User';
 import {AuthStorage} from '@/src/services/AuthStorage';
@@ -42,19 +42,12 @@ export const AuthService = {
 
             const response = otp
                 ? await axios.post<LoginResponse>(
-                    `${Domains.API_AUTH}/login-2fa`,
-                    {
-                        phone,
-                        password,
-                        otp,
-                    }
+                    `${ApiEndpoints.API_AUTH}/login-2fa`,
+                    {phone, password, otp}
                 )
                 : await axios.post<LoginResponse>(
-                    `${Domains.API_AUTH}/login`,
-                    {
-                        phone,
-                        password,
-                    }
+                    `${ApiEndpoints.API_AUTH}/login`,
+                    {phone, password}
                 );
 
             console.log("API response status:", response.status);
@@ -62,7 +55,6 @@ export const AuthService = {
             if (response.data.success) {
                 const {accessToken, refreshToken, user} = response.data.data;
 
-                // Transform API user to app User model
                 const appUser: Partial<User> = {
                     id: user.id,
                     name: user.name,
@@ -99,34 +91,18 @@ export const AuthService = {
 
             return {
                 success: false,
-                message:
-                    error.response?.data?.errorMessage ||
-                    error.message ||
-                    "Network error occurred",
+                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
             };
         }
     },
-    async forgotPassword({
-                             phone = "",
-                             otp = "",
-                             password = "",
-                         }: any): Promise<{
-        success: boolean;
-        message?: string;
-    }> {
+    async forgotPassword({phone = "", otp = "", password = ""}: any): Promise<{ success: boolean; message?: string; }> {
         try {
             const response = await axios.post(
-                `${Domains.API_AUTH}/forgot-password`,
-                {
-                    phone,
-                    otp,
-                    password,
-                }
+                `${ApiEndpoints.API_AUTH}/forgot-password`,
+                {phone, otp, password}
             );
 
-            if (response.data.errorCode == 200) {
-                return {success: true};
-            }
+            if (response.data.errorCode == 200) return {success: true};
             return {success: false, message: response.data.errorMessage};
         } catch (error: any) {
             console.error("Forgot password error:", error);
@@ -143,20 +119,17 @@ export const AuthService = {
     }> {
         try {
             const response = await axios.post(
-                `${Domains.API_AUTH}/register`,
-                {
-                    name,
-                    phone,
-                    gender,
-                    password,
-                    dob,
-                }
+                `${ApiEndpoints.API_AUTH}/register`,
+                {name, phone, gender, password, dob}
             );
 
             if (response.data.errorCode == 200) {
                 return {success: true};
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Register error:", error);
             return {
@@ -173,11 +146,8 @@ export const AuthService = {
     }> {
         try {
             const response = await axios.post(
-                `${Domains.API_AUTH}/verify-account`,
-                {
-                    phone,
-                    otp,
-                }
+                `${ApiEndpoints.API_AUTH}/verify-account`,
+                {phone, otp}
             );
 
             if (response.data.errorCode == 200) {
@@ -199,10 +169,8 @@ export const AuthService = {
     }> {
         try {
             const response = await axios.post(
-                `${Domains.API_AUTH}/resend-otp`,
-                {
-                    phone,
-                }
+                `${ApiEndpoints.API_AUTH}/resend-otp`,
+                {phone}
             );
 
             if (response.data.errorCode == 200) {
@@ -218,7 +186,6 @@ export const AuthService = {
         }
     },
 
-    // {{HOST}}/api/auth/devices -> jwt to get list devices active
     async getDevices(): Promise<{
         success: boolean;
         data?: any[];
@@ -227,19 +194,27 @@ export const AuthService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
-            const response = await axios.get(`${Domains.API_AUTH}/devices`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await axios.get(
+                `${ApiEndpoints.API_AUTH}/devices`,
+                {headers: {Authorization: `Bearer ${token}`}}
+            );
 
             if (response.data.success) {
-                return {success: true, data: response.data.data};
+                return {
+                    success: true,
+                    data: response.data.data
+                }
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Get devices error:", error);
             return {
@@ -249,7 +224,6 @@ export const AuthService = {
         }
     },
 
-    // {{HOST}}/api/auth/logout-all
     async logoutAll(): Promise<{
         success: boolean;
         message?: string;
@@ -257,22 +231,24 @@ export const AuthService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.get(
-                `${Domains.API_AUTH}/logout-all`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/logout-all`,
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
                 return {success: true};
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Logout all error:", error);
             return {
@@ -282,7 +258,6 @@ export const AuthService = {
         }
     },
 
-    // logout-device -> post deviceId
     async logoutDevice({deviceId}: any): Promise<{
         success: boolean;
         message?: string;
@@ -290,25 +265,25 @@ export const AuthService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.post(
-                `${Domains.API_AUTH}/logout-device`,
-                {
-                    deviceId,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/logout-device`,
+                {deviceId},
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
                 return {success: true};
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Logout device error:", error);
             return {
@@ -318,7 +293,6 @@ export const AuthService = {
         }
     },
 
-    // router.post("/2fa/enable", authMiddleware, AuthController.enable2FA); secret, otp
     async enable2FA({secret, otp}: any): Promise<{
         success: boolean;
         message?: string;
@@ -326,26 +300,25 @@ export const AuthService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.post(
-                `${Domains.API_AUTH}/2fa/enable`,
-                {
-                    secret,
-                    otp,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/2fa/enable`,
+                {secret, otp},
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
                 return {success: true};
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Enable 2FA error:", error);
             return {
@@ -355,7 +328,6 @@ export const AuthService = {
         }
     },
 
-    // router.post("/2fa/disable", authMiddleware, AuthController.disable2FA);
     async disable2FA({otp}: any): Promise<{
         success: boolean;
         message?: string;
@@ -363,25 +335,25 @@ export const AuthService = {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.post(
-                `${Domains.API_AUTH}/2fa/disable`,
-                {
-                    otp,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/2fa/disable`,
+                {otp},
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
                 return {success: true};
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Disable 2FA error:", error);
             return {
@@ -393,30 +365,33 @@ export const AuthService = {
 
     async get2FAStatus(): Promise<{
         success: boolean;
-        data?: {
-            isEnabled: boolean;
-        };
+        data?: { isEnabled: boolean; };
         message?: string;
     }> {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.get(
-                `${Domains.API_AUTH}/2fa/status`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/2fa/status`,
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
-                return {success: true, data: response.data.data};
+                return {
+                    success: true,
+                    data: response.data.data
+                };
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Get 2FA status error:", error);
             return {
@@ -426,37 +401,32 @@ export const AuthService = {
         }
     },
 
-    // change-password {oldPassword, newPassword}
-    async changePassword({
-                             oldPassword,
-                             newPassword,
-                         }: any): Promise<{
+    async changePassword({oldPassword, newPassword}: any): Promise<{
         success: boolean;
         message?: string;
     }> {
         try {
             const token = await AuthStorage.getAccessToken();
             if (!token) {
-                return {success: false, message: "No access token found"};
+                return {
+                    success: false,
+                    message: "No access token found"
+                };
             }
 
             const response = await axios.post(
-                `${Domains.API_AUTH}/change-password`,
-                {
-                    oldPassword,
-                    newPassword,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                `${ApiEndpoints.API_AUTH}/change-password`,
+                {oldPassword, newPassword},
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data.success) {
                 return {success: true};
             }
-            return {success: false, message: response.data.errorMessage};
+            return {
+                success: false,
+                message: response.data.errorMessage
+            };
         } catch (error: any) {
             console.error("Change password error:", error);
             return {

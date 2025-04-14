@@ -1,5 +1,13 @@
 import React, {useEffect, useRef, useState} from "react";
-import {Animated, Dimensions, Modal, SafeAreaView, TouchableWithoutFeedback, View} from "react-native";
+import {
+    Animated,
+    Dimensions,
+    ImageSourcePropType,
+    Modal,
+    SafeAreaView,
+    TouchableWithoutFeedback,
+    View
+} from "react-native";
 import Toast from '@/src/components/ui/Toast';
 import {UseUser} from "@/src/hooks/UseUser";
 import ProfileUserInfo from "./profileUserInfo";
@@ -7,6 +15,7 @@ import ProfileUserEdit from "./profileUserEdit";
 import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
 import {useAuth} from "@/src/contexts/UserContext";
+import {validateAvatar, validateCover} from "@/src/utils/ImageValidator";
 
 type ProfileModalProps = {
     visible: boolean;
@@ -18,8 +27,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const {user, update} = useAuth();
     const {user: fetchedUser} = UseUser();
     const [editMode, setEditMode] = useState(false);
-    const [avatarUri, setAvatarUri] = useState<string | null>(null);
-    const [coverUri, setCoverUri] = useState<string | null>(null);
+    const [avatarUri, setAvatarUri] = useState<string | null>("");
+    const [coverUri, setCoverUri] = useState<string | null>("");
     const [editUser, setEditUser] = useState({...fetchedUser});
     const [toast, setToast] = useState({
         visible: false,
@@ -102,13 +111,18 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         }
     };
 
-    const avatarSource = avatarUri
-        ? {uri: avatarUri}
-        : {uri: fetchedUser?.avatarURL};
+    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
+    const [cover, setCover] = useState<ImageSourcePropType>({uri: ""});
 
-    const coverSource = coverUri
-        ? {uri: coverUri}
-        : {uri: fetchedUser?.coverURL};
+    useEffect(() => {
+        validateAvatar(avatarUri || "").then((validatedAvatar) => {
+            setAvatar(validatedAvatar);
+        });
+
+        validateCover(coverUri || "").then((validatedCover) => {
+            setCover(validatedCover);
+        });
+    }, [fetchedUser]);
 
     const handleEdit = async () => {
         console.log('Saving user profile changes:', editUser);
@@ -124,14 +138,12 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         }
 
         try {
-            // Show loading toast
             setToast({
                 visible: true,
                 message: 'Đang cập nhật thông tin...',
                 type: 'success'
             });
 
-            // Prepare data to be updated
             const updateData = {
                 name: editUser.name,
                 gender: editUser.gender,
@@ -139,34 +151,18 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
             };
 
             console.log('Sending update request with data:', updateData);
-
-            // Call the update method from context
             const result = await update(updateData);
-
             console.log('Update result:', result);
 
             if (result.success) {
-                // Show success toast
                 setToast({
                     visible: true,
                     message: result.message || 'Cập nhật thông tin thành công!',
                     type: 'success'
                 });
 
-                // Update the fetched user data to reflect changes
-                if (fetchedUser) {
-                    const updatedFetchedUser = {...fetchedUser, ...updateData};
-                    // We would typically update the user state here,
-                    // but since we're using context, it will be updated automatically
-                }
-
-                // Switch back to view mode
                 setEditMode(false);
-
-                // Reload the profile after a short delay
-                setTimeout(() => {
-                    router.replace('/(main)');
-                }, 1500);
+                setTimeout(() => {router.replace('/(main)')}, 1000);
             } else {
                 setToast({
                     visible: true,
@@ -265,8 +261,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                                             >
                                                 <ProfileUserInfo
                                                     user={fetchedUser}
-                                                    avatarSource={avatarSource}
-                                                    coverSource={coverSource}
+                                                    avatar={avatar}
+                                                    cover={cover}
                                                     onPickAvatar={handlePickAvatar}
                                                     onPickCover={handlePickCover}
                                                     onEditPress={toggleEdit}

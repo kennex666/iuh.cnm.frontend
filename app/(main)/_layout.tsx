@@ -5,6 +5,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useEffect, useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
 import {useAuth} from "@/src/contexts/UserContext";
+import {validateAvatar} from "@/src/utils/ImageValidator";
 
 type Route = {
     name: string;
@@ -21,7 +22,7 @@ const routes: Route[] = [
 export default function AppLayout() {
     const {user, isLoading, logout} = useAuth();
     const [profileModalVisible, setProfileModalVisible] = useState(false);
-    const [imageSource, setImageSource] = useState<ImageSourcePropType>({uri: ""});
+    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
     const router = useRouter();
     const {width} = Dimensions.get("window");
     const isDesktop = width > 768;
@@ -43,11 +44,9 @@ export default function AppLayout() {
     };
 
     useEffect(() => {
-        if (user?.avatarURL) {
-            setImageSource({uri: user.avatarURL});
-        } else {
-            setImageSource(require("@/resources/assets/profile/avatar.png"));
-        }
+        validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
+            setAvatar(validatedAvatar);
+        });
     }, [user?.avatarURL]);
 
     if (isLoading) {
@@ -76,7 +75,7 @@ export default function AppLayout() {
                                 onPress={() => setProfileModalVisible(true)}
                             >
                                 <Image
-                                    source={imageSource}
+                                    source={avatar}
                                     resizeMode="cover"
                                     className="w-10 h-10 rounded-full"
                                     style={{width: 40, height: 40}}
@@ -174,7 +173,7 @@ export default function AppLayout() {
                     >
                         <View className="items-center">
                             <Image
-                                source={imageSource}
+                                source={avatar}
                                 className="w-6 h-6 rounded-full"
                             />
                             <Text className="text-xs mt-1 text-gray-500">Tài khoản</Text>
