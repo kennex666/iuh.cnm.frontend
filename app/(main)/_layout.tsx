@@ -72,7 +72,10 @@ export default function AppLayout() {
                         <View>
                             <TouchableOpacity
                                 className="relative mb-4"
-                                onPress={() => setProfileModalVisible(true)}
+                                onPress={() => {
+                                    setProfileModalVisible(true)
+                                    console.log("Profile modal visible", avatar)
+                                }}
                             >
                                 <Image
                                     source={avatar}

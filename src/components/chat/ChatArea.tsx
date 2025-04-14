@@ -47,6 +47,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         if (selectedChat) {
             fetchMessages();
         }
+        console.log('Selected chat:', messages);
     }, [selectedChat]);
 
     const fetchMessages = async () => {

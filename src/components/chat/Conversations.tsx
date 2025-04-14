@@ -83,8 +83,15 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                     >
                         <View className="relative">
                             <Image
-                                source={{uri: conversation.avatar || 'https://placehold.co/48x48/0068FF/FFFFFF/png?text=G'}}
+                                source={{
+                                    uri: conversation.avatar,
+                                    headers: {
+                                        'Accept': 'image/*'
+                                    },
+                                    cache: 'force-cache'
+                                }}
                                 className="w-12 h-12 rounded-full"
+                                defaultSource={require('@/resources/assets/profile/avatar.png')}
                             />
                             {!conversation.isGroup && conversation.participants.length > 0 && (
                                 <View

@@ -2,11 +2,13 @@ import axios from "axios";
 import { Message, MessageType } from "@/src/models/Message";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
 import { AuthStorage } from "@/src/services/AuthStorage";
+import { useAuth } from "@/src/contexts/UserContext";
 
 interface MessageService {
     getMessages: (conversationId: string) => Promise<{
         success: boolean;
         messages: Message[];
+        isNewer: boolean;
         statusMessage: string;
     }>;
     sendMessage: (message: Partial<Message>) => Promise<{
@@ -28,25 +30,36 @@ interface MessageService {
 export const MessageService: MessageService = {
     async getMessages(conversationId: string) {
         try {
-            console.log("conversationId", conversationId);
             const token = await AuthStorage.getAccessToken();
             if (!token) {
                 return {
                     success: false,
                     messages: [],
+                    isNewer: false,
                     statusMessage: "No token found"
                 };
             }
 
-            const url = `http://localhost:8087/api/api/messages`;
-            console.log("url", url);
+            const url = `${ApiEndpoints.API_MESSAGE}/conversation/${conversationId}`;
+
             const response = await axios.get(url, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
 
-            if (response.data.status === '200') {
+            console.log("Response Status Message:", response.data.message);
+            console.log("Response Data Messages:", response.data.data);
+
+            if(response.data.data == null) {
+                return {
+                    success: true,
+                    messages: [],
+                    isNewer: true,
+                    statusMessage: response.data.message || "Hãy làm quen với người dùng này"
+                };
+            }
+            if (response.data.success) {
                 const messages = response.data.data.map((msg: any) => ({
                     id: msg._id || msg.id,
                     conversationId: msg.conversationId,
@@ -61,6 +74,7 @@ export const MessageService: MessageService = {
                 return {
                     success: true,
                     messages,
+                    isNewer: false,
                     statusMessage: response.data.message || "Successfully fetched messages"
                 };
             }
@@ -68,13 +82,18 @@ export const MessageService: MessageService = {
             return {
                 success: false,
                 messages: [],
+                isNewer: false,
                 statusMessage: response.data.message || "Failed to fetch messages"
             };
         } catch (error: any) {
             console.error("Get messages error:", error);
+            console.error("Error response:", error.response?.data);
+            console.error("Error status:", error.response?.status);
+            console.error("Error headers:", error.response?.headers);
             return {
                 success: false,
                 messages: [],
+                isNewer: false,
                 statusMessage: error.response?.data?.message || error.message || "Failed to get messages"
             };
         }
@@ -95,7 +114,7 @@ export const MessageService: MessageService = {
                 }
             });
 
-            if (response.data.status === '200') {
+            if (response.data.success) {
                 const msg = response.data.data;
                 return {
                     success: true,

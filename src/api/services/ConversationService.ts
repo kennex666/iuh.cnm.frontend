@@ -64,9 +64,9 @@ export const ConversationService: ConversationService = {
             console.log("Response Status:", response.status);
             console.log("Response Data:", response.data);
 
-
-            if (response.data.status === '200') {
+            if (response.data.success) {
                 if (!response.data.data) {
+                    console.warn("No conversations data found in response");
                     return {
                         success: false,
                         conversations: [],
@@ -75,7 +75,7 @@ export const ConversationService: ConversationService = {
                 }
                 console.log("Response Success:", response.data);
                 const conversations = response.data.data.map((apiConv: any) => ({
-                    id: apiConv._id,
+                    id: apiConv.id,
                     isGroup: apiConv.isGroup || false,
                     name: apiConv.name || '',
                     avatar: apiConv.avatar || '',
@@ -95,7 +95,7 @@ export const ConversationService: ConversationService = {
             return { 
                 success: false, 
                 conversations: [], 
-                message: response.data.message || "Failed to fetch conversations" 
+                message: response.data.message || "Failed to fetch conversations"
             };
         } catch (error: any) {
             console.error("Get conversations error:", error);
