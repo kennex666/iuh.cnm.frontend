@@ -5,7 +5,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useEffect, useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
 import {useAuth} from "@/src/contexts/UserContext";
-import axios from "axios";
+import {validateAvatar} from "@/src/utils/ImageValidator";
 
 type Route = {
     name: string;
@@ -57,36 +57,12 @@ export default function AppLayout() {
         return `/(main)/${routeName}` as Href;
     };
 
-    const [imageSource, setImageSource] = useState<ImageSourcePropType>({uri: ""});
+    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
 
     useEffect(() => {
-        const getImageSource = async () => {
-            if (user?.avatarURL) {
-                console.log("User avatar URL is available, checking if it is valid.");
-                if (!user.avatarURL.startsWith("http")) {
-                    console.log("User avatar URL is not valid, using default avatar.");
-                    setImageSource(require("@/resources/assets/profile/avatar.png"));
-                } else {
-                    const response = await axios.head(user.avatarURL);
-                    if (response.status === 200) {
-                        console.log("User avatar URL is valid, using it.");
-                        setImageSource({uri: user.avatarURL});
-                    } else {
-                        console.log("User avatar URL is invalid, using default avatar.");
-                        setImageSource(require("@/resources/assets/profile/avatar.png"));
-                    }
-                }
-            } else {
-                console.log("User avatar URL is not available, using default avatar.");
-                setImageSource(require("@/resources/assets/profile/avatar.png"));
-            }
-        }
-
-        getImageSource().catch(error => {
-            console.error("Error fetching user avatar:", error);
-            setImageSource(require("@/resources/assets/profile/avatar.png"));
+        validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
+            setAvatar(validatedAvatar);
         });
-
     }, [user?.avatarURL]);
 
     return (
@@ -105,7 +81,7 @@ export default function AppLayout() {
                                 onPress={() => setProfileModalVisible(true)}
                             >
                                 <Image
-                                    source={imageSource}
+                                    source={avatar}
                                     className="rounded-full"
                                     style={{width: 40, height: 40}} // Adding explicit dimensions (w-10/h-10 = 40px)
                                 />
