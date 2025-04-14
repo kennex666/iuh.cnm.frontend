@@ -5,6 +5,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useEffect, useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
 import {useAuth} from "@/src/contexts/UserContext";
+import axios from "axios";
 
 type Route = {
     name: string;
@@ -56,28 +57,36 @@ export default function AppLayout() {
         return `/(main)/${routeName}` as Href;
     };
 
-    const [imageSource, setImageSource] = useState<ImageSourcePropType >({uri: ""});
+    const [imageSource, setImageSource] = useState<ImageSourcePropType>({uri: ""});
 
     useEffect(() => {
         const getImageSource = async () => {
             if (user?.avatarURL) {
                 console.log("User avatar URL is available, checking if it is valid.");
-                const response = await fetch(user.avatarURL, {method: "HEAD"});
-                if (response.ok) {
-                    console.log("User avatar URL is valid, using it.");
-                    setImageSource({uri: user.avatarURL});
-                } else {
-                    console.log("User avatar URL is invalid, using default avatar.");
+                if (!user.avatarURL.startsWith("http")) {
+                    console.log("User avatar URL is not valid, using default avatar.");
                     setImageSource(require("@/resources/assets/profile/avatar.png"));
+                } else {
+                    const response = await axios.head(user.avatarURL);
+                    if (response.status === 200) {
+                        console.log("User avatar URL is valid, using it.");
+                        setImageSource({uri: user.avatarURL});
+                    } else {
+                        console.log("User avatar URL is invalid, using default avatar.");
+                        setImageSource(require("@/resources/assets/profile/avatar.png"));
+                    }
                 }
-            }
-            else {
+            } else {
                 console.log("User avatar URL is not available, using default avatar.");
                 setImageSource(require("@/resources/assets/profile/avatar.png"));
             }
         }
 
-        getImageSource();
+        getImageSource().catch(error => {
+            console.error("Error fetching user avatar:", error);
+            setImageSource(require("@/resources/assets/profile/avatar.png"));
+        });
+
     }, [user?.avatarURL]);
 
     return (
@@ -97,9 +106,8 @@ export default function AppLayout() {
                             >
                                 <Image
                                     source={imageSource}
-                                    resizeMode={"cover"}
-                                    className="w-10 h-10 rounded-full"
-                                    style={{ width: 40, height: 40 }} // Adding explicit dimensions (w-10/h-10 = 40px)
+                                    className="rounded-full"
+                                    style={{width: 40, height: 40}} // Adding explicit dimensions (w-10/h-10 = 40px)
                                 />
                                 <View
                                     className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white"/>
