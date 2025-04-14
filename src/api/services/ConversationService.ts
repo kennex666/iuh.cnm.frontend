@@ -38,6 +38,8 @@ export const ConversationService: ConversationService = {
     }> {
         try {
             const token = await AuthStorage.getAccessToken();
+            console.log("Token:", token ? "Found" : "Not found");
+            
             if (!token) {
                 return {
                     success: false,
@@ -46,26 +48,44 @@ export const ConversationService: ConversationService = {
                 };
             }
 
-            const response = await axios.get(`${Domains.API_CONVERSATION}/conversations`, {
+            const url = Domains.API_CONVERSATION;
+            
+            console.log("Request URL:", url);
+            console.log("Request Headers:", {
+                Authorization: `Bearer ${token}`,
+            });
+            
+            const response = await axios.get(url, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
 
-            if (response.data.success) {
-                const conversations = response.data.data.map((apiConv: any) => ({
-                    id: apiConv.id,
-                    isGroup: apiConv.isGroup,
-                    name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl,
-                    participantIds: apiConv.participantIds,
-                    adminIds: apiConv.adminIds,
-                    settings: apiConv.settings,
-                    lastMessage: apiConv.lastMessage,
-                    createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt,
-                }));
+            console.log("Response Status:", response.status);
+            console.log("Response Data:", response.data);
 
+
+            if (response.data.status === '200') {
+                if (!response.data.data) {
+                    return {
+                        success: false,
+                        conversations: [],
+                        message: "No conversations data found",
+                    };
+                }
+                console.log("Response Success:", response.data);
+                const conversations = response.data.data.map((apiConv: any) => ({
+                    id: apiConv._id,
+                    isGroup: apiConv.isGroup || false,
+                    name: apiConv.name || '',
+                    avatar: apiConv.avatar || '',
+                    participants: apiConv.participants || [],
+                    adminIds: apiConv.adminIds || [],
+                    settings: apiConv.settings || {},
+                    lastMessage: apiConv.lastMessage || null,
+                    createdAt: apiConv.createdAt || new Date(),
+                    updatedAt: apiConv.updatedAt || new Date()
+                }));
                 return { 
                     success: true, 
                     conversations, 
@@ -77,12 +97,15 @@ export const ConversationService: ConversationService = {
                 conversations: [], 
                 message: response.data.message || "Failed to fetch conversations" 
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Get conversations error:", error);
+            console.error("Error response:", error.response?.data);
+            console.error("Error status:", error.response?.status);
+            console.error("Error headers:", error.response?.headers);
             return {
                 success: false,
                 conversations: [],
-                message: "Failed to get conversations",
+                message: error.response?.data?.message || error.message || "Failed to get conversations",
             };
         }
     },
@@ -114,8 +137,8 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
                     name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl,
-                    participantIds: apiConv.participantIds,
+                    avatar: apiConv.avatar || '',
+                    participants: apiConv.participants || [],
                     adminIds: apiConv.adminIds,
                     settings: apiConv.settings,
                     lastMessage: apiConv.lastMessage,
@@ -171,8 +194,8 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
                     name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl,
-                    participantIds: apiConv.participantIds,
+                    avatar: apiConv.avatar || '',
+                    participants: apiConv.participants || [],
                     adminIds: apiConv.adminIds,
                     settings: apiConv.settings,
                     lastMessage: apiConv.lastMessage,
@@ -228,8 +251,8 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
                     name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl,
-                    participantIds: apiConv.participantIds,
+                    avatar: apiConv.avatar || '',
+                    participants: apiConv.participants || [],
                     adminIds: apiConv.adminIds,
                     settings: apiConv.settings,
                     lastMessage: apiConv.lastMessage,

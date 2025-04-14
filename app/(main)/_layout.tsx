@@ -12,19 +12,57 @@ type Route = {
     icon: "comments" | "address-book" | "gear" | "user";
 };
 
+const routes: Route[] = [
+    {name: "index", title: "Tin nhắn", icon: "comments"},
+    {name: "contacts", title: "Danh bạ", icon: "address-book"},
+    {name: "settings", title: "Cài đặt", icon: "gear"},
+];
+
 export default function AppLayout() {
     const {user, isLoading, logout} = useAuth();
     const [profileModalVisible, setProfileModalVisible] = useState(false);
+    const [imageSource, setImageSource] = useState<ImageSourcePropType>({uri: ""});
     const router = useRouter();
-
     const {width} = Dimensions.get("window");
     const isDesktop = width > 768;
     const insets = useSafeAreaInsets();
     const pathname = usePathname();
 
-    if (!isLoading && !user) {
-        return <Redirect href="/"/>;
-    }
+    // Check if the current route is active
+    const isActive = (routeName: string) => {
+        if (routeName === "index") {
+            return pathname === "/" || pathname === "/index";
+        }
+        return pathname === `/${routeName}`;
+    };
+
+    // Get the href for the route
+    const getHref = (routeName: string) => {
+        if (routeName === "index") return "/";
+        return `/(main)/${routeName}` as Href;
+    };
+
+    useEffect(() => {
+        const getImageSource = async () => {
+            if (user?.avatarURL) {
+                try {
+                    const response = await fetch(user.avatarURL, {method: "HEAD"});
+                    if (response.ok) {
+                        setImageSource({uri: user.avatarURL});
+                    } else {
+                        setImageSource(require("@/resources/assets/profile/avatar.png"));
+                    }
+                } catch (error) {
+                    console.error("Error checking avatar URL:", error);
+                    setImageSource(require("@/resources/assets/profile/avatar.png"));
+                }
+            } else {
+                setImageSource(require("@/resources/assets/profile/avatar.png"));
+            }
+        };
+
+        getImageSource();
+    }, [user?.avatarURL]);
 
     if (isLoading) {
         return (
@@ -34,78 +72,32 @@ export default function AppLayout() {
         );
     }
 
-    const routes: Route[] = [
-        {name: "index", title: "Tin nhắn", icon: "comments"},
-        {name: "contacts", title: "Danh bạ", icon: "address-book"},
-        {name: "settings", title: "Cài đặt", icon: "gear"},
-    ];
-
-    // Check if the current route is active
-    // This is used to highlight the active tab in the sidebar and bottom tabs
-    const isActive = (routeName: string) => {
-        if (routeName === "index") {
-            return pathname === "/" || pathname === "/index";
-        }
-        return pathname === `/${routeName}`;
-    };
-
-    // Get the href for the route
-    // This is used to navigate to the route when the tab is pressed
-    const getHref = (routeName: string) => {
-        if (routeName === "index") return "/";
-        return `/(main)/${routeName}` as Href;
-    };
-
-    const [imageSource, setImageSource] = useState<ImageSourcePropType >({uri: ""});
-
-    useEffect(() => {
-        const getImageSource = async () => {
-            if (user?.avatarURL) {
-                console.log("User avatar URL is available, checking if it is valid.");
-                const response = await fetch(user.avatarURL, {method: "HEAD"});
-                if (response.ok) {
-                    console.log("User avatar URL is valid, using it.");
-                    setImageSource({uri: user.avatarURL});
-                } else {
-                    console.log("User avatar URL is invalid, using default avatar.");
-                    setImageSource(require("@/resources/assets/profile/avatar.png"));
-                }
-            }
-            else {
-                console.log("User avatar URL is not available, using default avatar.");
-                setImageSource(require("@/resources/assets/profile/avatar.png"));
-            }
-        }
-
-        getImageSource();
-    }, [user?.avatarURL]);
+    if (!user) {
+        return <Redirect href="/"/>;
+    }
 
     return (
         <View className="flex-1 flex-row bg-white">
-            {isDesktop ? (
+            {isDesktop && (
                 <View
-                    className={`w-16 bg-white items-center border-r border-gray-200`}
+                    className="w-16 bg-white items-center border-r border-gray-200"
                     style={{paddingTop: insets.top + 16}}
                 >
                     <View className="flex-1 flex-col items-center justify-between">
-                        {/* Header of Tabs */}
                         <View>
-                            {/* Avatar */}
                             <TouchableOpacity
                                 className="relative mb-4"
                                 onPress={() => setProfileModalVisible(true)}
                             >
                                 <Image
                                     source={imageSource}
-                                    resizeMode={"cover"}
+                                    resizeMode="cover"
                                     className="w-10 h-10 rounded-full"
-                                    style={{ width: 40, height: 40 }} // Adding explicit dimensions (w-10/h-10 = 40px)
+                                    style={{width: 40, height: 40}}
                                 />
-                                <View
-                                    className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white"/>
+                                <View className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white"/>
                             </TouchableOpacity>
 
-                            {/* Divider */}
                             <View className="w-4/5 h-px bg-gray-200 mb-4"/>
 
                             {routes.map((route) => {
@@ -129,17 +121,15 @@ export default function AppLayout() {
                                 );
                             })}
                         </View>
-                        {/* Bottoms: logout, exit */}
                         <View className="flex flex-col items-center justify-center py-4 relative">
                             <TouchableOpacity
                                 className="p-2 rounded-lg"
                                 onPress={async () => {
                                     try {
-                                        await logout(); // Calls storage.removeUser() and authStorage.removeTokens()
-                                        router.replace('/(auth)'); // Navigate back to login/authentication screen
+                                        await logout();
+                                        router.replace('/(auth)');
                                     } catch (error) {
                                         console.error('Error during logout:', error);
-                                        // Optionally add error notification here
                                     }
                                 }}
                             >
@@ -148,22 +138,20 @@ export default function AppLayout() {
                         </View>
                     </View>
                 </View>
-            ) : null}
+            )}
 
-            {/* Main content area */}
-            {/* This is where the main content of the app will be rendered */}
             <View className="flex-1">
                 <Stack screenOptions={{headerShown: false}}/>
             </View>
 
-            {!isDesktop ? (
+            {!isDesktop && (
                 <View
                     className="absolute bottom-0 left-0 right-0 flex-row bg-white border-t border-gray-200"
                     style={{
                         paddingBottom: insets.bottom,
                         height: 54 + insets.bottom,
-                        zIndex: 100, // Đảm bảo tabs luôn hiển thị trên cùng
-                        elevation: 8, // Thêm shadow cho Android
+                        zIndex: 100,
+                        elevation: 8,
                     }}
                 >
                     {routes.map((route) => {
@@ -194,31 +182,21 @@ export default function AppLayout() {
                             </Link>
                         );
                     })}
-                    {/* User Profile Icon */}
                     <TouchableOpacity
                         className="flex-1 h-full justify-center items-center"
                         onPress={() => setProfileModalVisible(true)}
                     >
                         <View className="items-center">
-                            <View className="relative">
-                                <Image
-                                    source={{
-                                        uri:
-                                            user?.avatarURL ||
-                                            `https://placehold.co/200x200/0068FF/FFFFFF/png?text=${
-                                                user?.name?.charAt(0) || "U"
-                                            }`,
-                                    }}
-                                    className="w-6 h-6 rounded-full"
-                                />
-                                <View
-                                    className="absolute -right-0.5 -bottom-0.5 w-2 h-2 rounded-full bg-green-500 border border-white"/>
-                            </View>
-                            <Text className="text-xs mt-1 text-gray-500">Cá nhân</Text>
+                            <Image
+                                source={imageSource}
+                                className="w-6 h-6 rounded-full"
+                            />
+                            <Text className="text-xs mt-1 text-gray-500">Tài khoản</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
-            ) : null}
+            )}
+
             <ProfileModal
                 visible={profileModalVisible}
                 onClose={() => setProfileModalVisible(false)}

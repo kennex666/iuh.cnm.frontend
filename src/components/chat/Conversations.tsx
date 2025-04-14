@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {useConversation} from '@/src/hooks/UseConversation';
+import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
 
 interface ConversationsProps {
@@ -10,9 +10,31 @@ interface ConversationsProps {
 }
 
 export default function Conversations({selectedChat, onSelectChat}: ConversationsProps) {
-    const {conversations, loading, error} = useConversation();
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const formatTime = (dateString: string) => {
+    useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                const response = await ConversationService.getConversations();
+                if (response.success) {
+                    setConversations(response.conversations);
+                } else {
+                    setError(response.message || "Failed to fetch conversations");
+                }
+            } catch (error) {
+                setError(error instanceof Error ? error.message : "An unknown error occurred");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchConversations();
+    }, []); 
+
+    const formatTime = (dateString: string | undefined) => {
+        if (!dateString) return '';
         const date = new Date(dateString);
         return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
     };
@@ -59,10 +81,10 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                     >
                         <View className="relative">
                             <Image
-                                source={{uri: conversation.avatarUrl || 'https://placehold.co/48x48/0068FF/FFFFFF/png?text=G'}}
+                                source={{uri: conversation.avatar || 'https://placehold.co/48x48/0068FF/FFFFFF/png?text=G'}}
                                 className="w-12 h-12 rounded-full"
                             />
-                            {!conversation.isGroup && conversation.participantIds.length > 0 && (
+                            {!conversation.isGroup && conversation.participants.length > 0 && (
                                 <View
                                     className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"/>
                             )}
@@ -70,9 +92,9 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                         <View className="flex-1 ml-3">
                             <View className="flex-row justify-between items-center">
                                 <Text className="font-semibold text-gray-900">
-                                    {conversation.name || conversation.participantIds.join(', ')}
+                                    {conversation.name || conversation.participants.join(', ')}
                                 </Text>
-                                {conversation.lastMessage && (
+                                {conversation.lastMessage?.sentAt && (
                                     <Text className="text-sm text-gray-500">
                                         {formatTime(conversation.lastMessage.sentAt)}
                                     </Text>
@@ -82,7 +104,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                                 <Text className="text-sm text-gray-500 flex-1 mr-2" numberOfLines={1}>
                                     {conversation.lastMessage?.content || 'No messages yet'}
                                 </Text>
-                                {conversation.lastMessage && conversation.lastMessage.readBy.length === 0 && (
+                                {conversation.lastMessage?.readBy && conversation.lastMessage.readBy.length === 0 && (
                                     <View className="bg-blue-500 rounded-full px-2 py-1">
                                         <Text className="text-white text-xs">1</Text>
                                     </View>
