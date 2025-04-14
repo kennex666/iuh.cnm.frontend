@@ -5,7 +5,7 @@ import {Platform} from 'react-native';
 // API URL based on platform
 const getApiUrl = () => {
     if (Platform.OS === 'web') {
-        return 'http://192.168.1.25:8087/api';
+        return 'http://localhost:8087/api';
     } else if (Platform.OS === 'android') {
         // Android emulator uses 10.0.2.2 to access localhost of the host machine
         return 'http://10.0.2.2:8087/api';
