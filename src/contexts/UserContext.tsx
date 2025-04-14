@@ -6,7 +6,7 @@ import {AuthContextType, AuthLogin} from "@/src/models/props/AuthContextType";
 import {AuthProviderProp} from "@/src/models/types/AuthProviderProp";
 import {AuthService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/services/AuthStorage';
-import { useRouter } from 'expo-router';
+import {useRouter} from 'expo-router';
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -43,6 +43,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
                     } else {
                         console.warn('No valid user data available, logging out');
                         await logout();
+                        router.replace("/(auth)");
                     }
                 }
             } else {
@@ -72,7 +73,10 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
                 setUser(result.user);
                 await UserStorage.saveUser(result.user as User);
                 await AuthStorage.saveTokens(result.accessToken, result.refreshToken);
-                return {success: true, message: 'Đăng nhập thành công!'};
+                return {
+                    success: true,
+                    message: 'Đăng nhập thành công!',
+                };
             }
 
             return {
@@ -82,7 +86,11 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
             };
         } catch (error) {
             console.error('Login error:', error);
-            return {success: false, message: 'Có lỗi xảy ra, vui lòng thử lại sau'};
+            return {
+                success: false,
+                message: 'Có lỗi xảy ra, vui lòng thử lại sau',
+                errorCode: 500,
+            };
         }
     };
 
@@ -98,27 +106,42 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
 
     const update = async (updatedUser: Partial<User>) => {
         try {
-            if (!user) return {success: false, message: 'Không có thông tin người dùng!'};
+            if (!user) return {
+                success: false,
+                message: 'Không có thông tin người dùng!'
+            };
 
             const result = await UserService.update(updatedUser);
 
-            if (!result.success) {
-                return {success: false, message: result.message || 'Cập nhật thông tin thất bại!'};
-            }
+            if (!result.success) return {
+                success: false,
+                message: result.message || 'Cập nhật thông tin thất bại!'
+            };
 
             const updatedUserResponse = result.user || {...user, ...updatedUser};
 
             if (isUserComplete(updatedUserResponse)) {
                 setUser(updatedUserResponse);
                 await UserStorage.saveUser(updatedUserResponse);
-                return {success: true, message: 'Cập nhật thông tin thành công!'};
+                return {
+                    success: true,
+                    message: 'Cập nhật thông tin thành công!'
+                };
             } else {
                 console.error('Incomplete user data:', updatedUserResponse);
-                return {success: false, message: 'Cập nhật thông tin thất bại: dữ liệu không đầy đủ'};
+                return {
+                    success: false,
+                    message: 'Cập nhật thông tin thất bại: dữ liệu không đầy đủ',
+                    errorCode: 400,
+                };
             }
         } catch (error) {
             console.error('Error updating user:', error);
-            return {success: false, message: 'Cập nhật thông tin thất bại!'};
+            return {
+                success: false,
+                message: 'Cập nhật thông tin thất bại!',
+                errorCode: 500,
+            };
         }
     };
 
