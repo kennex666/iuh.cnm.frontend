@@ -91,7 +91,6 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                                     cache: 'force-cache'
                                 }}
                                 className="w-12 h-12 rounded-full"
-                                defaultSource={require('@/resources/assets/profile/avatar.png')}
                             />
                             {!conversation.isGroup && conversation.participants.length > 0 && (
                                 <View

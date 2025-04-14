@@ -11,7 +11,6 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import {UseMessage} from '@/src/hooks/UseMessage';
 import {Conversation} from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
@@ -32,6 +31,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isNewer, setIsNewer] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
     const [isModelChecked, setIsModelChecked] = useState(false);
@@ -58,6 +58,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             const response = await MessageService.getMessages(selectedChat.id);
             if (response.success) {
                 setMessages(response.messages);
+                setIsNewer(response.isNewer);
                 setError(null);
             } else {
                 setError(response.statusMessage);
@@ -210,21 +211,34 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
             {/* Messages Area */}
             <ScrollView className="flex-1 p-4">
+                {isNewer && (
+                    <View className="items-center justify-center mb-8">
+                        <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
+                            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
+                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
+                                Bắt đầu cuộc trò chuyện mới
+                            </Text>
+                            <Text className="text-gray-600 text-center mt-2">
+                                Hãy gửi lời chào để bắt đầu kết nối với {selectedChat.name || 'người dùng này'}
+                            </Text>
+                        </View>
+                    </View>
+                )}
                 {messages.map((msg) => (
                     <View
                         key={msg.id}
-                        className={`flex-row items-end mb-4 ${msg.senderId === 'u1' ? 'justify-end' : 'justify-start'}`}
+                        className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                     >
-                        {msg.senderId !== 'u1' && (
+                        {msg.senderId !== user?.id && (
                             <Image
                                 source={{uri: 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                                 className="w-8 h-8 rounded-full mr-2"
                             />
                         )}
-                        <View className={`flex flex-col ${msg.senderId === 'u1' ? 'items-end' : 'items-start'}`}>
+                        <View className={`flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}>
                             <View
-                                className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === 'u1' ? 'bg-blue-500' : 'bg-gray-100'}`}>
-                                <Text className={msg.senderId === 'u1' ? 'text-white' : 'text-gray-900'}>
+                                className={`rounded-2xl px-4 py-2 max-w-[70%] ${msg.senderId === user?.id ? 'bg-blue-500' : 'bg-gray-100'}`}>
+                                <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
                                     {msg.content}
                                 </Text>
                             </View>
@@ -233,7 +247,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                 isVisible={activeReactionId === msg.id}
                                 onReact={handleReaction}
                                 onToggle={() => handleReactionToggle(msg.id)}
-                                isSender={msg.senderId === 'u1'}
+                                isSender={msg.senderId === user?.id}
                             />
                         </View>
                     </View>
