@@ -43,25 +43,11 @@ export default function AppLayout() {
     };
 
     useEffect(() => {
-        const getImageSource = async () => {
-            if (user?.avatarURL) {
-                try {
-                    const response = await fetch(user.avatarURL, {method: "HEAD"});
-                    if (response.ok) {
-                        setImageSource({uri: user.avatarURL});
-                    } else {
-                        setImageSource(require("@/resources/assets/profile/avatar.png"));
-                    }
-                } catch (error) {
-                    console.error("Error checking avatar URL:", error);
-                    setImageSource(require("@/resources/assets/profile/avatar.png"));
-                }
-            } else {
-                setImageSource(require("@/resources/assets/profile/avatar.png"));
-            }
-        };
-
-        getImageSource();
+        if (user?.avatarURL) {
+            setImageSource({uri: user.avatarURL});
+        } else {
+            setImageSource(require("@/resources/assets/profile/avatar.png"));
+        }
     }, [user?.avatarURL]);
 
     if (isLoading) {
