@@ -242,7 +242,9 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     <TouchableOpacity className="p-2 mr-1"
                         onPress={() => {
                             console.log('Call button pressed');
-                            console.log(messageUsers);
+                            console.log('messages: ', messages);
+                            console.log('selectedChat: ', selectedChat);
+                            console.log('user: ', user);
                         }}
                     >
                         <Ionicons name="call-outline" size={22} color="#666"/>
