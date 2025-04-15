@@ -1,6 +1,6 @@
-// import {HOST_BE, PORT_BE} from '@env';
-const HOST_BE = '192.168.1.72';
-const PORT_BE = '8087';
+import Constants from 'expo-constants';
+const HOST_BE = Constants.expoConfig?.extra?.HOST_BE;
+const PORT_BE = Constants.expoConfig?.extra?.PORT_BE;
 
 const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
 
