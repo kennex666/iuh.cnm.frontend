@@ -160,4 +160,47 @@ export const UserService = {
             };
         }
     },
+    // get user by phone
+    //http://localhost:8087/api/user/search?q=0388889221
+    getUserByPhone: async (phone: string): Promise<{
+        success: boolean;
+        users?: User[];
+        message?: string;
+    }> => {
+        try {
+            const response = await axios.get(
+                `${ApiEndpoints.API_USER}/search?q=${phone}`
+            );
+            console.log("Data of response", response.data);
+            if (response.data.success) {
+                const apiUsers = response.data.data;
+                const appUsers: User[] = apiUsers.map((apiUser: any) => ({
+                    id: apiUser.id,
+                    name: apiUser.name,
+                    email: apiUser.email || "",
+                    phone: apiUser.phone,
+                    gender: apiUser.gender,
+                    password: "",
+                    avatarURL: apiUser.avatarUrl || "default",
+                    coverURL: apiUser.coverUrl || "default",
+                    dob: apiUser.dob,
+                    isOnline: apiUser.isOnline,
+                    createdAt: apiUser.createdAt,
+                    updatedAt: apiUser.updatedAt,
+                }));
+                return {success: true, users: appUsers};
+            }
+            return {
+                success: false,
+                message: response.data.errorMessage || "Failed to fetch user profile"
+            };
+        }
+        catch (error: any) {
+            console.error("Get user by phone error:", error);
+            return {
+                success: false,
+                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
+            };
+        }
+    }
 };

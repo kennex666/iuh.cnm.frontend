@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
+import { UserService } from '@/src/api/services/UserService';
 import FriendRequest from '@/src/models/FriendRequest';
 import { useAuth } from '@/src/contexts/UserContext';
 
@@ -59,16 +60,22 @@ export default function FriendRequestList() {
 
         try {
             setIsSearching(true);
-            // TODO: Replace with actual user search API call
-            // For now, using mock data
-            const mockResults = [
-                { id: `${new Date().getTime()}`, name: 'Nguyễn Văn A', avatar: 'https://ui-avatars.com/api/?name=Nguyen+A&background=0068FF&color=fff' },
-                { id: `${new Date().getTime()}`, name: 'Trần Thị B', avatar: 'https://ui-avatars.com/api/?name=Tran+B&background=0068FF&color=fff' },
-                { id: `${new Date().getTime()}`, name: 'Lê Văn C', avatar: 'https://ui-avatars.com/api/?name=Le+C&background=0068FF&color=fff' },
-            ].filter(user => 
-                user.name.toLowerCase().includes(query.toLowerCase())
-            );
-            setSearchResults(mockResults);
+            const response = await UserService.getUserByPhone(query);
+            console.log(response);
+            if (response.success && response.users && response.users.length > 0) {
+                const results = response.users.map(user => ({
+                    id: user.id,
+                    name: user.name,
+                    phone: user.phone,
+                    avatar: user.avatarURL === "default" ? 
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0068FF&color=fff` 
+                        : user.avatarURL
+                }));
+                setSearchResults(results);
+            } else {
+                setSearchResults([]);
+                Alert.alert('Thông báo', 'Không tìm thấy người dùng');
+            }
         } catch (err) {
             Alert.alert('Lỗi', 'Không thể tìm kiếm người dùng');
             console.error('Lỗi khi tìm kiếm:', err);
@@ -169,11 +176,15 @@ export default function FriendRequestList() {
                     <Ionicons name="search" size={20} color="#666" />
                     <TextInput
                         className="flex-1 ml-2 text-base text-gray-800"
-                        placeholder="Tìm kiếm bạn bè..."
+                        placeholder="Tìm kiếm theo số điện thoại..."
                         placeholderTextColor="#666"
                         value={searchQuery}
                         onChangeText={handleSearch}
+                        keyboardType="phone-pad"
                     />
+                    {isSearching && (
+                        <ActivityIndicator size="small" color="#0068FF" />
+                    )}
                 </View>
             </View>
 
@@ -193,6 +204,9 @@ export default function FriendRequestList() {
                             <View className="flex-1 ml-3">
                                 <Text className="font-medium text-gray-900">
                                     {result.name}
+                                </Text>
+                                <Text className="text-sm text-gray-500">
+                                    {result.phone}
                                 </Text>
                             </View>
                             <TouchableOpacity

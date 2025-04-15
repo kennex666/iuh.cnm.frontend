@@ -10,9 +10,6 @@ class SocketService {
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((userId: string) => void)[] = [];
-    private onlineStatusCallbacks: ((userId: string, isOnline: boolean) => void)[] = [];
-    private currentRooms: Set<string> = new Set();
-    private loginCallbacks: ((userId: string) => void)[] = [];
 
     private constructor() {}
 
@@ -43,19 +40,18 @@ class SocketService {
 
         this.socket.on('connect', () => {
             console.log('Socket connected');
-            // Rejoin all rooms after reconnection
-            this.currentRooms.forEach(room => {
-                this.joinRoom(room);
-            });
         });
 
         this.socket.on('disconnect', () => {
             console.log('Socket disconnected');
         });
 
+        this.socket.on('online', (userId: string) => {
+            console.log(`User ${userId} is online`);
+        });
+
         this.socket.on('login', ({ userId }) => {
             console.log('Login successful for user:', userId);
-            this.loginCallbacks.forEach(callback => callback(userId));
         });
 
         this.socket.on('new_message', (message: Message) => {
@@ -71,14 +67,6 @@ class SocketService {
             this.friendRequestCallbacks.forEach(callback => callback(userId));
         });
 
-        this.socket.on('user_online', (userId: string) => {
-            this.onlineStatusCallbacks.forEach(callback => callback(userId, true));
-        });
-
-        this.socket.on('user_offline', (userId: string) => {
-            this.onlineStatusCallbacks.forEach(callback => callback(userId, false));
-        });
-
         this.socket.on('pong', (message: string) => {
             console.log('Pong received: ', message);
         });
@@ -88,28 +76,11 @@ class SocketService {
         });
     }
 
-    public joinRoom(roomId: string): void {
-        if (this.socket) {
-            console.log('Joining room:', roomId);
-            this.socket.emit('join_room', roomId);
-            this.currentRooms.add(roomId);
-        }
-    }
-
-    public leaveRoom(roomId: string): void {
-        if (this.socket) {
-            console.log('Leaving room:', roomId);
-            this.socket.emit('leave_room', roomId);
-            this.currentRooms.delete(roomId);
-        }
-    }
-
     public disconnect(): void {
         if (this.socket) {
             console.log('Disconnecting socket');
             this.socket.disconnect();
             this.socket = null;
-            this.currentRooms.clear();
         }
     }
 
@@ -138,14 +109,6 @@ class SocketService {
         this.friendRequestCallbacks.push(callback);
     }
 
-    public onUserStatusChange(callback: (userId: string, isOnline: boolean) => void): void {
-        this.onlineStatusCallbacks.push(callback);
-    }
-
-    public onLogin(callback: (userId: string) => void): void {
-        this.loginCallbacks.push(callback);
-    }
-
     public removeMessageListener(callback: (message: Message) => void): void {
         this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback);
     }
@@ -156,14 +119,6 @@ class SocketService {
 
     public removeFriendRequestListener(callback: (userId: string) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
-    }
-
-    public removeUserStatusListener(callback: (userId: string, isOnline: boolean) => void): void {
-        this.onlineStatusCallbacks = this.onlineStatusCallbacks.filter(cb => cb !== callback);
-    }
-
-    public removeLoginListener(callback: (userId: string) => void): void {
-        this.loginCallbacks = this.loginCallbacks.filter(cb => cb !== callback);
     }
 }
 

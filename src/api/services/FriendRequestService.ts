@@ -2,6 +2,7 @@ import axios from "axios";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
 import { AuthStorage } from "@/src/services/AuthStorage";
 import FriendRequest from "@/src/models/FriendRequest";
+import {User} from '@/src/models/User';
 
 interface FriendRequestService {
     getAllFriendRequests: () => Promise<{
