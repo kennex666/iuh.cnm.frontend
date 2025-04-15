@@ -21,7 +21,7 @@ import {MessageService} from '@/src/api/services/MessageService';
 import {useAuth} from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
-import { AuthStorage } from '@/src/services/AuthStorage';
+
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -132,18 +132,11 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         };
 
         try {
-            // Send to server
-            const response = await MessageService.sendMessage(messageData);
-            if (response.success) {
-                // Send through socket
-                socketService.sendMessage(messageData);
-                // Update local state
-                setMessages(prev => [...prev, messageData]);
-                setNewMessage('');
-            } else {
-                setError(response.statusMessage);
-                console.error('Failed to send message:', response.statusMessage);
-            }
+            // Send through socket only
+            socketService.sendMessage(messageData);
+            // Update local state immediately for better UX
+            setMessages(prev => [...prev, messageData]);
+            setNewMessage('');
         } catch (err) {
             console.error('Error sending message:', err);
             setError('Failed to send message');
@@ -257,10 +250,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 <View className="flex-row items-center">
                     <TouchableOpacity className="p-2 mr-1"
                         onPress={() => {
-                            console.log('Call button pressed');
-                            console.log('messages: ', messages);
-                            console.log('selectedChat: ', selectedChat);
-                            console.log('user: ', user);
+                            socketService.ping();
                         }}
                     >
                         <Ionicons name="call-outline" size={22} color="#666"/>

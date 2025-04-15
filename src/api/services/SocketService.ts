@@ -67,6 +67,10 @@ class SocketService {
         this.socket.on('user_offline', (userId: string) => {
             this.onlineStatusCallbacks.forEach(callback => callback(userId, false));
         });
+
+        this.socket.on('pong', (message: string) => {
+            console.log('Pong received: ', message);
+        });
     }
 
     public disconnect(): void {
@@ -74,6 +78,12 @@ class SocketService {
             console.log('Disconnecting socket');
             this.socket.disconnect();
             this.socket = null;
+        }
+    }
+
+    public ping(): void {
+        if (this.socket) {
+            this.socket.emit('ping');
         }
     }
 

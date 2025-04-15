@@ -5,6 +5,7 @@ import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
 import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
+import SocketService from '@/src/api/services/SocketService';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
