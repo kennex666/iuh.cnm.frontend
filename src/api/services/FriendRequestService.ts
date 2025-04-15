@@ -15,7 +15,7 @@ interface FriendRequestService {
         friendRequest: FriendRequest;
         message: string;
     }>;
-    createFriendRequest: (friendRequest: FriendRequest) => Promise<{
+    createFriendRequest: (friendRequest: any) => Promise<{
         success: boolean;
         friendRequest: FriendRequest;
         message: string;
@@ -159,6 +159,7 @@ export const FriendRequestService: FriendRequestService = {
                 },
             });
 
+            console.log(response.data);
             if (response.data.success) {
                 return {
                     success: true,
@@ -201,6 +202,8 @@ export const FriendRequestService: FriendRequestService = {
                     Authorization: `Bearer ${token}`,
                 },
             });
+
+            console.log(response.data);
 
             if (response.data.success) {
                 return {
@@ -320,7 +323,7 @@ export const FriendRequestService: FriendRequestService = {
                 };
             }
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/${userId}`, {
+            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/receiver`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -363,7 +366,7 @@ export const FriendRequestService: FriendRequestService = {
                 };
             }
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/accepted/${userId}`, {
+            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/accepted/userId`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

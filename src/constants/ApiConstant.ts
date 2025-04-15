@@ -2,7 +2,6 @@ import {HOST_BE, PORT_BE} from '@env';
 
 const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
 
-
 export const ApiEndpoints = {
     API_2FA: `${URL_BE}/api/2fa`,
     API_AUTH: `${URL_BE}/api/auth`,
