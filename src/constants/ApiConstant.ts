@@ -1,4 +1,4 @@
-const HOST = "localhost";
+const HOST = "172.20.77.2";
 const PORT = "8087";
 const BASE_URL = `http://${HOST}:${PORT}`;
 

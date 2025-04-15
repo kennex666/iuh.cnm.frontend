@@ -4,11 +4,11 @@ import {Platform} from 'react-native';
 
 const getApiUrl = () => {
     if (Platform.OS === 'web') {
-        return 'http://localhost:8087/api';
+        return 'http://172.20.77.2:8087/api';
     } else if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:8087/api';
+        return 'http://172.20.77.2:8087/api';
     } else {
-        return 'http://localhost:8087/api';
+        return 'http://172.20.77.2:8087/api';
     }
 };
 
