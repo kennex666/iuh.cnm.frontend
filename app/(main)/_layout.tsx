@@ -177,7 +177,9 @@ export default function AppLayout() {
                         <View className="items-center">
                             <Image
                                 source={avatar}
-                                className="w-6 h-6 rounded-full"
+                                resizeMode="cover"
+                                className="w-10 h-10 rounded-full"
+                                style={{width: 24, height: 24}}
                             />
                             <Text className="text-xs mt-1 text-gray-500">Tài khoản</Text>
                         </View>

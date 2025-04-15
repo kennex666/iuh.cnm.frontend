@@ -39,3 +39,4 @@ app-example
 
 .idea/
 package-lock.json
+.env
