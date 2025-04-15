@@ -1,14 +1,15 @@
-const HOST = "localhost";
-const PORT = "8087";
-const BASE_URL = `http://${HOST}:${PORT}`;
+import {HOST_BE, PORT_BE} from '@env';
+
+const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
+
 
 export const ApiEndpoints = {
-    API_2FA: `${BASE_URL}/api/2fa`,
-    API_AUTH: `${BASE_URL}/api/auth`,
-    API_USER: `${BASE_URL}/api/user`,
-    API_CONVERSATION: `${BASE_URL}/api/conversations`,
-    API_MESSAGE: `${BASE_URL}/api/messages`,
-    API_FILE: `${BASE_URL}/api/file`,
-    API_FRIEND_REQUEST: `${BASE_URL}/api/friendRequests`,
-    SOCKET_URL: `http://${HOST}:${PORT}`
+    API_2FA: `${URL_BE}/api/2fa`,
+    API_AUTH: `${URL_BE}/api/auth`,
+    API_USER: `${URL_BE}/api/user`,
+    API_CONVERSATION: `${URL_BE}/api/conversations`,
+    API_MESSAGE: `${URL_BE}/api/messages`,
+    API_FILE: `${URL_BE}/api/file`,
+    API_FRIEND_REQUEST: `${URL_BE}/api/friendRequests`,
+    SOCKET_URL: `${URL_BE}`
 };
