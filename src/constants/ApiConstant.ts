@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
+
 const HOST_BE = Constants.expoConfig?.extra?.HOST_BE;
 const PORT_BE = Constants.expoConfig?.extra?.PORT_BE;
-
 const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
 
 export const ApiEndpoints = {
