@@ -14,6 +14,7 @@ import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import FriendRequest from '@/src/models/FriendRequest';
 import { useAuth } from '@/src/contexts/UserContext';
+import SocketService from '@/src/api/services/SocketService';
 
 export default function FriendRequestList() {
     const [requests, setRequests] = useState<FriendRequest[]>([]);
@@ -26,6 +27,25 @@ export default function FriendRequestList() {
 
     useEffect(() => {
         loadFriendRequests();
+        
+        // Set up socket listeners
+        const socketService = SocketService.getInstance();
+        
+        // Listen for new friend requests
+        const handleNewFriendRequest = (friendRequest: FriendRequest) => {
+            console.log('New friend request received:', friendRequest);
+            if (friendRequest.receiverId === user?.id) {
+                // If the current user is the receiver, add the request to the list
+                setRequests(prevRequests => [...prevRequests, friendRequest]);
+            }
+        };
+        
+        socketService.onFriendRequest(handleNewFriendRequest);
+        
+        // Cleanup socket listeners
+        return () => {
+            socketService.removeFriendRequestListener(handleNewFriendRequest);
+        };
     }, [user]);
 
     const loadFriendRequests = async () => {
@@ -92,18 +112,17 @@ export default function FriendRequestList() {
             }
 
             const newRequest = {
-                senderId: user.id,
-                receiverId: receiverId,
+                senderId: user.id || '',
+                receiverId: receiverId
             };
 
-            const response = await FriendRequestService.createFriendRequest(newRequest);
-            if (response.success) {
-                Alert.alert('Thông báo', 'Đã gửi lời mời kết bạn');
-                setSearchQuery('');
-                setSearchResults([]);
-            } else {
-                Alert.alert('Lỗi', response.message || 'Không thể gửi lời mời kết bạn');
-            }
+            // Send friend request through socket
+            const socketService = SocketService.getInstance();
+            socketService.sendFriendRequest(newRequest);
+            
+            Alert.alert('Thông báo', 'Đã gửi lời mời kết bạn');
+            setSearchQuery('');
+            setSearchResults([]);
         } catch (err) {
             Alert.alert('Lỗi', 'Đã xảy ra lỗi khi gửi lời mời kết bạn');
             console.error('Lỗi khi gửi lời mời kết bạn:', err);
@@ -232,7 +251,7 @@ export default function FriendRequestList() {
                         >
                             <Image
                                 source={{
-                                    uri: `https://ui-avatars.com/api/?name=${request.senderId}&background=0068FF&color=fff`
+                                    uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(request.senderId)}&background=0068FF&color=fff`
                                 }}
                                 className="w-12 h-12 rounded-full"
                             />

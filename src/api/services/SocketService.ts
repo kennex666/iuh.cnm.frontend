@@ -3,13 +3,14 @@ import { useEffect, useRef } from 'react';
 import { ApiEndpoints } from '@/src/constants/ApiConstant';
 import { Message } from '@/src/models/Message';
 import { Conversation } from '@/src/models/Conversation';
+import FriendRequest from '@/src/models/FriendRequest';
 
 class SocketService {
     private static instance: SocketService;
     private socket: Socket | null = null;
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
-    private friendRequestCallbacks: ((userId: string) => void)[] = [];
+    private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
 
     private constructor() {}
 
@@ -63,8 +64,9 @@ class SocketService {
             this.conversationCallbacks.forEach(callback => callback(conversation));
         });
 
-        this.socket.on('friend_request', (userId: string) => {
-            this.friendRequestCallbacks.forEach(callback => callback(userId));
+        this.socket.on('friend_request', (friendRequest: FriendRequest) => {
+            console.log('Received friend request:', friendRequest);
+            this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
         });
 
         this.socket.on('pong', (message: string) => {
@@ -97,6 +99,12 @@ class SocketService {
         }
     }
 
+    public sendFriendRequest(friendRequest: any): void {
+        if (this.socket) {
+            this.socket.emit('send_friend_request', friendRequest);
+        }
+    }
+
     public onNewMessage(callback: (message: Message) => void): void {
         this.messageCallbacks.push(callback);
     }
@@ -105,7 +113,7 @@ class SocketService {
         this.conversationCallbacks.push(callback);
     }
 
-    public onFriendRequest(callback: (userId: string) => void): void {
+    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks.push(callback);
     }
 
@@ -117,7 +125,7 @@ class SocketService {
         this.conversationCallbacks = this.conversationCallbacks.filter(cb => cb !== callback);
     }
 
-    public removeFriendRequestListener(callback: (userId: string) => void): void {
+    public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
     }
 }

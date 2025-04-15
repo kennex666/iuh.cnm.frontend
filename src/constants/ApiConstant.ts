@@ -1,4 +1,6 @@
-import {HOST_BE, PORT_BE} from '@env';
+// import {HOST_BE, PORT_BE} from '@env';
+const HOST_BE = '192.168.1.72';
+const PORT_BE = '8087';
 
 const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
 
