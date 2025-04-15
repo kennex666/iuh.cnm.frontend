@@ -2,12 +2,12 @@ const HOST = "localhost";
 const PORT = "8087";
 const BASE_URL = `http://${HOST}:${PORT}`;
 
-export enum ApiEndpoints {
-    API_2FA = "/api/2fa",
-    API_AUTH = "/api/auth",
-    API_USER = "/api/user",
-    API_CONVERSATION = "/api/conversation",
-    API_MESSAGE = "/api/message",
-    API_FILE = "/api/file",
-    API_FRIEND_REQUEST = "/api/friend-request"
-}
+export const ApiEndpoints = {
+    API_2FA: `${BASE_URL}/api/2fa`,
+    API_AUTH: `${BASE_URL}/api/auth`,
+    API_USER: `${BASE_URL}/api/user`,
+    API_CONVERSATION: `${BASE_URL}/api/conversations`,
+    API_MESSAGE: `${BASE_URL}/api/messages`,
+    API_FILE: `${BASE_URL}/api/file`,
+    API_FRIEND_REQUEST: `${BASE_URL}/api/friendRequests`
+};

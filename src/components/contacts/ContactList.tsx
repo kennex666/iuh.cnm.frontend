@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,31 +8,87 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { FriendRequestService } from '@/src/api/services/FriendRequestService';
+import FriendRequest from '@/src/models/FriendRequest';
+import { AuthStorage } from '@/src/services/AuthStorage';
+import { useAuth } from '@/src/contexts/UserContext';
 
 export default function ContactList() {
-    // Mock data for UI demonstration
-    const contacts = [
-        { id: '1', name: 'Ái Duy', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: true },
-        { id: '2', name: 'An Khương Nguyễn', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: false },
-        { id: '3', name: 'Anh Thư', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: true },
-        { id: '4', name: 'Bảo Phúc', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: false },
-        { id: '5', name: 'Bảo Phụng', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: true },
-        { id: '6', name: 'Bảo Trọng', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: false },
-        { id: '7', name: 'Bình', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png', isOnline: true },
-    ];
+    const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const { user } = useAuth();
 
-    // Group contacts by first letter
-    const groupedContacts = contacts.reduce((groups: { [key: string]: typeof contacts }, contact) => {
-        const firstLetter = contact.name.charAt(0).toUpperCase();
-        if (!groups[firstLetter]) {
-            groups[firstLetter] = [];
+    useEffect(() => {
+        loadFriendRequests();
+    }, [user]);
+
+    const loadFriendRequests = async () => {
+        try {
+            setLoading(true);
+            if (!user) {
+                setError('Không tìm thấy ID người dùng');
+                return;
+            }
+
+            const response = await FriendRequestService.getAllAcceptedFriendRequests(user.id || "");
+            console.log(response);
+            if (response.success) {
+                setFriendRequests(response.friendRequests);
+            } else {
+                setError(response.message);
+            }
+        } catch (err) {
+            setError('Lỗi khi tải danh sách bạn bè');
+            console.error('Lỗi khi tải danh sách bạn bè:', err);
+        } finally {
+            setLoading(false);
         }
-        groups[firstLetter].push(contact);
-        return groups;
-    }, {});
+    };
 
-    // Sort groups alphabetically
-    const sortedGroups = Object.keys(groupedContacts).sort();
+    const handleAcceptRequest = async (id: string) => {
+        try {
+            const response = await FriendRequestService.acceptFriendRequest(id);
+            if (response.success) {
+                loadFriendRequests(); // Reload the list
+            }
+        } catch (err) {
+            console.error('Lỗi khi chấp nhận lời mời kết bạn:', err);
+        }
+    };
+
+    const handleDeclineRequest = async (id: string) => {
+        try {
+            const response = await FriendRequestService.declineFriendRequest(id);
+            if (response.success) {
+                loadFriendRequests(); // Reload the list
+            }
+        } catch (err) {
+            console.error('Lỗi khi từ chối lời mời kết bạn:', err);
+        }
+    };
+
+    const filteredRequests = friendRequests.filter(request => 
+        request.senderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        request.receiverId.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (loading) {
+        return (
+            <View className="flex-1 justify-center items-center">
+                <Text>Loading...</Text>
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View className="flex-1 justify-center items-center">
+                <Text className="text-red-500">{error}</Text>
+            </View>
+        );
+    }
 
     return (
         <View className="flex-1 bg-white">
@@ -44,42 +100,51 @@ export default function ContactList() {
                         className="flex-1 ml-2 text-base text-gray-800"
                         placeholder="Tìm bạn bè..."
                         placeholderTextColor="#666"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
                     />
                 </View>
             </View>
 
-            {/* Contacts List */}
+            {/* Friend Requests List */}
             <ScrollView className="flex-1">
-                {sortedGroups.map(letter => (
-                    <View key={letter}>
-                        {/* Section Header */}
-                        <View className="px-4 py-2 bg-gray-50">
-                            <Text className="text-sm font-semibold text-gray-500">{letter}</Text>
-                        </View>
-
-                        {/* Contact Items */}
-                        {groupedContacts[letter].map(contact => (
-                            <TouchableOpacity
-                                key={contact.id}
-                                className="flex-row items-center px-4 py-3 border-b border-gray-100"
-                            >
-                                <Image
-                                    source={{ uri: contact.avatarUrl }}
-                                    className="w-12 h-12 rounded-full"
-                                />
-                                <View className="flex-1 ml-3">
-                                    <Text className="text-base font-medium text-gray-800">
-                                        {contact.name}
-                                    </Text>
-                                    <Text className="text-sm text-gray-500">
-                                        {contact.isOnline ? 'Đang hoạt động' : 'Không hoạt động'}
-                                    </Text>
+                {filteredRequests.map(request => (
+                    <View key={request.id} className="border-b border-gray-100">
+                        <View className="flex-row items-center px-4 py-3">
+                            <Image
+                                source={{ uri: `https://ui-avatars.com/api/?name=${request.senderId}` }}
+                                className="w-12 h-12 rounded-full"
+                            />
+                            <View className="flex-1 ml-3">
+                                <Text className="text-base font-medium text-gray-800">
+                                    {request.senderId}
+                                </Text>
+                                <Text className="text-sm text-gray-500">
+                                    {request.status === 'pending' ? 'Đang chờ xác nhận' :
+                                     request.status === 'accepted' ? 'Đã chấp nhận' :
+                                     'Đã từ chối'}
+                                </Text>
+                                <Text className="text-xs text-gray-400">
+                                    {new Date(request.createAt).toLocaleDateString()}
+                                </Text>
+                            </View>
+                            {request.status === 'pending' && (
+                                <View className="flex-row">
+                                    <TouchableOpacity 
+                                        className="p-2 mr-2"
+                                        onPress={() => handleAcceptRequest(request.id)}
+                                    >
+                                        <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity 
+                                        className="p-2"
+                                        onPress={() => handleDeclineRequest(request.id)}
+                                    >
+                                        <Ionicons name="close-circle" size={24} color="#F44336" />
+                                    </TouchableOpacity>
                                 </View>
-                                <TouchableOpacity className="p-2">
-                                    <Ionicons name="ellipsis-vertical" size={20} color="#666" />
-                                </TouchableOpacity>
-                            </TouchableOpacity>
-                        ))}
+                            )}
+                        </View>
                     </View>
                 ))}
             </ScrollView>
