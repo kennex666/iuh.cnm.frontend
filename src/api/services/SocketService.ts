@@ -47,14 +47,6 @@ class SocketService {
             console.log('Socket disconnected');
         });
 
-        this.socket.on('online', (userId: string) => {
-            console.log(`User ${userId} is online`);
-        });
-
-        this.socket.on('login', ({ userId }) => {
-            console.log('Login successful for user:', userId);
-        });
-
         this.socket.on('new_message', (message: Message) => {
             console.log('Received new message:', message);
             this.messageCallbacks.forEach(callback => callback(message));
@@ -128,6 +120,20 @@ class SocketService {
     public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
     }
+
+    // join room
+    public joinConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('join_conversation', conversationId);
+        }
+    }
+    
+    public leaveConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('leave_conversation', conversationId);
+        }
+    }
+    
 }
 
 export default SocketService;
