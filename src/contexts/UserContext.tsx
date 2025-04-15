@@ -7,6 +7,7 @@ import {AuthProviderProp} from "@/src/models/auth/AuthProviderProp";
 import {AuthService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/services/AuthStorage';
 import {useRouter} from 'expo-router';
+import SocketService from '@/src/api/services/SocketService';
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
@@ -22,6 +23,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
     const router = useRouter();
     const [user, setUser] = useState<Partial<User> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const socketService = SocketService.getInstance();
 
     const loadUser = async () => {
         try {
@@ -34,12 +36,14 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
                     console.log('Using fresh user data from server');
                     setUser(result.user);
                     await UserStorage.saveUser(result.user);
+                    socketService.connect(token);
                 } else {
                     console.warn('Failed to fetch fresh user data:', result.message);
                     const storedUser = await UserStorage.getUser();
                     if (storedUser) {
                         console.log('Using cached user data from storage');
                         setUser(storedUser);
+                        socketService.connect(token);
                     } else {
                         console.warn('No valid user data available, logging out');
                         await logout();
@@ -73,6 +77,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
                 setUser(result.user);
                 await UserStorage.saveUser(result.user as User);
                 await AuthStorage.saveTokens(result.accessToken, result.refreshToken);
+                socketService.connect(result.accessToken);
                 return {
                     success: true,
                     message: 'Đăng nhập thành công!',
@@ -99,6 +104,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
             await UserStorage.removeUser();
             await AuthStorage.removeTokens();
             setUser(null);
+            socketService.disconnect();
         } catch (error) {
             console.error('Logout error:', error);
         }

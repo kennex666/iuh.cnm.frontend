@@ -3,6 +3,8 @@ import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
+import { useAuth } from '@/src/contexts/UserContext';
+import { UserService } from '@/src/api/services/UserService';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -13,6 +15,8 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { user } = useAuth();
+    const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const fetchConversations = async () => {
@@ -20,6 +24,23 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                 const response = await ConversationService.getConversations();
                 if (response.success) {
                     setConversations(response.conversations);
+                    
+                    // Fetch avatars for all participants
+                    const uniqueParticipantIds = new Set<string>();
+                    response.conversations.forEach(conv => {
+                        conv.participants.forEach(id => uniqueParticipantIds.add(id));
+                    });
+                    
+                    const avatars: Record<string, string> = {};
+                    for (const participantId of uniqueParticipantIds) {
+                        if (participantId !== user?.id) {
+                            const userResponse = await UserService.getUserById(participantId);
+                            if (userResponse.success && userResponse.user) {
+                                avatars[participantId] = userResponse.user.avatarURL;
+                            }
+                        }
+                    }
+                    setParticipantAvatars(avatars);
                 } else {
                     setError(response.message || "Failed to fetch conversations");
                 }
@@ -31,7 +52,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         };
 
         fetchConversations();
-    }, []); 
+    }, [user?.id]); 
 
     const formatTime = (dateString: string | undefined) => {
         if (!dateString) return '';
@@ -84,7 +105,9 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                         <View className="relative">
                             <Image
                                 source={{
-                                    uri: conversation.avatar,
+                                    uri: !conversation.isGroup && conversation.participants.length > 0 
+                                        ? participantAvatars[conversation.participants.find(id => id !== user?.id) || ''] || conversation.avatar
+                                        : conversation.avatar,
                                     headers: {
                                         'Accept': 'image/*'
                                     },

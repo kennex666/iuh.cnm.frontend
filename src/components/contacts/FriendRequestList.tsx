@@ -62,9 +62,9 @@ export default function FriendRequestList() {
             // TODO: Replace with actual user search API call
             // For now, using mock data
             const mockResults = [
-                { id: 'user_1', name: 'Nguyễn Văn A', avatar: 'https://ui-avatars.com/api/?name=Nguyen+A&background=0068FF&color=fff' },
-                { id: 'user_2', name: 'Trần Thị B', avatar: 'https://ui-avatars.com/api/?name=Tran+B&background=0068FF&color=fff' },
-                { id: 'user_3', name: 'Lê Văn C', avatar: 'https://ui-avatars.com/api/?name=Le+C&background=0068FF&color=fff' },
+                { id: `${new Date().getTime()}`, name: 'Nguyễn Văn A', avatar: 'https://ui-avatars.com/api/?name=Nguyen+A&background=0068FF&color=fff' },
+                { id: `${new Date().getTime()}`, name: 'Trần Thị B', avatar: 'https://ui-avatars.com/api/?name=Tran+B&background=0068FF&color=fff' },
+                { id: `${new Date().getTime()}`, name: 'Lê Văn C', avatar: 'https://ui-avatars.com/api/?name=Le+C&background=0068FF&color=fff' },
             ].filter(user => 
                 user.name.toLowerCase().includes(query.toLowerCase())
             );

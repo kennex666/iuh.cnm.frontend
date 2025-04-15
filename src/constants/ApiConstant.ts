@@ -9,5 +9,6 @@ export const ApiEndpoints = {
     API_CONVERSATION: `${BASE_URL}/api/conversations`,
     API_MESSAGE: `${BASE_URL}/api/messages`,
     API_FILE: `${BASE_URL}/api/file`,
-    API_FRIEND_REQUEST: `${BASE_URL}/api/friendRequests`
+    API_FRIEND_REQUEST: `${BASE_URL}/api/friendRequests`,
+    SOCKET_URL: `http://${HOST}:${PORT}`
 };

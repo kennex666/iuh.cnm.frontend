@@ -20,6 +20,8 @@ import {Message, MessageType} from '@/src/models/Message';
 import {MessageService} from '@/src/api/services/MessageService';
 import {useAuth} from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
+import SocketService from '@/src/api/services/SocketService';
+import { AuthStorage } from '@/src/services/AuthStorage';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -41,6 +43,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const [isModelSticker, setIsModelSticker] = useState(false);
     const [isModelGift, setIsModelGift] = useState(false);
     const scaleAnimation = useRef(new Animated.Value(0)).current;
+    const socketService = useRef(SocketService.getInstance()).current;
 
     const [inputHeight, setInputHeight] = useState(28);
     const [messageUsers, setMessageUsers] = useState<{[key: string]: any}>({});
@@ -66,7 +69,23 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     }, [selectedChat]);
 
     useEffect(() => {
-        // Fetch user info for each unique sender
+        // Listen for new messages
+        const handleNewMessage = (message: Message) => {
+            if (message.conversationId === selectedChat?.id) {
+                setMessages(prev => [...prev, message]);
+            }
+        };
+
+        socketService.onNewMessage(handleNewMessage);
+
+        // Cleanup on unmount
+        return () => {
+            socketService.removeMessageListener(handleNewMessage);
+        };
+    }, [selectedChat?.id]);
+
+    // Fetch user info for each unique sender
+    useEffect(() => {
         const senderIds = [...new Set(messages.map(msg => msg.senderId))];
         senderIds.forEach(id => {
             if (!messageUsers[id]) {
@@ -75,6 +94,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         });
     }, [messages]);
 
+    // Fetch messages from server
     const fetchMessages = async () => {
         if (!selectedChat?.id) return;
         
@@ -96,6 +116,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         }
     };
 
+    // Send message to server
     const handleSendMessage = async () => {
         if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
 
@@ -114,23 +135,18 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             // Send to server
             const response = await MessageService.sendMessage(messageData);
             if (response.success) {
-                // Update with server response
+                // Send through socket
+                socketService.sendMessage(messageData);
+                // Update local state
                 setMessages(prev => [...prev, messageData]);
                 setNewMessage('');
             } else {
-                // Remove failed message
-                setMessages(prev => 
-                    prev.filter(msg => msg.id !== messageData.id)
-                );
                 setError(response.statusMessage);
                 console.error('Failed to send message:', response.statusMessage);
             }
         } catch (err) {
             console.error('Error sending message:', err);
-            // Remove failed message
-            setMessages(prev => 
-                prev.filter(msg => msg.id !== messageData.id)
-            );
+            setError('Failed to send message');
         }
     };
 
