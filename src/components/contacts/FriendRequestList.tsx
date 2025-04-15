@@ -139,7 +139,7 @@ export default function FriendRequestList() {
     const handleSendFriendRequest = async (receiverId: string) => {
         try {
             if (!user) {
-                Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng');
+                console.log('Không tìm thấy thông tin người dùng');
                 return;
             }
 
@@ -148,32 +148,33 @@ export default function FriendRequestList() {
                 receiverId: receiverId
             };
 
-            const response = await FriendRequestService.createFriendRequest(newRequest);
-            if (response.success) {
-                // Send friend request through socket
-                const socketService = SocketService.getInstance();
-                socketService.sendFriendRequest(newRequest, response.success);
-            }
-            // Update UI immediately
-            const updatedResults = searchResults.map(result => {
-                if (result.id === receiverId) {
-                    return {
-                        ...result,
-                        pendingRequest: true
-                    };
-                }
-                return result;
-            });
-            setSearchResults(updatedResults);
+            // Send friend request through socket
+            const socketService = SocketService.getInstance();
+            socketService.sendFriendRequest(newRequest);
             
-            // Reload friend sent requests
+            //reload friend requests
+            loadFriendRequests();   
+            loadFriendAccepted();
             loadFriendSent();
-            
-            Alert.alert('Thông báo', 'Đã gửi lời mời kết bạn');
+
+            console.log('Đã gửi lời mời kết bạn');
             setSearchQuery('');
+            setSearchResults([]);
         } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi gửi lời mời kết bạn');
-            console.error('Lỗi khi gửi lời mời kết bạn:', err);
+            console.log('Lỗi khi gửi lời mời kết bạn:', err);
+        }
+    };
+    const handleDeclineRequest = async (requestId: string) => {
+        try {
+            const response = await FriendRequestService.declineFriendRequest(requestId);
+            console.log('response', response);
+            if (response.success) {
+                console.log('Đã từ chối lời mời kết bạn');
+            } else {
+                console.log('Không thể từ chối lời mời kết bạn');
+            }
+        } catch (err) {
+            console.log('Lỗi khi từ chối lời mời kết bạn:', err);
         }
     };
 
@@ -181,45 +182,13 @@ export default function FriendRequestList() {
         try {
             const response = await FriendRequestService.acceptFriendRequest(requestId);
             if (response.success) {
-                // Update UI immediately
-                const updatedResults = searchResults.map(result => {
-                    const request = requests.find(req => req.id === requestId);
-                    if (request && result.id === request.senderId) {
-                        return {
-                            ...result,
-                            isFriend: true
-                        };
-                    }
-                    return result;
-                });
-                setSearchResults(updatedResults);
-                
-                // Reload lists
-                loadFriendRequests();
-                loadFriendAccepted();
-                
-                Alert.alert('Thông báo', 'Đã chấp nhận lời mời kết bạn');
-            } else {
-                Alert.alert('Lỗi', response.message || 'Không thể chấp nhận lời mời kết bạn');
-            }
-        } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi chấp nhận lời mời kết bạn');
-            console.error('Lỗi khi chấp nhận lời mời kết bạn:', err);
-        }
-    };
-
-    const handleDeclineRequest = async (requestId: string) => {
-        try {
-            const response = await FriendRequestService.declineFriendRequest(requestId);
-            if (response.success) {
-                Alert.alert('Thông báo', 'Đã từ chối lời mời kết bạn');
+                console.log('Đã chấp nhận lời mời kết bạn');
                 loadFriendRequests(); // Reload the list
             } else {
-                Alert.alert('Lỗi', response.message || 'Không thể từ chối lời mời kết bạn');
+                console.log('Không thể chấp nhận lời mời kết bạn');
             }
         } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi từ chối lời mời kết bạn');
-            console.error('Lỗi khi từ chối lời mời kết bạn:', err);
+            console.log('Lỗi khi chấp nhận lời mời kết bạn:', err);
         }
     };
 
@@ -227,30 +196,17 @@ export default function FriendRequestList() {
         try {
             const response = await FriendRequestService.deleteFriendRequest(requestId);
             if (response.success) {
-                // Update UI immediately
-                const updatedResults = searchResults.map(result => {
-                    const request = friendSent.find(req => req.id === requestId);
-                    if (request && result.id === request.receiverId) {
-                        return {
-                            ...result,
-                            pendingRequest: false
-                        };
-                    }
-                    return result;
-                });
-                setSearchResults(updatedResults);
-                
-                // Reload lists
+                console.log('Đã hủy lời mời kết bạn');
+                // Reload both friend requests and search results
                 loadFriendRequests();
-                loadFriendSent();
-                
-                Alert.alert('Thông báo', 'Đã hủy lời mời kết bạn');
+                if (searchQuery.length >= 2) {
+                    handleSearch(searchQuery); // Refresh search results
+                }
             } else {
-                Alert.alert('Lỗi', response.message || 'Không thể hủy lời mời kết bạn');
+                console.log('Không thể hủy lời mời kết bạn');
             }
         } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi hủy lời mời kết bạn');
-            console.error('Lỗi khi hủy lời mời kết bạn:', err);
+            console.log('Lỗi khi hủy lời mời kết bạn:', err);
         }
     };
 
