@@ -11,6 +11,8 @@ class SocketService {
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((userId: string) => void)[] = [];
     private onlineStatusCallbacks: ((userId: string, isOnline: boolean) => void)[] = [];
+    private currentRooms: Set<string> = new Set();
+    private loginCallbacks: ((userId: string) => void)[] = [];
 
     private constructor() {}
 
@@ -39,16 +41,25 @@ class SocketService {
     private setupEventListeners(): void {
         if (!this.socket) return;
 
-        this.socket.on('connection', () => {
+        this.socket.on('connect', () => {
             console.log('Socket connected');
+            // Rejoin all rooms after reconnection
+            this.currentRooms.forEach(room => {
+                this.joinRoom(room);
+            });
         });
 
         this.socket.on('disconnect', () => {
             console.log('Socket disconnected');
         });
 
+        this.socket.on('login', ({ userId }) => {
+            console.log('Login successful for user:', userId);
+            this.loginCallbacks.forEach(callback => callback(userId));
+        });
+
         this.socket.on('new_message', (message: Message) => {
-            console.log('New message received:', message);
+            console.log('Received new message:', message);
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
@@ -71,6 +82,26 @@ class SocketService {
         this.socket.on('pong', (message: string) => {
             console.log('Pong received: ', message);
         });
+
+        this.socket.on('error', (error: { message: string }) => {
+            console.error('Socket error:', error.message);
+        });
+    }
+
+    public joinRoom(roomId: string): void {
+        if (this.socket) {
+            console.log('Joining room:', roomId);
+            this.socket.emit('join_room', roomId);
+            this.currentRooms.add(roomId);
+        }
+    }
+
+    public leaveRoom(roomId: string): void {
+        if (this.socket) {
+            console.log('Leaving room:', roomId);
+            this.socket.emit('leave_room', roomId);
+            this.currentRooms.delete(roomId);
+        }
     }
 
     public disconnect(): void {
@@ -78,6 +109,7 @@ class SocketService {
             console.log('Disconnecting socket');
             this.socket.disconnect();
             this.socket = null;
+            this.currentRooms.clear();
         }
     }
 
@@ -110,6 +142,10 @@ class SocketService {
         this.onlineStatusCallbacks.push(callback);
     }
 
+    public onLogin(callback: (userId: string) => void): void {
+        this.loginCallbacks.push(callback);
+    }
+
     public removeMessageListener(callback: (message: Message) => void): void {
         this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback);
     }
@@ -124,6 +160,10 @@ class SocketService {
 
     public removeUserStatusListener(callback: (userId: string, isOnline: boolean) => void): void {
         this.onlineStatusCallbacks = this.onlineStatusCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeLoginListener(callback: (userId: string) => void): void {
+        this.loginCallbacks = this.loginCallbacks.filter(cb => cb !== callback);
     }
 }
 

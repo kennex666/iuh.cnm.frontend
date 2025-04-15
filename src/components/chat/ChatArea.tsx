@@ -1,5 +1,5 @@
-import React, {useRef, useState, useEffect} from 'react';
-import {Ionicons} from '@expo/vector-icons';
+import React, { useRef, useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import {
     ActivityIndicator,
     Animated,
@@ -11,14 +11,14 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import {Conversation} from '@/src/models/Conversation';
+import { Conversation } from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
-import {Shadows} from '@/src/styles/Shadow';
-import {Message, MessageType} from '@/src/models/Message';
-import {MessageService} from '@/src/api/services/MessageService';
-import {useAuth} from '@/src/contexts/UserContext';
+import { Shadows } from '@/src/styles/Shadow';
+import { Message, MessageType } from '@/src/models/Message';
+import { MessageService } from '@/src/api/services/MessageService';
+import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 
@@ -29,8 +29,8 @@ export interface ChatAreaProps {
     onInfoPress?: () => void;
 }
 
-export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
-    const {user} = useAuth();
+export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: ChatAreaProps) {
+    const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const socketService = useRef(SocketService.getInstance()).current;
 
     const [inputHeight, setInputHeight] = useState(28);
-    const [messageUsers, setMessageUsers] = useState<{[key: string]: any}>({});
+    const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
 
     const fetchUserInfo = async (userId: string) => {
         try {
@@ -97,7 +97,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     // Fetch messages from server
     const fetchMessages = async () => {
         if (!selectedChat?.id) return;
-        
+
         try {
             setLoading(true);
             const response = await MessageService.getMessages(selectedChat.id);
@@ -132,11 +132,9 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         };
 
         try {
-            // Send through socket only
+            // Send through socket
             socketService.sendMessage(messageData);
-            // Update local state immediately for better UX
-            setMessages(prev => [...prev, messageData]);
-            setNewMessage('');
+            
         } catch (err) {
             console.error('Error sending message:', err);
             setError('Failed to send message');
@@ -225,17 +223,17 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 <View className="flex-row items-center flex-1">
                     {onBackPress && (
                         <TouchableOpacity onPress={onBackPress} className="mr-3">
-                            <Ionicons name="arrow-back" size={24} color="#666"/>
+                            <Ionicons name="arrow-back" size={24} color="#666" />
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
+                        source={{ uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
                         className="w-10 h-10 rounded-full"
                     />
-                    <View className="ml-3" style={{maxWidth: '45%'}}>
+                    <View className="ml-3" style={{ maxWidth: '45%' }}>
                         <Text className="font-semibold text-gray-900 text-base"
-                              numberOfLines={1}
-                              ellipsizeMode="tail">
+                            numberOfLines={1}
+                            ellipsizeMode="tail">
                             {selectedChat.name || selectedChat.participants.join(', ')}
                         </Text>
                         {selectedChat.isGroup && (
@@ -253,13 +251,13 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                             socketService.ping();
                         }}
                     >
-                        <Ionicons name="call-outline" size={22} color="#666"/>
+                        <Ionicons name="call-outline" size={22} color="#666" />
                     </TouchableOpacity>
                     <TouchableOpacity className="p-2 mr-1">
-                        <Ionicons name="videocam-outline" size={22} color="#666"/>
+                        <Ionicons name="videocam-outline" size={22} color="#666" />
                     </TouchableOpacity>
                     <TouchableOpacity className="p-2" onPress={onInfoPress}>
-                        <Ionicons name="information-circle-outline" size={24} color="#666"/>
+                        <Ionicons name="information-circle-outline" size={24} color="#666" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -314,7 +312,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             <View className="border-t border-gray-200 p-4">
                 <View className="flex-row items-center position-relative">
                     <TouchableOpacity className="p-2" onPress={toggleModelChecked}>
-                        <Ionicons name="add-circle-outline" size={24} color="#666"/>
+                        <Ionicons name="add-circle-outline" size={24} color="#666" />
                     </TouchableOpacity>
                     {isModelChecked && (
                         <View className='absolute bottom-full left-0 bg-white z-50'>
@@ -346,15 +344,15 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                     <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
 
                                     <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
-                                        <Ionicons name="image-outline" size={24} color="#666"/>
+                                        <Ionicons name="image-outline" size={24} color="#666" />
                                         <Text className="ml-2  text-gray-800">Hình ảnh</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity className="flex-row items-center mb-2">
-                                        <Ionicons name="file-tray-full-outline" size={24} color="#666"/>
+                                        <Ionicons name="file-tray-full-outline" size={24} color="#666" />
                                         <Text className="ml-2 text-gray-800">File</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelGift}>
-                                        <Ionicons name="gift-outline" size={24} color="#666"/>
+                                        <Ionicons name="gift-outline" size={24} color="#666" />
                                         <Text className="ml-2 text-gray-800">Quà tặng</Text>
                                     </TouchableOpacity>
                                 </View>
@@ -363,7 +361,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     )}
                     <View className='relative'>
                         <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
-                            <Ionicons name="gift-outline" size={24} color="#666"/>
+                            <Ionicons name="gift-outline" size={24} color="#666" />
                         </TouchableOpacity>
                         {isModelSticker && (
                             <View
@@ -391,7 +389,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                 height: Math.min(inputHeight, 26 * 3),
                             }}
                             onContentSizeChange={(event) => {
-                                const {height} = event.nativeEvent.contentSize;
+                                const { height } = event.nativeEvent.contentSize;
                                 setInputHeight(height > 26 ? height : 26);
                             }}
                             onBlur={() => {
@@ -406,22 +404,21 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     </View>
                     <View className='relative'>
                         <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
-                            <Ionicons name="happy-outline" size={24} color="#666"/>
+                            <Ionicons name="happy-outline" size={24} color="#666" />
                         </TouchableOpacity>
                         {
                             isModelEmoji && (
                                 <View
                                     className='absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200'
                                     style={Shadows.xl}>
-                                    <EmojiPicker setMessage={setNewMessage} toggleModelEmoji={toggleModelEmoji}/>
+                                    <EmojiPicker setMessage={setNewMessage} toggleModelEmoji={toggleModelEmoji} />
                                 </View>
                             )
                         }
                     </View>
                     <TouchableOpacity
-                        className={`p-3 rounded-full ${
-                            newMessage.trim() ? 'bg-blue-500' : 'bg-gray-200'
-                        }`}
+                        className={`p-3 rounded-full ${newMessage.trim() ? 'bg-blue-500' : 'bg-gray-200'
+                            }`}
                         onPress={handleSendMessage}
                         disabled={!newMessage.trim()}
                         style={[
