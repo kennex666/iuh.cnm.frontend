@@ -91,9 +91,12 @@ class SocketService {
         }
     }
 
-    public sendFriendRequest(friendRequest: any): void {
+    public sendFriendRequest(friendRequest: any, success: boolean): void {
         if (this.socket) {
-            this.socket.emit('send_friend_request', friendRequest);
+            this.socket.emit('send_friend_request', {
+                friendRequest: friendRequest,
+                success: success
+            });
         }
     }
 

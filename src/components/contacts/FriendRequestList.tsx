@@ -148,10 +148,12 @@ export default function FriendRequestList() {
                 receiverId: receiverId
             };
 
-            // Send friend request through socket
-            const socketService = SocketService.getInstance();
-            socketService.sendFriendRequest(newRequest);
-            
+            const response = await FriendRequestService.createFriendRequest(newRequest);
+            if (response.success) {
+                // Send friend request through socket
+                const socketService = SocketService.getInstance();
+                socketService.sendFriendRequest(newRequest, response.success);
+            }
             // Update UI immediately
             const updatedResults = searchResults.map(result => {
                 if (result.id === receiverId) {
