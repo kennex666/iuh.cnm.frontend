@@ -48,6 +48,9 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
 
     const [inputHeight, setInputHeight] = useState(28);
     const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
+    const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+    const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+    const [showMessageOptions, setShowMessageOptions] = useState(false);
 
     const fetchUserInfo = async (userId: string) => {
         try {
@@ -215,6 +218,32 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         setIsModelGift(!isModelGift);
     };
 
+    const handleLongPressMessage = (msg: Message) => {
+        setSelectedMessage(msg);
+        setShowMessageOptions(true);
+    };
+
+    const handleReplyMessage = (msg: Message) => {
+        setReplyingTo(msg);
+        setShowMessageOptions(false);
+        // Focus vào input
+    };
+
+    const handleForwardMessage = async (msg: Message) => {
+        // TODO: Implement forward message logic
+        setShowMessageOptions(false);
+    };
+
+    const handleDeleteMessage = async (msg: Message) => {
+        try {
+            // TODO: Call API to delete message
+            setMessages(prev => prev.filter(m => m.id !== msg.id));
+            setShowMessageOptions(false);
+        } catch (err) {
+            console.error('Error deleting message:', err);
+        }
+    };
+
     if (loading) {
         return (
             <View className="flex-1 items-center justify-center">
@@ -307,49 +336,141 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     </View>
                 )}
                 {messages.map((msg, index) => (
-                    <View
+                    <TouchableOpacity
                         key={msg.id}
-                        className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+                        onLongPress={() => handleLongPressMessage(msg)}
+                        onPress={() => {
+                            // Nhấn một lần để hiện thông tin tin nhắn
+                            setSelectedMessage(msg);
+                            setShowMessageOptions(true);
+                        }}
+                        delayLongPress={200}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        {msg.senderId !== user?.id && (
-                            <Image
-                                source={{
-                                    uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
-                                }}
-                                className="w-8 h-8 rounded-full mr-2"
-                            />
-                        )}
-                        <View 
-                            className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                        <View
+                            className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                         >
+                            {msg.senderId !== user?.id && (
+                                <Image
+                                    source={{
+                                        uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                    }}
+                                    className="w-8 h-8 rounded-full mr-2"
+                                />
+                            )}
                             <View 
-                                className={`rounded-2xl px-4 py-2 ${
-                                    msg.senderId === user?.id 
-                                        ? 'bg-blue-500 rounded-br-none' 
-                                        : 'bg-gray-100 rounded-bl-none'
-                                }`}
+                                className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
                             >
-                                <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
-                                    {msg.content}
+                                {msg.repliedToId && (
+                                    <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
+                                        <Text className="text-xs text-gray-500">
+                                            Trả lời {messageUsers[messages.find(m => m.id === msg.repliedToId)?.senderId || '']?.name}
+                                        </Text>
+                                        <Text className="text-sm text-gray-700" numberOfLines={1}>
+                                            {messages.find(m => m.id === msg.repliedToId)?.content}
+                                        </Text>
+                                    </View>
+                                )}
+                                <View 
+                                    className={`rounded-2xl px-4 py-2 ${
+                                        msg.senderId === user?.id 
+                                            ? 'bg-blue-500 rounded-br-none' 
+                                            : 'bg-gray-100 rounded-bl-none'
+                                    }`}
+                                >
+                                    <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
+                                        {msg.content}
+                                    </Text>
+                                </View>
+                                <Text className="text-xs text-gray-500 mt-1">
+                                    {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
                                 </Text>
+                                <MessageReaction
+                                    messageId={msg.id}
+                                    isVisible={activeReactionId === msg.id}
+                                    onReact={handleReaction}
+                                    onToggle={() => handleReactionToggle(msg.id)}
+                                    isSender={msg.senderId === user?.id}
+                                />
                             </View>
-                            <Text className="text-xs text-gray-500 mt-1">
-                                {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </Text>
-                            <MessageReaction
-                                messageId={msg.id}
-                                isVisible={activeReactionId === msg.id}
-                                onReact={handleReaction}
-                                onToggle={() => handleReactionToggle(msg.id)}
-                                isSender={msg.senderId === user?.id}
-                            />
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 ))}
             </ScrollView>
+
+            {/* Message Options Modal */}
+            {showMessageOptions && selectedMessage && (
+                <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                    <View className="bg-white rounded-lg w-[80%] overflow-hidden">
+                        <View className="p-4 border-b border-gray-100">
+                            <Text className="text-gray-500 text-sm">Tin nhắn của {messageUsers[selectedMessage.senderId]?.name}</Text>
+                            <Text className="text-gray-800 mt-1">{selectedMessage.content}</Text>
+                            <Text className="text-gray-400 text-xs mt-1">
+                                {new Date(selectedMessage.sentAt).toLocaleString('vi-VN', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                })}
+                            </Text>
+                        </View>
+                        <TouchableOpacity 
+                            className="flex-row items-center p-4 border-b border-gray-100"
+                            onPress={() => handleReplyMessage(selectedMessage)}
+                        >
+                            <Ionicons name="return-up-back" size={24} color="#3B82F6" />
+                            <Text className="ml-3 text-gray-800">Trả lời</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            className="flex-row items-center p-4 border-b border-gray-100"
+                            onPress={() => handleForwardMessage(selectedMessage)}
+                        >
+                            <Ionicons name="arrow-redo" size={24} color="#3B82F6" />
+                            <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
+                        </TouchableOpacity>
+                        {selectedMessage.senderId === user?.id && (
+                            <TouchableOpacity 
+                                className="flex-row items-center p-4"
+                                onPress={() => handleDeleteMessage(selectedMessage)}
+                            >
+                                <Ionicons name="trash" size={24} color="#EF4444" />
+                                <Text className="ml-3 text-red-500">Xóa tin nhắn</Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity 
+                            className="absolute top-0 right-0 p-4"
+                            onPress={() => setShowMessageOptions(false)}
+                        >
+                            <Ionicons name="close" size={24} color="#666" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
+            {/* Reply Preview */}
+            {replyingTo && (
+                <View className="bg-gray-50 px-4 py-2 flex-row items-center border-t border-gray-200">
+                    <View className="flex-1">
+                        <Text className="text-blue-500 text-sm font-medium">
+                            Trả lời {messageUsers[replyingTo.senderId]?.name}
+                        </Text>
+                        <Text className="text-gray-600 text-sm" numberOfLines={1}>
+                            {replyingTo.content}
+                        </Text>
+                    </View>
+                    <TouchableOpacity 
+                        className="p-2"
+                        onPress={() => setReplyingTo(null)}
+                    >
+                        <Ionicons name="close" size={20} color="#666" />
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Input Area */}
             <View className="border-t border-gray-200 p-4">
