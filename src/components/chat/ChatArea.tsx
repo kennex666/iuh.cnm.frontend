@@ -72,10 +72,10 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const [attachments, setAttachments] = useState<{[key: string]: Attachment}>({});
     const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
-    const isImageFile = (mimeType: string): boolean => {
-        if (!mimeType) return false;
-        return mimeType.startsWith('image/');
-    };
+    // Add these to your state variables at the top of the component
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [uploadStatusMessage, setUploadStatusMessage] = useState('Preparing to upload...');
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Thêm hàm xử lý chọn file
     const handleSelectFile = async () => {
@@ -97,16 +97,23 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         }
     };
 
-        const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
+    const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
         if (!selectedChat?.id || !user?.id) return;
-    
+
         try {
+            // Show upload modal
+            setShowUploadModal(true);
             setFileUploading(true);
             setError(null);
-    
+            setUploadProgress(0);
+            setUploadStatusMessage('Preparing file...');
+
             // Chuẩn bị fileData để gửi qua socket
             let fileBuffer: ArrayBuffer;
-            
+
+            setUploadStatusMessage('Reading file content...');
+            setUploadProgress(10);
+
             // Đọc nội dung file theo cách phù hợp với platform
             if (Platform.OS === 'web') {
                 // Web platform handling
@@ -126,53 +133,80 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 }
                 fileBuffer = bytes.buffer;
             }
-    
+
+            setUploadProgress(40);
+            setUploadStatusMessage('Preparing to send file...');
+
             // Cấu trúc dữ liệu file để gửi qua socket
             const fileData = {
                 buffer: fileBuffer,
                 fileName: fileAsset.name,
-                contentType: fileAsset.mimeType || 'application/octet-stream'
+                contentType: fileAsset.mimeType || 'application/octet-stream',
             };
-    
+
+            setUploadProgress(50);
+            setUploadStatusMessage('Setting up connection...');
+
             // Lắng nghe phản hồi từ socket về việc gửi attachment thành công
-            const attachmentSentHandler = (data: { success: boolean, messageId: string }) => {
+            const attachmentSentHandler = (data: {success: boolean; messageId: string}) => {
                 console.log('Attachment sent successfully:', data);
                 if (data.success) {
+                    setUploadProgress(100);
+                    setUploadStatusMessage('File sent successfully!');
+
                     // Sau khi gửi thành công, cập nhật danh sách tin nhắn
                     fetchMessages();
-                    
+
                     // Reset reply state nếu có
                     if (replyingTo) {
                         setReplyingTo(null);
                     }
+
+                    // Close modal after short delay to show success
+                    setTimeout(() => {
+                        setShowUploadModal(false);
+                    }, 800);
                 }
                 // Gỡ bỏ event listener sau khi nhận được phản hồi
                 socketService.removeAttachmentSentListener(attachmentSentHandler);
             };
-    
+
             // Lắng nghe lỗi từ socket (nếu có)
-            const attachmentErrorHandler = (error: { message: string }) => {
+            const attachmentErrorHandler = (error: {message: string}) => {
                 console.error('Attachment error:', error.message);
+                setUploadStatusMessage(`Error: ${error.message}`);
                 setError(`Không thể gửi tệp đính kèm: ${error.message}`);
+
+                // Close modal after showing error
+                setTimeout(() => {
+                    setShowUploadModal(false);
+                }, 2000);
+
                 // Gỡ bỏ event listener sau khi nhận được lỗi
                 socketService.removeAttachmentErrorListener(attachmentErrorHandler);
             };
-    
+
             // Đăng ký các event handlers
             socketService.onAttachmentSent(attachmentSentHandler);
             socketService.onAttachmentError(attachmentErrorHandler);
-    
+
+            setUploadProgress(70);
+            setUploadStatusMessage('Sending file via socket...');
+
             // Gửi file thông qua socket
             socketService.sendAttachment(
                 selectedChat.id,
                 fileData,
                 replyingTo?.id // Truyền repliedTold nếu có
             );
-    
+
+            setUploadProgress(80);
+            setUploadStatusMessage('Waiting for server confirmation...');
+
             console.log(`Sending file via socket: ${fileAsset.name}`);
-    
         } catch (error) {
             console.error('Error uploading file:', error);
+            setUploadStatusMessage('Upload failed');
             setError(
                 typeof error === 'string'
                     ? error
@@ -180,6 +214,11 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     ? error.message
                     : 'Không thể gửi file. Vui lòng thử lại.'
             );
+
+            // Close modal after showing error
+            setTimeout(() => {
+                setShowUploadModal(false);
+            }, 2000);
         } finally {
             setFileUploading(false);
             toggleModelChecked(); // Đóng modal chọn loại file
@@ -255,7 +294,6 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     // Join conversation when component mounts
     useEffect(() => {
-            
         if (selectedChat) {
             fetchMessages();
             // Join new conversation
@@ -311,9 +349,9 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     useEffect(() => {
         const loadOtherParticipant = async () => {
             if (!selectedChat || !user) return;
-            
+
             // Find the other participant's ID
-            const otherUserId = selectedChat.participants.find(id => id !== user.id);
+            const otherUserId = selectedChat.participants.find((id) => id !== user.id);
             if (!otherUserId) return;
 
             try {
@@ -321,8 +359,12 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 if (response.success && response.user) {
                     setOtherParticipant({
                         name: response.user.name,
-                        avatar: response.user.avatarURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name)}&background=0068FF&color=fff`,
-                        isOnline: response.user.isOnline
+                        avatar:
+                            response.user.avatarURL ||
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                response.user.name
+                            )}&background=0068FF&color=fff`,
+                        isOnline: response.user.isOnline,
                     });
                 }
             } catch (error) {
@@ -492,10 +534,16 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         className="w-10 h-10 rounded-full"
                         resizeMode="cover"
                         onError={() => {
-                            setOtherParticipant(prev => prev ? {
-                                ...prev,
-                                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(prev.name)}&background=0068FF&color=fff`
-                            } : null);
+                            setOtherParticipant((prev) =>
+                                prev
+                                    ? {
+                                          ...prev,
+                                          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                              prev.name
+                                          )}&background=0068FF&color=fff`,
+                                      }
+                                    : null
+                            );
                         }}
                     />
                     <View className="ml-3" style={{maxWidth: '45%'}}>
@@ -540,9 +588,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     <View className="items-center justify-center mb-8">
                         <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
                             <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
-                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
-                                Chưa có tin nhắn nào
-                            </Text>
+                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">Chưa có tin nhắn nào</Text>
                             <Text className="text-gray-600 text-center mt-2">
                                 Hãy gửi lời chào để bắt đầu cuộc trò chuyện với {selectedChat.name || 'người dùng này'}
                             </Text>
@@ -602,7 +648,6 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                         </Text>
                                         <Text className="text-sm text-gray-700" numberOfLines={1}>
                                             {messages.find((m) => m.id === msg.repliedToId)?.content}
-
                                         </Text>
                                     </View>
                                 )}
@@ -632,7 +677,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                         )
                                     )}
                                 </View>
-                              
+
                                 <Text className="text-xs text-gray-500 mt-1">
                                     {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
                                         hour: '2-digit',
@@ -912,6 +957,44 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     >
                         <Ionicons name="close" size={24} color="white" />
                     </TouchableOpacity>
+                </View>
+            )}
+            {showUploadModal && (
+                <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
+                    <View className="bg-white rounded-2xl p-5 w-[85%] max-w-md">
+                        <View className="items-center">
+                            <View className="w-16 h-16 rounded-full bg-blue-50 items-center justify-center mb-4">
+                                {uploadProgress < 100 ? (
+                                    <Ionicons name="cloud-upload-outline" size={32} color="#3B82F6" />
+                                ) : (
+                                    <Ionicons name="checkmark-circle" size={32} color="#10B981" />
+                                )}
+                            </View>
+                            <Text className="text-lg font-medium text-gray-900 mb-2">
+                                {uploadProgress < 100 ? 'Uploading File' : 'Upload Complete'}
+                            </Text>
+                            <Text className="text-gray-600 text-center mb-4">{uploadStatusMessage}</Text>
+                        </View>
+
+                        {/* Progress Bar */}
+                        <View className="bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
+                            <View className="bg-blue-500 h-full rounded-full" style={{width: `${uploadProgress}%`}} />
+                        </View>
+
+                        {/* Cancel button - only show during active upload */}
+                        {uploadProgress < 100 && (
+                            <TouchableOpacity
+                                className="mt-2 py-3 px-4 rounded-lg bg-gray-100 items-center"
+                                onPress={() => {
+                                    // Add cancellation logic here if possible
+                                    setShowUploadModal(false);
+                                    setError('Upload cancelled');
+                                }}
+                            >
+                                <Text className="text-gray-700 font-medium">Cancel</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
             )}
         </View>
