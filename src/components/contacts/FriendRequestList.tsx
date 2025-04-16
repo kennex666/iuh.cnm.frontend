@@ -144,6 +144,8 @@ export default function FriendRequestList() {
                         : user.avatarURL
                 }));
                 setSearchResults(results);
+                // Tải lại danh sách yêu cầu kết bạn để cập nhật trạng thái nút
+                await loadFriendRequests();
             } else {
                 setSearchResults([]);
                 Alert.alert('Thông báo', 'Không tìm thấy người dùng');
