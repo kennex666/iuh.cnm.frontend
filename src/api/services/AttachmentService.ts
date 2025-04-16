@@ -1,5 +1,5 @@
 import axios from "axios";
-
+import { Attachment } from "@/src/models/Attachment";
 
 export class AttachmentService {
     static async uploadAttachment(formData: FormData) {
@@ -9,11 +9,21 @@ export class AttachmentService {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            console.log('Attachment uploaded successfully:', response.data);
-            return response.data;
+            
+            if (response.data.success) {
+                return {
+                    success: true,
+                    data: response.data.data as Attachment,
+                    statusMessage: response.data.message
+                };
+            } else {
+                return {
+                    success: false,
+                    statusMessage: response.data.message || 'Upload failed'
+                };
+            }
         } catch (error) {
             console.error('Error uploading attachment:', error);
-            console.log(`Error response: ${error}`);
             
             return {
                 success: false,
@@ -25,7 +35,19 @@ export class AttachmentService {
     static async getAttachmentByMessageId(messageId: string) {
         try {
             const response = await axios.get(`/attachments/message/${messageId}`);
-            return response.data;
+            
+            if (response.data.success) {
+                return {
+                    success: true,
+                    data: response.data.data as Attachment[],
+                    statusMessage: response.data.message
+                };
+            } else {
+                return {
+                    success: false,
+                    statusMessage: response.data.message || 'Failed to fetch attachment'
+                };
+            }
         } catch (error) {
             console.error('Error fetching attachment:', error);
             return {
@@ -38,7 +60,19 @@ export class AttachmentService {
     static async deleteAttachment(attachmentId: string) {
         try {
             const response = await axios.delete(`/attachments/${attachmentId}`);
-            return response.data;
+            
+            if (response.data.success) {
+                return {
+                    success: true,
+                    data: response.data.data,
+                    statusMessage: response.data.message
+                };
+            } else {
+                return {
+                    success: false,
+                    statusMessage: response.data.message || 'Failed to delete attachment'
+                };
+            }
         } catch (error) {
             console.error('Error deleting attachment:', error);
             return {

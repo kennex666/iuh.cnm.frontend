@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Ionicons} from '@expo/vector-icons';
-import {Animated, Easing, Image, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Animated, Easing, Image, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Conversation} from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
@@ -75,13 +75,15 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     // Thêm hàm xử lý upload và gửi file
 
+        // Update the uploadAndSendFile function
     const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
         if (!selectedChat?.id || !user?.id) return;
-
+    
         try {
             setFileUploading(true);
-
-            // Tạo message mới với type là file
+            setError(null);
+    
+            // Create a new message with type file
             const messageData: Message = {
                 id: new Date().getTime().toString(),
                 conversationId: selectedChat.id,
@@ -92,110 +94,105 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 readBy: [],
                 sentAt: new Date().toISOString(),
             };
-
-            // Xử lý khác nhau dựa trên nền tảng
+    
+            // Create FormData for the file upload
+            const formData = new FormData();
+            formData.append('messageId', messageData.id);
+    
             if (Platform.OS === 'web') {
-                // Xử lý đặc biệt cho web
-                const formData = new FormData();
-
-                // Lấy File object từ URI của fileAsset
+                // Web platform handling
                 const response = await fetch(fileAsset.uri);
                 const blob = await response.blob();
-
-                // Tạo file từ blob với tên và kiểu file
                 const file = new File([blob], fileAsset.name, {
                     type: fileAsset.mimeType || 'application/octet-stream',
                 });
-
-                // Append file vào FormData
+    
                 formData.append('file', file);
-                formData.append('messageId', messageData.id);
-
-                console.log('File name:', file.name);
-                console.log('File type:', file.type);
-                console.log('File size:', file.size);
-
-                const uploadResponse = await AttachmentService.uploadAttachment(formData);
-
-                if (!uploadResponse.success) {
-                    console.log(`Upload response:`, uploadResponse);
-                    throw new Error(uploadResponse.errorMessage || uploadResponse.statusMessage || 'Không thể tải file lên');
-                }
-
-                // Gửi message qua socket
-                socketService.sendMessage(messageData);
-
-                // Lưu attachment vào state
-                setAttachments((prev) => ({
-                    ...prev,
-                    [messageData.id]: uploadResponse.data,
-                }));
+                
+                console.log('Uploading web file:', {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                });
             } else {
-                // Xử lý cho mobile (Android/iOS)
-                // Đọc file dưới dạng base64
-                const fileUri = fileAsset.uri;
-                const fileInfo = await FileSystem.getInfoAsync(fileUri);
-
-                if (!fileInfo.exists) {
-                    throw new Error('File không tồn tại');
-                }
-
-                const fileBase64 = await FileSystem.readAsStringAsync(fileUri, {encoding: 'base64'});
-
-                // Upload file lên server
-                const formData = new FormData();
+                // Mobile platform handling
                 formData.append('file', {
-                    uri: fileUri,
+                    uri: fileAsset.uri,
                     type: fileAsset.mimeType,
                     name: fileAsset.name,
                 } as any);
-                formData.append('messageId', messageData.id);
-
-                const response = await AttachmentService.uploadAttachment(formData);
-
-                if (!response.success) {
-                    throw new Error(response.statusMessage || 'Không thể tải file lên');
-                }
-
-                // Gửi message qua socket
-                socketService.sendMessage(messageData);
-
-                // Lưu attachment vào state
-                setAttachments((prev) => ({
+                
+                console.log('Uploading mobile file:', {
+                    name: fileAsset.name,
+                    type: fileAsset.mimeType,
+                    uri: fileAsset.uri
+                });
+            }
+    
+            // Upload the file to server
+            const uploadResponse = await AttachmentService.uploadAttachment(formData);
+    
+            if (!uploadResponse.success) {
+                throw new Error(uploadResponse.statusMessage || 'Không thể tải file lên');
+            }
+    
+            console.log('File upload successful:', uploadResponse.data);
+    
+            // Send the message via socket
+            socketService.sendMessage(messageData);
+    
+            // Save the attachment in local state
+            // setAttachments(prev => ({
+            //     ...prev,
+            //     [messageData.id]: uploadResponse.data
+            // }));
+            if (uploadResponse.data) {
+                setAttachments(prev => ({
                     ...prev,
-                    [messageData.id]: response.attachment,
+                    [messageData.id]: uploadResponse.data
                 }));
             }
-
-            // Reset reply state nếu có
+    
+            // Add the message to local messages state for immediate display
+            setMessages(prev => [...prev, messageData]);
+    
+            // Reset reply state if there was one
             if (replyingTo) {
                 setReplyingTo(null);
             }
         } catch (error) {
             console.error('Error uploading file:', error);
-            setError('Không thể gửi file. Vui lòng thử lại.');
+            setError(typeof error === 'string' ? error : 
+                   (error instanceof Error ? error.message : 'Không thể gửi file. Vui lòng thử lại.'));
         } finally {
             setFileUploading(false);
-            toggleModelChecked(); // Đóng model chọn loại file
+            toggleModelChecked(); // Close file type selection modal
         }
     };
-
-    // Thêm hàm để lấy attachment theo messageId
+    
+    // Update the getAttachmentByMessageId function
     const getAttachmentByMessageId = async (messageId: string) => {
         try {
+            // Check if we already have the attachment in local state
             if (attachments[messageId]) {
                 return attachments[messageId];
             }
-
+    
+            // If not, fetch it from the server
             const response = await AttachmentService.getAttachmentByMessageId(messageId);
-            if (response.success && response.attachment) {
+            
+            if (response.success && response.data && response.data.length > 0) {
+                const attachment = response.data[0]; // Get the first attachment if there are multiple
+                
+                // Save to local state for future use
                 setAttachments((prev) => ({
                     ...prev,
-                    [messageId]: response.attachment,
+                    [messageId]: attachment,
                 }));
-                return response.attachment;
+                
+                return attachment;
             }
-
+    
             return null;
         } catch (error) {
             console.error('Error fetching attachment:', error);
