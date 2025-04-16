@@ -87,6 +87,18 @@ class SocketService {
         }
     }
 
+    public joinConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('join_conversation', conversationId);
+        }
+    }
+    
+    public leaveConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('leave_conversation', conversationId);
+        }
+    }
+
     public sendMessage(message: Message): void {
         if (this.socket) {
             console.log('Sending message to socket is: ', message);
@@ -126,19 +138,6 @@ class SocketService {
 
     public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
-    }
-
-    // join room
-    public joinConversation(conversationId: string): void {
-        if (this.socket) {
-            this.socket.emit('join_conversation', conversationId);
-        }
-    }
-    
-    public leaveConversation(conversationId: string): void {
-        if (this.socket) {
-            this.socket.emit('leave_conversation', conversationId);
-        }
     }
     
 }

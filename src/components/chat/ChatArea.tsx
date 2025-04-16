@@ -44,6 +44,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     const [isModelGift, setIsModelGift] = useState(false);
     const scaleAnimation = useRef(new Animated.Value(0)).current;
     const socketService = useRef(SocketService.getInstance()).current;
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const [inputHeight, setInputHeight] = useState(28);
     const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
@@ -61,38 +62,6 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             console.error('Error fetching user:', err);
         }
     };
-
-    useEffect(() => {
-        if (selectedChat) {
-            fetchMessages();
-        }
-    }, [selectedChat]);
-
-    useEffect(() => {
-        // Listen for new messages
-        const handleNewMessage = (message: Message) => {
-            if (message.conversationId === selectedChat?.id) {
-                setMessages(prev => [...prev, message]);
-            }
-        };
-
-        socketService.onNewMessage(handleNewMessage);
-
-        // Cleanup on unmount
-        return () => {
-            socketService.removeMessageListener(handleNewMessage);
-        };
-    }, [selectedChat?.id]);
-
-    // Fetch user info for each unique sender
-    useEffect(() => {
-        const senderIds = [...new Set(messages.map(msg => msg.senderId))];
-        senderIds.forEach(id => {
-            if (!messageUsers[id]) {
-                fetchUserInfo(id);
-            }
-        });
-    }, [messages]);
 
     // Fetch messages from server
     const fetchMessages = async () => {
@@ -115,6 +84,58 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (selectedChat) {
+            fetchMessages();
+            // Join new conversation
+            socketService.joinConversation(selectedChat.id);
+        }
+
+        // Cleanup function to leave conversation when component unmounts or conversation changes
+        return () => {
+            if (selectedChat) {
+                socketService.leaveConversation(selectedChat.id);
+            }
+        };
+    }, [selectedChat]);
+
+    // Auto scroll to bottom when messages change
+    useEffect(() => {
+        setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+    }, [messages]);
+
+    useEffect(() => {
+        // Listen for new messages
+        const handleNewMessage = (message: Message) => {
+            if (message.conversationId === selectedChat?.id) {
+                setMessages(prev => [...prev, message]);
+                // Scroll to bottom when new message arrives
+                setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
+            }
+        };
+
+        socketService.onNewMessage(handleNewMessage);
+
+        // Cleanup on unmount
+        return () => {
+            socketService.removeMessageListener(handleNewMessage);
+        };
+    }, [selectedChat?.id]);
+
+    // Fetch user info for each unique sender
+    useEffect(() => {
+        const senderIds = [...new Set(messages.map(msg => msg.senderId))];
+        senderIds.forEach(id => {
+            if (!messageUsers[id]) {
+                fetchUserInfo(id);
+            }
+        });
+    }, [messages]);
 
     // Send message to server
     const handleSendMessage = async () => {
@@ -263,7 +284,13 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             </View>
 
             {/* Messages Area */}
-            <ScrollView className="flex-1 p-4">
+            <ScrollView 
+                ref={scrollViewRef}
+                className="flex-1 p-4"
+                onContentSizeChange={() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                }}
+            >
                 {isNewer && (
                     <View className="items-center justify-center mb-8">
                         <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
@@ -277,7 +304,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         </View>
                     </View>
                 )}
-                {messages.map((msg) => (
+                {messages.map((msg, index) => (
                     <View
                         key={msg.id}
                         className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
@@ -290,12 +317,26 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 className="w-8 h-8 rounded-full mr-2"
                             />
                         )}
-                        <View className={`max-w-[40%] flex flex-col  ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}>
-                            <View className={`rounded-2xl px-4 py-2 ${msg.senderId === user?.id ? 'bg-blue-500' : 'bg-gray-100'}`} >
+                        <View 
+                            className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                        >
+                            <View 
+                                className={`rounded-2xl px-4 py-2 ${
+                                    msg.senderId === user?.id 
+                                        ? 'bg-blue-500 rounded-br-none' 
+                                        : 'bg-gray-100 rounded-bl-none'
+                                }`}
+                            >
                                 <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
                                     {msg.content}
                                 </Text>
                             </View>
+                            <Text className="text-xs text-gray-500 mt-1">
+                                {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </Text>
                             <MessageReaction
                                 messageId={msg.id}
                                 isVisible={activeReactionId === msg.id}
