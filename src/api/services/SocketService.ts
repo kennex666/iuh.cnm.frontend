@@ -174,10 +174,16 @@ class SocketService {
     }
 
     public sendAcceptFriendRequest(requestId: string): void {
-        if (this.socket) {
-            this.socket.emit('friend_request:accept', requestId);
-        }
+      if (this.socket) {
+        this.socket.emit("friend_request:accept", requestId);
+      }
     }
+
+    public sendSeen(messageId: string): void {
+          if (this.socket) {
+              this.socket.emit("message:seen", messageId);
+          }
+      }
 }
 
 export default SocketService;
