@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Alert, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
 import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
-import { Message } from '@/src/models/Message';
-import { useFocusEffect } from 'expo-router';
+import { Message, MessageType } from '@/src/models/Message';
+import { Link, useFocusEffect } from 'expo-router';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -22,6 +22,8 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
     const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
     const socketService = useRef(SocketService.getInstance()).current;
+    const [isComingCall, setIsComingCall] = useState(false);
+    const [linkCall, setLinkCall] = useState<string | null>(null);
 
     // Fetch conversations
     useFocusEffect(
@@ -100,41 +102,54 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     useEffect(() => {
         console.log("Socket listener added for new messages");
         const handleNewMessage = (message: Message) => {
-        conversations.forEach((conversation) => {
-            if (conversation.id === message.conversationId) {
-                const updatedConversation = {
-					...conversation,
-					lastMessage: {
-						...message,
-						readBy: (selectedChat?.id == conversation.id)
-							? [...(message.readBy || []), user?.id] : message.readBy || [],
-					} as Message,
-				};
-                setConversations((prev) =>
-                    prev
-                        .map((conv) =>
-                            conv.id === conversation.id
-                                ? updatedConversation
-                                : conv
-                        )
-                        .sort((a, b) => {
-                            if (a.lastMessage && b.lastMessage) {
-                                return (
-                                    new Date(
-                                        b.lastMessage.sentAt
-                                    ).getTime() -
-                                    new Date(
-                                        a.lastMessage.sentAt
-                                    ).getTime()
-                                );
-                            } else if (a.lastMessage) {
-                                return -1;
-                            }
-                            return 0;
-                        })
+            if (message?.type == MessageType.CALL) {
+                console.log("Incoming call message: ", message);
+                if (message.content == 'start'){
+                    setLinkCall(
+                    `{{HOST}}/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
                 );
+                    setIsComingCall(true);
+                }
+                else {
+                    setLinkCall("");
+                    setIsComingCall(false);
+                }
             }
-        });
+            conversations.forEach((conversation) => {
+                if (conversation.id === message.conversationId) {
+                    const updatedConversation = {
+                        ...conversation,
+                        lastMessage: {
+                            ...message,
+                            readBy: (selectedChat?.id == conversation.id)
+                                ? [...(message.readBy || []), user?.id] : message.readBy || [],
+                        } as Message,
+                    };
+                    setConversations((prev) =>
+                        prev
+                            .map((conv) =>
+                                conv.id === conversation.id
+                                    ? updatedConversation
+                                    : conv
+                            )
+                            .sort((a, b) => {
+                                if (a.lastMessage && b.lastMessage) {
+                                    return (
+                                        new Date(
+                                            b.lastMessage.sentAt
+                                        ).getTime() -
+                                        new Date(
+                                            a.lastMessage.sentAt
+                                        ).getTime()
+                                    );
+                                } else if (a.lastMessage) {
+                                    return -1;
+                                }
+                                return 0;
+                            })
+                    );
+                }
+            });
         };
         socketService.onNewMessage(handleNewMessage);
         return () => {
@@ -195,6 +210,43 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 
     return (
 		<View className="flex-1 border-r border-gray-200">
+			{/* Full screen call */}
+			{isComingCall && linkCall && (
+				<View className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 z-50 items-center justify-center flex">
+					<Text className="text-white text-xl mb-2">
+						📞 Bạn có cuộc gọi đến
+					</Text>
+					<Text className="text-white text-sm mb-6">
+						Chọn để tham gia hoặc từ chối
+					</Text>
+
+					<View className="flex-row space-x-6">
+						<TouchableOpacity
+							className="bg-green-500 rounded-full w-16 h-16 items-center justify-center"
+							onPress={() => {
+								Linking.openURL(linkCall);
+								setIsComingCall(false);
+							}}
+						>
+							<Ionicons name="call" size={28} color="white" />
+						</TouchableOpacity>
+
+						<TouchableOpacity
+							className="bg-red-600 rounded-full w-16 h-16 items-center justify-center"
+							onPress={() => {
+								setIsComingCall(false); // hoặc emit 'reject-call' gì đó
+							}}
+						>
+							<Ionicons
+								name="call"
+								size={28}
+								color="white"
+								style={{ transform: [{ rotate: "135deg" }] }}
+							/>
+						</TouchableOpacity>
+					</View>
+				</View>
+			)}
 			{/* Search Bar */}
 			<View className="p-4 border-b border-gray-200">
 				<View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">

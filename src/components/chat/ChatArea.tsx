@@ -584,499 +584,736 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     }
 
     return (
-        <View className="flex-1 flex-col">
-            {/* Chat Header */}
-            <View className="h-14 px-4 border-b border-gray-200 flex-row items-center justify-between">
-                <View className="flex-row items-center flex-1">
-                    {onBackPress && (
-                        <TouchableOpacity onPress={onBackPress} className="mr-3">
-                            <Ionicons name="arrow-back" size={24} color="#666" />
-                        </TouchableOpacity>
-                    )}
-                    <Image
-                        source={{uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
-                        className="w-10 h-10 rounded-full"
-                        resizeMode="cover"
-                        onError={() => {
-                            setOtherParticipant((prev) =>
-                                prev
-                                    ? {
-                                          ...prev,
-                                          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                              prev.name
-                                          )}&background=0068FF&color=fff`,
-                                      }
-                                    : null
-                            );
-                        }}
-                    />
-                    <View className="ml-3" style={{maxWidth: '45%'}}>
-                        <Text className="font-semibold text-gray-900 text-base" numberOfLines={1} ellipsizeMode="tail">
-                            {selectedChat.name || selectedChat.participants.join(', ')}
-                        </Text>
-                        {selectedChat.isGroup && (
-                            <Text className="text-sm text-gray-500">{selectedChat.participants.length} thành viên</Text>
-                        )}
-                        {!selectedChat.isGroup && selectedChat.participants.length > 0 && (
-                            <Text className="text-sm text-green-500">Đang hoạt động</Text>
-                        )}
-                    </View>
-                </View>
-                <View className="flex-row items-center">
-                    <TouchableOpacity
-                        className="p-2 mr-1"
-                        onPress={() => {
-                            socketService.ping();
-                        }}
-                    >
-                        <Ionicons name="call-outline" size={22} color="#666" />
-                    </TouchableOpacity>
-                    <TouchableOpacity className="p-2 mr-1">
-                        <Ionicons name="videocam-outline" size={22} color="#666" />
-                    </TouchableOpacity>
-                    <TouchableOpacity className="p-2" onPress={onInfoPress}>
-                        <Ionicons name="information-circle-outline" size={24} color="#666" />
-                    </TouchableOpacity>
-                </View>
-            </View>
+		<View className="flex-1 flex-col">
+			{/* Chat Header */}
+			<View className="h-14 px-4 border-b border-gray-200 flex-row items-center justify-between">
+				<View className="flex-row items-center flex-1">
+					{onBackPress && (
+						<TouchableOpacity
+							onPress={onBackPress}
+							className="mr-3"
+						>
+							<Ionicons
+								name="arrow-back"
+								size={24}
+								color="#666"
+							/>
+						</TouchableOpacity>
+					)}
+					<Image
+						source={{
+							uri:
+								selectedChat.avatar ||
+								"https://placehold.co/40x40/0068FF/FFFFFF/png?text=G",
+						}}
+						className="w-10 h-10 rounded-full"
+						resizeMode="cover"
+						onError={() => {
+							setOtherParticipant((prev) =>
+								prev
+									? {
+											...prev,
+											avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+												prev.name
+											)}&background=0068FF&color=fff`,
+									  }
+									: null
+							);
+						}}
+					/>
+					<View className="ml-3" style={{ maxWidth: "45%" }}>
+						<Text
+							className="font-semibold text-gray-900 text-base"
+							numberOfLines={1}
+							ellipsizeMode="tail"
+						>
+							{selectedChat.name ||
+								selectedChat.participants.join(", ")}
+						</Text>
+						{selectedChat.isGroup && (
+							<Text className="text-sm text-gray-500">
+								{selectedChat.participants.length} thành viên
+							</Text>
+						)}
+						{!selectedChat.isGroup &&
+							selectedChat.participants.length > 0 && (
+								<Text className="text-sm text-green-500">
+									Đang hoạt động
+								</Text>
+							)}
+					</View>
+				</View>
+				<View className="flex-row items-center">
+					<TouchableOpacity
+						className="p-2 mr-1"
+						onPress={() => {
+							MessageService.makeACall(selectedChat.id);
+						}}
+					>
+						<Ionicons name="call-outline" size={22} color="#666" />
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => {
+							MessageService.makeACall(selectedChat.id);
+						}}
+						className="p-2 mr-1"
+					>
+						<Ionicons
+							name="videocam-outline"
+							size={22}
+							color="#666"
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity className="p-2" onPress={onInfoPress}>
+						<Ionicons
+							name="information-circle-outline"
+							size={24}
+							color="#666"
+						/>
+					</TouchableOpacity>
+				</View>
+			</View>
 
-            {/* Messages Area */}
-            <ScrollView
-                ref={scrollViewRef}
-                className="flex-1 p-4"
-                onContentSizeChange={() => {
-                    scrollViewRef.current?.scrollToEnd({animated: true});
-                }}
-            >
-                {messages.length === 0 && (
-                    <View className="items-center justify-center mb-8">
-                        <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
-                            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
-                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">Chưa có tin nhắn nào</Text>
-                            <Text className="text-gray-600 text-center mt-2">
-                                Hãy gửi lời chào để bắt đầu cuộc trò chuyện với {selectedChat.name || 'người dùng này'}
-                            </Text>
-                        </View>
-                    </View>
-                )}
-                {isNewer && (
-                    <View className="items-center justify-center mb-8">
-                        <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
-                            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
-                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
-                                Bắt đầu cuộc trò chuyện mới
-                            </Text>
-                            <Text className="text-gray-600 text-center mt-2">
-                                Hãy gửi lời chào để bắt đầu kết nối với {selectedChat.name || 'người dùng này'}
-                            </Text>
-                        </View>
-                    </View>
-                )}
-                {messages.map(msg => {
-                    const repliedToMessage = msg.repliedToId || msg.repliedTold ? messages.find(m => m.id == msg.repliedToId || m.id == msg.repliedTold) : null;
-                    return (
-                            <TouchableOpacity
-                                key={msg.id}
-                                onLongPress={() => handleLongPressMessage(msg)}
-                                onPress={() => {
-                                    // Nhấn một lần để hiện thông tin tin nhắn
-                                    setSelectedMessage(msg);
-                                    setShowMessageOptions(true);
-                                }}
-                                delayLongPress={200}
-                                activeOpacity={0.7}
-                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                            >
-                                <View
-                                    className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    {msg.senderId !== user?.id && (
-                                        <Image
-                                            source={{
-                                                uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
-                                            }}
-                                            className="w-8 h-8 rounded-full mr-2"
-                                            resizeMode="cover"
-                                        />
-                                    )}
-                                    <View 
-                                        className={`relative max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
-                                    >
-                                        {(msg.repliedToId || msg.repliedTold) && (
-                                            <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
-                                                <Text className="text-xs text-gray-500">
-                                                    Trả lời tin nhắn
-                                                </Text>
-                                                <Text className="text-sm text-gray-700" numberOfLines={1}>
-                                                    {repliedToMessage?.content || 'Tin nhắn đã bị xoá'}
-                                                </Text>
-                                            </View>
-                                        )}  
-                                        <View 
-                                            className={`rounded-xl ${
-                                                msg.senderId === user?.id
-                                                    ? 'bg-blue-500 rounded-br-none'
-                                                    : 'bg-gray-100 rounded-bl-none'
-                                            }`}
-                                            style={
-                                                {
-                                                    paddingLeft: 10,
-                                                    paddingRight: 12,
-                                                    paddingVertical: 8
-                                                }
-                                            }
-                                        >
-                                            {msg.type === MessageType.TEXT ? (
-                                                <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
-                                                    {msg.content}
-                                                </Text>
-                                            ) : (
-                                                msg.type === MessageType.FILE ? (
-                                                    <View className="flex-row items-center">
-                                                        {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
-                                                        <FileMessageContent
-                                                            messageId={msg.id}
-                                                            fileName={msg.content}
-                                                            isSender={msg.senderId === user?.id}
-                                                            getAttachment={getAttachmentByMessageId}
-                                                            onImagePress={setFullScreenImage}
-                                                        />
-                                                    </View>
-                                                ) : (
-                                                    msg.type === MessageType.CALL &&  (
-                                                        <Text className="text-gray-500">
-                                                             {msg.content === 'start' ? '📞 Cuộc gọi đang bắt đầu' : '📴 Cuộc gọi đã kết thúc'}
-                                                        </Text>
-                                                    )
-                                                )
-                                            )}                                      
-                                        </View>
-                                        <MessageReaction
-                                            messageId={msg.id}
-                                            isVisible={activeReactionId === msg.id}
-                                            onReact={handleReaction}
-                                            onToggle={() => handleReactionToggle(msg.id)}
-                                            isSender={msg.senderId === user?.id}
-                                        />
-                                    </View>
-                                </View>
+			{/* Messages Area */}
+			<ScrollView
+				ref={scrollViewRef}
+				className="flex-1 p-4"
+				onContentSizeChange={() => {
+					scrollViewRef.current?.scrollToEnd({ animated: true });
+				}}
+			>
+				{messages.length === 0 && (
+					<View className="items-center justify-center mb-8">
+						<View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
+							<Ionicons
+								name="chatbubble-ellipses-outline"
+								size={48}
+								color="#3B82F6"
+							/>
+							<Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
+								Chưa có tin nhắn nào
+							</Text>
+							<Text className="text-gray-600 text-center mt-2">
+								Hãy gửi lời chào để bắt đầu cuộc trò chuyện với{" "}
+								{selectedChat.name || "người dùng này"}
+							</Text>
+						</View>
+					</View>
+				)}
+				{isNewer && (
+					<View className="items-center justify-center mb-8">
+						<View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
+							<Ionicons
+								name="chatbubble-ellipses-outline"
+								size={48}
+								color="#3B82F6"
+							/>
+							<Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
+								Bắt đầu cuộc trò chuyện mới
+							</Text>
+							<Text className="text-gray-600 text-center mt-2">
+								Hãy gửi lời chào để bắt đầu kết nối với{" "}
+								{selectedChat.name || "người dùng này"}
+							</Text>
+						</View>
+					</View>
+				)}
+				{messages.map((msg) => {
+					const repliedToMessage =
+						msg.repliedToId || msg.repliedTold
+							? messages.find(
+									(m) =>
+										m.id == msg.repliedToId ||
+										m.id == msg.repliedTold
+							  )
+							: null;
+					return (
+						<TouchableOpacity
+							key={msg.id}
+							onLongPress={() => handleLongPressMessage(msg)}
+							onPress={() => {
+								// Nhấn một lần để hiện thông tin tin nhắn
+								setSelectedMessage(msg);
+								setShowMessageOptions(true);
+							}}
+							delayLongPress={200}
+							activeOpacity={0.7}
+							hitSlop={{
+								top: 10,
+								bottom: 10,
+								left: 10,
+								right: 10,
+							}}
+						>
+							<View
+								className={`flex-row items-end mb-4 ${
+									msg.senderId === user?.id
+										? "justify-end"
+										: "justify-start"
+								}`}
+							>
+								{msg.senderId !== user?.id && (
+									<Image
+										source={{
+											uri:
+												messageUsers[msg.senderId]
+													?.avatarURL ||
+												"https://placehold.co/40x40/0068FF/FFFFFF/png?text=G",
+										}}
+										className="w-8 h-8 rounded-full mr-2"
+										resizeMode="cover"
+									/>
+								)}
+								<View
+									className={`relative max-w-[70%] flex flex-col ${
+										msg.senderId === user?.id
+											? "items-end"
+											: "items-start"
+									}`}
+								>
+									{(msg.repliedToId || msg.repliedTold) && (
+										<View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
+											<Text className="text-xs text-gray-500">
+												Trả lời tin nhắn
+											</Text>
+											<Text
+												className="text-sm text-gray-700"
+												numberOfLines={1}
+											>
+												{repliedToMessage?.content ||
+													"Tin nhắn đã bị xoá"}
+											</Text>
+										</View>
+									)}
+									<View
+										className={`rounded-xl ${
+											msg.senderId === user?.id
+												? "bg-blue-500 rounded-br-none"
+												: "bg-gray-100 rounded-bl-none"
+										}`}
+										style={{
+											paddingLeft: 10,
+											paddingRight: 12,
+											paddingVertical: 8,
+										}}
+									>
+										{msg.type === MessageType.TEXT ? (
+											<Text
+												className={
+													msg.senderId === user?.id
+														? "text-white"
+														: "text-gray-900"
+												}
+											>
+												{msg.content}
+											</Text>
+										) : msg.type === MessageType.FILE ? (
+											<View className="flex-row items-center">
+												{/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
+												<FileMessageContent
+													messageId={msg.id}
+													fileName={msg.content}
+													isSender={
+														msg.senderId ===
+														user?.id
+													}
+													getAttachment={
+														getAttachmentByMessageId
+													}
+													onImagePress={
+														setFullScreenImage
+													}
+												/>
+											</View>
+										) : (
+											msg.type === MessageType.CALL && (
+												<Text
+													className={
+														msg.senderId ===
+														user?.id
+															? "text-white"
+															: "text-gray-900"
+													}
+												>
+													{msg.content === "start"
+														? "📞 Cuộc gọi đang bắt đầu"
+														: "📴 Cuộc gọi đã kết thúc"}
+												</Text>
+											)
+										)}
+									</View>
+									<MessageReaction
+										messageId={msg.id}
+										isVisible={activeReactionId === msg.id}
+										onReact={handleReaction}
+										onToggle={() =>
+											handleReactionToggle(msg.id)
+										}
+										isSender={msg.senderId === user?.id}
+									/>
+								</View>
+							</View>
+						</TouchableOpacity>
+					);
+				})}
+			</ScrollView>
 
-                            </TouchableOpacity>
-                        )
-                })}
-            </ScrollView>
+			{/* Message Options Modal */}
+			{showMessageOptions && selectedMessage && (
+				<View className="absolute inset-0 bg-black/30 items-center justify-center">
+					<View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
+						<View className="p-4 border-b border-gray-100">
+							<View className="flex-row items-center">
+								<Image
+									source={{
+										uri:
+											messageUsers[
+												selectedMessage.senderId
+											]?.avatarURL ||
+											"https://placehold.co/40x40/0068FF/FFFFFF/png?text=G",
+									}}
+									className="w-10 h-10 rounded-full"
+									resizeMode="cover"
+								/>
+								<View className="ml-3 flex-1">
+									<Text className="text-gray-800 font-medium">
+										{
+											messageUsers[
+												selectedMessage.senderId
+											]?.name
+										}
+									</Text>
+									<Text className="text-gray-500 text-sm">
+										{new Date(
+											selectedMessage.sentAt
+										).toLocaleString("vi-VN", {
+											hour: "2-digit",
+											minute: "2-digit",
+											day: "2-digit",
+											month: "2-digit",
+											year: "numeric",
+										})}
+									</Text>
+								</View>
+							</View>
+							<View className="mt-3 bg-gray-50 rounded-lg p-3">
+								<Text className="text-gray-800">
+									{selectedMessage.content}
+								</Text>
+							</View>
+						</View>
+						<View className="divide-y divide-gray-100">
+							<TouchableOpacity
+								className="flex-row items-center p-4 active:bg-gray-50"
+								onPress={() => {
+									console.log(
+										"selectedMessage: ",
+										selectedMessage
+									);
+									handleReplyMessage(selectedMessage);
+								}}
+							>
+								<View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+									<Ionicons
+										name="return-up-back"
+										size={20}
+										color="#3B82F6"
+									/>
+								</View>
+								<Text className="ml-3 text-gray-800">
+									Trả lời
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								className="flex-row items-center p-4 active:bg-gray-50"
+								onPress={() =>
+									handleForwardMessage(selectedMessage)
+								}
+							>
+								<View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+									<Ionicons
+										name="arrow-redo"
+										size={20}
+										color="#3B82F6"
+									/>
+								</View>
+								<Text className="ml-3 text-gray-800">
+									Chuyển tiếp
+								</Text>
+							</TouchableOpacity>
+							{selectedMessage.senderId === user?.id && (
+								<TouchableOpacity
+									className="flex-row items-center p-4 active:bg-gray-50"
+									onPress={() =>
+										handleDeleteMessage(selectedMessage)
+									}
+								>
+									<View className="w-8 h-8 rounded-full bg-red-50 items-center justify-center">
+										<Ionicons
+											name="trash"
+											size={20}
+											color="#EF4444"
+										/>
+									</View>
+									<Text className="ml-3 text-red-500">
+										Xóa tin nhắn
+									</Text>
+								</TouchableOpacity>
+							)}
+						</View>
+						<TouchableOpacity
+							className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
+							onPress={() => setShowMessageOptions(false)}
+						>
+							<Ionicons name="close" size={20} color="#666" />
+						</TouchableOpacity>
+					</View>
+				</View>
+			)}
 
-            {/* Message Options Modal */}
-            {showMessageOptions && selectedMessage && (
-                <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                    <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
-                        <View className="p-4 border-b border-gray-100">
-                            <View className="flex-row items-center">
-                                <Image
-                                    source={{
-                                        uri:
-                                            messageUsers[selectedMessage.senderId]?.avatarURL ||
-                                            'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G',
-                                    }}
-                                    className="w-10 h-10 rounded-full"
-                                    resizeMode="cover"
-                                />
-                                <View className="ml-3 flex-1">
-                                    <Text className="text-gray-800 font-medium">
-                                        {messageUsers[selectedMessage.senderId]?.name}
-                                    </Text>
-                                    <Text className="text-gray-500 text-sm">
-                                        {new Date(selectedMessage.sentAt).toLocaleString('vi-VN', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            day: '2-digit',
-                                            month: '2-digit',
-                                            year: 'numeric',
-                                        })}
-                                    </Text>
-                                </View>
-                            </View>
-                            <View className="mt-3 bg-gray-50 rounded-lg p-3">
-                                <Text className="text-gray-800">{selectedMessage.content}</Text>
-                            </View>
-                        </View>
-                        <View className="divide-y divide-gray-100">
-                            <TouchableOpacity
-                                className="flex-row items-center p-4 active:bg-gray-50"
-                                onPress={() => {
-                                    console.log('selectedMessage: ', selectedMessage);
-                                    handleReplyMessage(selectedMessage)
-                                }}
-                            >
-                                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
-                                    <Ionicons name="return-up-back" size={20} color="#3B82F6" />
-                                </View>
-                                <Text className="ml-3 text-gray-800">Trả lời</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                className="flex-row items-center p-4 active:bg-gray-50"
-                                onPress={() => handleForwardMessage(selectedMessage)}
-                            >
-                                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
-                                    <Ionicons name="arrow-redo" size={20} color="#3B82F6" />
-                                </View>
-                                <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
-                            </TouchableOpacity>
-                            {selectedMessage.senderId === user?.id && (
-                                <TouchableOpacity
-                                    className="flex-row items-center p-4 active:bg-gray-50"
-                                    onPress={() => handleDeleteMessage(selectedMessage)}
-                                >
-                                    <View className="w-8 h-8 rounded-full bg-red-50 items-center justify-center">
-                                        <Ionicons name="trash" size={20} color="#EF4444" />
-                                    </View>
-                                    <Text className="ml-3 text-red-500">Xóa tin nhắn</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                        <TouchableOpacity
-                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
-                            onPress={() => setShowMessageOptions(false)}
-                        >
-                            <Ionicons name="close" size={20} color="#666" />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            )}
+			{/* Delete Confirmation Modal */}
+			{showDeleteConfirm && messageToDelete && (
+				<View className="absolute inset-0 bg-black/30 items-center justify-center">
+					<View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
+						<View className="p-6 items-center">
+							<View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
+								<Ionicons
+									name="trash"
+									size={32}
+									color="#EF4444"
+								/>
+							</View>
+							<Text className="text-xl font-semibold text-gray-800 mb-2">
+								Xóa tin nhắn
+							</Text>
+							<Text className="text-gray-600 text-center">
+								Bạn có chắc chắn muốn xóa tin nhắn này?{"\n"}
+								Hành động này không thể hoàn tác.
+							</Text>
+						</View>
+						<View className="flex-row p-4 border-t border-gray-100">
+							<TouchableOpacity
+								className="flex-1 mr-2 h-12 rounded-xl bg-gray-100 items-center justify-center active:bg-gray-200"
+								onPress={() => {
+									setShowDeleteConfirm(false);
+									setMessageToDelete(null);
+								}}
+							>
+								<Text className="text-gray-800 font-medium">
+									Hủy
+								</Text>
+							</TouchableOpacity>
+							<TouchableOpacity
+								className="flex-1 h-12 rounded-xl bg-red-500 items-center justify-center active:bg-red-600"
+								onPress={confirmDeleteMessage}
+							>
+								<Text className="text-white font-medium">
+									Xóa
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>
+			)}
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && messageToDelete && (
-                <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                    <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
-                        <View className="p-6 items-center">
-                            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
-                                <Ionicons name="trash" size={32} color="#EF4444" />
-                            </View>
-                            <Text className="text-xl font-semibold text-gray-800 mb-2">Xóa tin nhắn</Text>
-                            <Text className="text-gray-600 text-center">
-                                Bạn có chắc chắn muốn xóa tin nhắn này?{'\n'}Hành động này không thể hoàn tác.
-                            </Text>
-                        </View>
-                        <View className="flex-row p-4 border-t border-gray-100">
-                            <TouchableOpacity
-                                className="flex-1 mr-2 h-12 rounded-xl bg-gray-100 items-center justify-center active:bg-gray-200"
-                                onPress={() => {
-                                    setShowDeleteConfirm(false);
-                                    setMessageToDelete(null);
-                                }}
-                            >
-                                <Text className="text-gray-800 font-medium">Hủy</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                className="flex-1 h-12 rounded-xl bg-red-500 items-center justify-center active:bg-red-600"
-                                onPress={confirmDeleteMessage}
-                            >
-                                <Text className="text-white font-medium">Xóa</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            )}
+			{/* Reply Preview */}
+			{replyingTo && (
+				<View className="bg-gray-50 px-4 py-3 flex-row items-center border-t border-gray-200">
+					<View className="flex-1">
+						<View className="flex-row items-center">
+							<Ionicons
+								name="return-up-back"
+								size={16}
+								color="#3B82F6"
+							/>
+							<Text className="text-blue-500 text-sm font-medium ml-1">
+								Trả lời{" "}
+								{messageUsers[replyingTo.senderId]?.name}
+							</Text>
+						</View>
+						<Text
+							className="text-gray-600 text-sm mt-1"
+							numberOfLines={1}
+						>
+							{replyingTo.content}
+						</Text>
+					</View>
+					<TouchableOpacity
+						className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
+						onPress={() => setReplyingTo(null)}
+					>
+						<Ionicons name="close" size={16} color="#666" />
+					</TouchableOpacity>
+				</View>
+			)}
 
-            {/* Reply Preview */}
-            {replyingTo && (
-                <View className="bg-gray-50 px-4 py-3 flex-row items-center border-t border-gray-200">
-                    <View className="flex-1">
-                        <View className="flex-row items-center">
-                            <Ionicons name="return-up-back" size={16} color="#3B82F6" />
-                            <Text className="text-blue-500 text-sm font-medium ml-1">
-                                Trả lời {messageUsers[replyingTo.senderId]?.name}
-                            </Text>
-                        </View>
-                        <Text className="text-gray-600 text-sm mt-1" numberOfLines={1}>
-                            {replyingTo.content}
-                        </Text>
-                    </View>
-                    <TouchableOpacity
-                        className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
-                        onPress={() => setReplyingTo(null)}
-                    >
-                        <Ionicons name="close" size={16} color="#666" />
-                    </TouchableOpacity>
-                </View>
-            )}
+			{/* Forward Message Modal */}
+			{showForwardModal && replyingTo && (
+				<ForwardMessageModal
+					message={replyingTo}
+					onClose={() => setShowForwardModal(false)}
+					onForward={handleForward}
+				/>
+			)}
 
-            {/* Forward Message Modal */}
-            {showForwardModal && replyingTo && (
-                <ForwardMessageModal
-                    message={replyingTo}
-                    onClose={() => setShowForwardModal(false)}
-                    onForward={handleForward}
-                />
-            )}
+			{/* Input Area */}
+			<View className="border-t border-gray-200 p-4">
+				<View className="flex-row items-center position-relative">
+					<TouchableOpacity
+						className="p-2"
+						onPress={toggleModelChecked}
+					>
+						<Ionicons
+							name="add-circle-outline"
+							size={24}
+							color="#666"
+						/>
+					</TouchableOpacity>
+					{isModelChecked && (
+						<View className="absolute bottom-full left-0 bg-white z-50">
+							<Animated.View
+								style={{
+									transform: [
+										{
+											translateX:
+												scaleAnimation.interpolate({
+													inputRange: [0, 1],
+													outputRange: [0, 0],
+												}),
+										},
+										{
+											translateY:
+												scaleAnimation.interpolate({
+													inputRange: [0, 1],
+													outputRange: [30, 0],
+												}),
+										},
+									],
+									opacity: scaleAnimation.interpolate({
+										inputRange: [0, 1],
+										outputRange: [0, 1],
+									}),
+								}}
+							>
+								<View
+									className="bg-white rounded-lg p-4 w-[300px]"
+									style={Shadows.md}
+								>
+									<Text className="text-gray-800 mb-2">
+										Chọn loại tệp
+									</Text>
 
-            {/* Input Area */}
-            <View className="border-t border-gray-200 p-4">
-                <View className="flex-row items-center position-relative">
-                    <TouchableOpacity className="p-2" onPress={toggleModelChecked}>
-                        <Ionicons name="add-circle-outline" size={24} color="#666" />
-                    </TouchableOpacity>
-                    {isModelChecked && (
-                        <View className="absolute bottom-full left-0 bg-white z-50">
-                            <Animated.View
-                                style={{
-                                    transform: [
-                                        {
-                                            translateX: scaleAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [0, 0],
-                                            }),
-                                        },
-                                        {
-                                            translateY: scaleAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [30, 0],
-                                            }),
-                                        },
-                                    ],
-                                    opacity: scaleAnimation.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [0, 1],
-                                    }),
-                                }}
-                            >
-                                <View className="bg-white rounded-lg p-4 w-[300px]" style={Shadows.md}>
-                                    <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
+									<TouchableOpacity
+										className="flex-row items-center mb-2"
+										onPress={toggleModelImage}
+									>
+										<Ionicons
+											name="image-outline"
+											size={24}
+											color="#666"
+										/>
+										<Text className="ml-2  text-gray-800">
+											Hình ảnh
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										className="flex-row items-center mb-2"
+										onPress={handleSelectFile}
+									>
+										<Ionicons
+											name="file-tray-full-outline"
+											size={24}
+											color="#666"
+										/>
+										<Text className="ml-2 text-gray-800">
+											File
+										</Text>
+									</TouchableOpacity>
+									<TouchableOpacity
+										className="flex-row items-center mb-2"
+										onPress={toggleModelGift}
+									>
+										<Ionicons
+											name="gift-outline"
+											size={24}
+											color="#666"
+										/>
+										<Text className="ml-2 text-gray-800">
+											Quà tặng
+										</Text>
+									</TouchableOpacity>
+								</View>
+							</Animated.View>
+						</View>
+					)}
+					<View className="relative">
+						<TouchableOpacity
+							className="p-2"
+							onPress={toggleModelSticker}
+						>
+							<Ionicons
+								name="gift-outline"
+								size={24}
+								color="#666"
+							/>
+						</TouchableOpacity>
+						{isModelSticker && (
+							<View
+								className="absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200"
+								style={Shadows.xl}
+							>
+								<StickerPicker
+									setMessage={setNewMessage}
+									toggleModelSticker={toggleModelSticker}
+								/>
+							</View>
+						)}
+					</View>
+					<View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
+						<TextInput
+							className="min-h-[26px] text-base text-gray-800"
+							placeholder="Nhập tin nhắn..."
+							value={newMessage}
+							onChangeText={setNewMessage}
+							multiline
+							numberOfLines={1}
+							placeholderTextColor="#666"
+							style={{
+								borderWidth: 0,
+								outline: "none",
+								height: Math.min(inputHeight, 26 * 3),
+							}}
+							onContentSizeChange={(event) => {
+								const { height } =
+									event.nativeEvent.contentSize;
+								setInputHeight(height > 26 ? height : 26);
+							}}
+							onBlur={() => {
+								if (inputHeight < 28) {
+									setInputHeight(28);
+								}
+							}}
+							onFocus={() => {
+								setInputHeight(28);
+							}}
+						/>
+					</View>
+					<View className="relative">
+						<TouchableOpacity
+							className="p-2"
+							onPress={toggleModelEmoji}
+						>
+							<Ionicons
+								name="happy-outline"
+								size={24}
+								color="#666"
+							/>
+						</TouchableOpacity>
+						{isModelEmoji && (
+							<View
+								className="absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200"
+								style={Shadows.xl}
+							>
+								<EmojiPicker
+									setMessage={setNewMessage}
+									toggleModelEmoji={toggleModelEmoji}
+								/>
+							</View>
+						)}
+					</View>
+					<TouchableOpacity
+						className={`p-3 rounded-full ${
+							newMessage.trim() ? "bg-blue-500" : "bg-gray-200"
+						}`}
+						onPress={handleSendMessage}
+						disabled={!newMessage.trim()}
+						style={[
+							newMessage.trim() && Shadows.md,
+							{
+								transform: [
+									{ scale: newMessage.trim() ? 1 : 0.95 },
+								],
+							},
+						]}
+					>
+						<Ionicons
+							name="send"
+							size={20}
+							color={newMessage.trim() ? "#FFF" : "#999"}
+						/>
+					</TouchableOpacity>
+				</View>
+			</View>
+			{fullScreenImage && (
+				<View className="absolute inset-0 bg-black z-50 flex-1 justify-center items-center">
+					<Image
+						source={{ uri: fullScreenImage }}
+						className="w-full h-full"
+						resizeMode="contain"
+					/>
+					<TouchableOpacity
+						className="absolute top-10 right-5 bg-black/30 rounded-full p-2"
+						onPress={() => setFullScreenImage(null)}
+					>
+						<Ionicons name="close" size={24} color="white" />
+					</TouchableOpacity>
+				</View>
+			)}
+			{showUploadModal && (
+				<View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
+					<View className="bg-white rounded-2xl p-5 w-[85%] max-w-md">
+						<View className="items-center">
+							<View className="w-16 h-16 rounded-full bg-blue-50 items-center justify-center mb-4">
+								{uploadProgress < 100 ? (
+									<Ionicons
+										name="cloud-upload-outline"
+										size={32}
+										color="#3B82F6"
+									/>
+								) : (
+									<Ionicons
+										name="checkmark-circle"
+										size={32}
+										color="#10B981"
+									/>
+								)}
+							</View>
+							<Text className="text-lg font-medium text-gray-900 mb-2">
+								{uploadProgress < 100
+									? "Uploading File"
+									: "Upload Complete"}
+							</Text>
+							<Text className="text-gray-600 text-center mb-4">
+								{uploadStatusMessage}
+							</Text>
+						</View>
 
-                                    <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
-                                        <Ionicons name="image-outline" size={24} color="#666" />
-                                        <Text className="ml-2  text-gray-800">Hình ảnh</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity className="flex-row items-center mb-2" onPress={handleSelectFile}>
-                                        <Ionicons name="file-tray-full-outline" size={24} color="#666" />
-                                        <Text className="ml-2 text-gray-800">File</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelGift}>
-                                        <Ionicons name="gift-outline" size={24} color="#666" />
-                                        <Text className="ml-2 text-gray-800">Quà tặng</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </Animated.View>
-                        </View>
-                    )}
-                    <View className="relative">
-                        <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
-                            <Ionicons name="gift-outline" size={24} color="#666" />
-                        </TouchableOpacity>
-                        {isModelSticker && (
-                            <View
-                                className="absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200"
-                                style={Shadows.xl}
-                            >
-                                <StickerPicker setMessage={setNewMessage} toggleModelSticker={toggleModelSticker} />
-                            </View>
-                        )}
-                    </View>
-                    <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
-                        <TextInput
-                            className="min-h-[26px] text-base text-gray-800"
-                            placeholder="Nhập tin nhắn..."
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                            multiline
-                            numberOfLines={1}
-                            placeholderTextColor="#666"
-                            style={{
-                                borderWidth: 0,
-                                outline: 'none',
-                                height: Math.min(inputHeight, 26 * 3),
-                            }}
-                            onContentSizeChange={(event) => {
-                                const {height} = event.nativeEvent.contentSize;
-                                setInputHeight(height > 26 ? height : 26);
-                            }}
-                            onBlur={() => {
-                                if (inputHeight < 28) {
-                                    setInputHeight(28);
-                                }
-                            }}
-                            onFocus={() => {
-                                setInputHeight(28);
-                            }}
-                        />
-                    </View>
-                    <View className="relative">
-                        <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
-                            <Ionicons name="happy-outline" size={24} color="#666" />
-                        </TouchableOpacity>
-                        {isModelEmoji && (
-                            <View
-                                className="absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200"
-                                style={Shadows.xl}
-                            >
-                                <EmojiPicker setMessage={setNewMessage} toggleModelEmoji={toggleModelEmoji} />
-                            </View>
-                        )}
-                    </View>
-                    <TouchableOpacity
-                        className={`p-3 rounded-full ${newMessage.trim() ? 'bg-blue-500' : 'bg-gray-200'}`}
-                        onPress={handleSendMessage}
-                        disabled={!newMessage.trim()}
-                        style={[
-                            newMessage.trim() && Shadows.md,
-                            {
-                                transform: [{scale: newMessage.trim() ? 1 : 0.95}],
-                            },
-                        ]}
-                    >
-                        <Ionicons name="send" size={20} color={newMessage.trim() ? '#FFF' : '#999'} />
-                    </TouchableOpacity>
-                </View>
-            </View>
-            {fullScreenImage && (
-                <View className="absolute inset-0 bg-black z-50 flex-1 justify-center items-center">
-                    <Image source={{uri: fullScreenImage}} className="w-full h-full" resizeMode="contain" />
-                    <TouchableOpacity
-                        className="absolute top-10 right-5 bg-black/30 rounded-full p-2"
-                        onPress={() => setFullScreenImage(null)}
-                    >
-                        <Ionicons name="close" size={24} color="white" />
-                    </TouchableOpacity>
-                </View>
-            )}
-            {showUploadModal && (
-                <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
-                    <View className="bg-white rounded-2xl p-5 w-[85%] max-w-md">
-                        <View className="items-center">
-                            <View className="w-16 h-16 rounded-full bg-blue-50 items-center justify-center mb-4">
-                                {uploadProgress < 100 ? (
-                                    <Ionicons name="cloud-upload-outline" size={32} color="#3B82F6" />
-                                ) : (
-                                    <Ionicons name="checkmark-circle" size={32} color="#10B981" />
-                                )}
-                            </View>
-                            <Text className="text-lg font-medium text-gray-900 mb-2">
-                                {uploadProgress < 100 ? 'Uploading File' : 'Upload Complete'}
-                            </Text>
-                            <Text className="text-gray-600 text-center mb-4">{uploadStatusMessage}</Text>
-                        </View>
+						{/* Progress Bar */}
+						<View className="bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
+							<View
+								className="bg-blue-500 h-full rounded-full"
+								style={{ width: `${uploadProgress}%` }}
+							/>
+						</View>
 
-                        {/* Progress Bar */}
-                        <View className="bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
-                            <View className="bg-blue-500 h-full rounded-full" style={{width: `${uploadProgress}%`}} />
-                        </View>
-
-                        {/* Cancel button - only show during active upload */}
-                        {uploadProgress < 100 && (
-                            <TouchableOpacity
-                                className="mt-2 py-3 px-4 rounded-lg bg-gray-100 items-center"
-                                onPress={() => {
-                                    // Add cancellation logic here if possible
-                                    setShowUploadModal(false);
-                                    // setError('Upload cancelled');
-                                }}
-                            >
-                                <Text className="text-gray-700 font-medium">Cancel</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-            )}
-        </View>
-    );
+						{/* Cancel button - only show during active upload */}
+						{uploadProgress < 100 && (
+							<TouchableOpacity
+								className="mt-2 py-3 px-4 rounded-lg bg-gray-100 items-center"
+								onPress={() => {
+									// Add cancellation logic here if possible
+									setShowUploadModal(false);
+									// setError('Upload cancelled');
+								}}
+							>
+								<Text className="text-gray-700 font-medium">
+									Cancel
+								</Text>
+							</TouchableOpacity>
+						)}
+					</View>
+				</View>
+			)}
+		</View>
+	);
 }
