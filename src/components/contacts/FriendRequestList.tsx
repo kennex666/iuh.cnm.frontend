@@ -162,7 +162,7 @@ export default function FriendRequestList() {
         try {
             const response = await FriendRequestService.acceptFriendRequest(requestId);
             if (response.success) {
-                console.log('Đã chấp nhận    mời kết bạn');
+                console.log('Đã chấp nhận mời kết bạn');
                 loadFriendRequests(); // Reload the list
             } else {
                 console.log('Không thể chấp nhận lời mời kết bạn');

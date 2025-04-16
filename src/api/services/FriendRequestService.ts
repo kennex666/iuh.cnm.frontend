@@ -383,6 +383,7 @@ export const FriendRequestService: FriendRequestService = {
                 },
             });
 
+            console.log("get accepted friend requests: ", response.data);
             if (response.data.success) {
                 return {
                     success: true,

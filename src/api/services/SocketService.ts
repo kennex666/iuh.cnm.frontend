@@ -49,11 +49,11 @@ class SocketService {
             console.log('Socket disconnected');
         });
 
-        this.socket.on('new_message', (message: Message) => {
+        this.socket.on('message:new', (message: Message) => {
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
-        this.socket.on('new_conversation', (conversation: Conversation) => {
+        this.socket.on('conversation:new', (conversation: Conversation) => {
             this.conversationCallbacks.forEach(callback => callback(conversation));
         });
 
@@ -103,7 +103,7 @@ class SocketService {
     public sendMessage(message: Message): void {
         if (this.socket) {
             console.log('Sending message to socket is: ', message);
-            this.socket.emit('send_message', message);
+            this.socket.emit('message:send', message);
         }
     }
     
@@ -133,6 +133,12 @@ class SocketService {
 
     public onFriendRequestAction(callback: (requestId: string) => void): void {
         this.friendRequestActionCallbacks.push(callback);
+    }
+
+    public sendConversation(conversation: Conversation): void {
+        if (this.socket) {
+            this.socket.emit('conversation:new', conversation);
+        }
     }
 
     public onNewConversation(callback: (conversation: Conversation) => void): void {

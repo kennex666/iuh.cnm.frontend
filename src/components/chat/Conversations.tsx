@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
@@ -6,6 +6,7 @@ import {Conversation} from "@/src/models/Conversation";
 import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
+import { Message } from '@/src/models/Message';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -19,6 +20,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const { user } = useAuth();
     const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
     const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
+    const socketService = useRef(SocketService.getInstance()).current;
 
     useEffect(() => {
         const fetchConversations = async () => {
@@ -56,7 +58,17 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         };
 
         fetchConversations();
-    }, [user?.id]); 
+    }, [user?.id]);
+
+    useEffect(() => {
+        const handleNewConversation = (conversation: Conversation) => {
+            setConversations(prev => [...prev, conversation]);
+        };
+        socketService.onNewConversation(handleNewConversation);
+        return () => {
+            socketService.removeConversationListener(handleNewConversation);
+        };
+    }, [selectedChat?.id]);
 
     const formatTime = (dateString: string | undefined) => {
         if (!dateString) return '';
