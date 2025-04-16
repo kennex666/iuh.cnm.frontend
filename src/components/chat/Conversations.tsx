@@ -22,7 +22,8 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
     const socketService = useRef(SocketService.getInstance()).current;
 
-    useEffect(() => {
+    // Fetch conversations
+    useEffect(() => {    
         const fetchConversations = async () => {
             try {
                 const response = await ConversationService.getConversations();

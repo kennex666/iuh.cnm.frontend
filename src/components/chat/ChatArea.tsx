@@ -53,6 +53,11 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     const [showMessageOptions, setShowMessageOptions] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+    const [otherParticipant, setOtherParticipant] = useState<{
+        name: string;
+        avatar: string;
+        isOnline: boolean;
+    } | null>(null);
 
     const fetchUserInfo = async (userId: string) => {
         try {
@@ -93,6 +98,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
 
     // Join conversation when component mounts
     useEffect(() => {
+            
         if (selectedChat) {
             fetchMessages();
             // Join new conversation
@@ -143,6 +149,32 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             }
         });
     }, [messages]);
+
+    // Load other participant info when selectedChat changes
+    useEffect(() => {
+        const loadOtherParticipant = async () => {
+            if (!selectedChat || !user) return;
+            
+            // Find the other participant's ID
+            const otherUserId = selectedChat.participants.find(id => id !== user.id);
+            if (!otherUserId) return;
+
+            try {
+                const response = await UserService.getUserById(otherUserId);
+                if (response.success && response.user) {
+                    setOtherParticipant({
+                        name: response.user.name,
+                        avatar: response.user.avatarURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name)}&background=0068FF&color=fff`,
+                        isOnline: response.user.isOnline
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading other participant:', error);
+            }
+        };
+
+        loadOtherParticipant();
+    }, [selectedChat, user]);
 
     // Send message to server
     const handleSendMessage = async () => {
@@ -300,22 +332,26 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{ uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
+                        source={{ uri: otherParticipant?.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
                         className="w-10 h-10 rounded-full"
                         resizeMode="cover"
+                        onError={() => {
+                            setOtherParticipant(prev => prev ? {
+                                ...prev,
+                                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(prev.name)}&background=0068FF&color=fff`
+                            } : null);
+                        }}
                     />
                     <View className="ml-3" style={{ maxWidth: '45%' }}>
                         <Text className="font-semibold text-gray-900 text-base"
                             numberOfLines={1}
                             ellipsizeMode="tail">
-                            {selectedChat.name || selectedChat.participants.join(', ')}
+                            {otherParticipant?.name || 'Loading...'}
                         </Text>
-                        {selectedChat.isGroup && (
-                            <Text className="text-sm text-gray-500">{selectedChat.participants.length} thành
-                                viên</Text>
-                        )}
-                        {!selectedChat.isGroup && selectedChat.participants.length > 0 && (
-                            <Text className="text-sm text-green-500">Đang hoạt động</Text>
+                        {otherParticipant && (
+                            <Text className={`text-sm ${otherParticipant.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
+                                {otherParticipant.isOnline ? 'Đang hoạt động' : 'Offline'}
+                            </Text>
                         )}
                     </View>
                 </View>

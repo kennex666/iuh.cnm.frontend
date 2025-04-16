@@ -75,23 +75,12 @@ export default function FriendRequestList() {
             }
         };
 
-        const handleActionFriendRequest = (requestId: string) => {
-            console.log('requestId', requestId);
-            loadFriendRequests();
-        }
-
-        const handleDeleteFriendRequest = (friendRequest: FriendRequest) => {
-            console.log('Delete friend request received:', friendRequest);
-            loadFriendRequests();
-        }
-        socketService.onFriendRequestAction(handleActionFriendRequest);
         socketService.onFriendRequest(handleNewFriendRequest);
-        socketService.onDeleteFriendRequest(handleDeleteFriendRequest);
+
         
         // Cleanup socket listeners
         return () => {
             socketService.removeFriendRequestListener(handleNewFriendRequest);
-            socketService.removeDeleteFriendRequestListener(handleDeleteFriendRequest);
         };
     }, [user]);
 
