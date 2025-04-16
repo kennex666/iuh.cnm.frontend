@@ -92,7 +92,7 @@ class SocketService {
             this.socket.emit('join_conversation', conversationId);
         }
     }
-    
+
     public leaveConversation(conversationId: string): void {
         if (this.socket) {
             this.socket.emit('leave_conversation', conversationId);

@@ -85,6 +85,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         }
     };
 
+    // Join conversation when component mounts
     useEffect(() => {
         if (selectedChat) {
             fetchMessages();
@@ -107,8 +108,8 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         }, 100);
     }, [messages]);
 
+    // Listen for new messages
     useEffect(() => {
-        // Listen for new messages
         const handleNewMessage = (message: Message) => {
             if (message.conversationId === selectedChat?.id) {
                 setMessages(prev => [...prev, message]);
@@ -156,6 +157,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             // Send through socket
             socketService.sendMessage(messageData);
             
+            setNewMessage('');
         } catch (err) {
             console.error('Error sending message:', err);
             setError('Failed to send message');
