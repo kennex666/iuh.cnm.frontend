@@ -1,6 +1,18 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Ionicons} from '@expo/vector-icons';
-import {ActivityIndicator, Animated, Easing, Image, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {
+    ActivityIndicator,
+    Animated,
+    Easing,
+    Image,
+    Linking,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import {Conversation} from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
@@ -16,6 +28,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import {AttachmentService} from '@/src/api/services/AttachmentService';
 import {Attachment} from '@/src/models/Attachment';
+import axios from 'axios';
+import FileMessageContent from './FileMessageContent';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -51,6 +65,27 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     // Thêm vào danh sách state trong ChatArea
     const [fileUploading, setFileUploading] = useState(false);
     const [attachments, setAttachments] = useState<{[key: string]: Attachment}>({});
+    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+
+    const isImageFile = (mimeType: string): boolean => {
+        if (!mimeType) return false;
+        return mimeType.startsWith('image/');
+    };
+
+    const getFileIcon = (mimeType: string): string => {
+        if (!mimeType) return 'document-outline';
+
+        if (mimeType.startsWith('image/')) return 'image-outline';
+        if (mimeType.startsWith('video/')) return 'videocam-outline';
+        if (mimeType.startsWith('audio/')) return 'musical-notes-outline';
+        if (mimeType.includes('pdf')) return 'document-text-outline';
+        if (mimeType.includes('word') || mimeType.includes('document')) return 'document-text-outline';
+        if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'grid-outline';
+        if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return 'easel-outline';
+        if (mimeType.includes('zip') || mimeType.includes('compressed')) return 'archive-outline';
+
+        return 'document-outline';
+    };
 
     // Thêm hàm xử lý chọn file
     // Thêm hàm xử lý chọn file
@@ -75,30 +110,23 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     // Thêm hàm xử lý upload và gửi file
 
-        // Update the uploadAndSendFile function
+    // Update the uploadAndSendFile function
     const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
         if (!selectedChat?.id || !user?.id) return;
-    
+
         try {
             setFileUploading(true);
             setError(null);
-    
-            // Create a new message with type file
-            const messageData: Message = {
-                id: new Date().getTime().toString(),
-                conversationId: selectedChat.id,
-                senderId: user.id,
-                content: fileAsset.name,
-                type: MessageType.FILE,
-                repliedToId: replyingTo?.id,
-                readBy: [],
-                sentAt: new Date().toISOString(),
-            };
-    
-            // Create FormData for the file upload
+
+            // Tạo FormData cho việc upload file
             const formData = new FormData();
-            formData.append('messageId', messageData.id);
-    
+
+            // Thêm repliedToId vào FormData nếu có
+            if (replyingTo?.id) {
+                formData.append('repliedTold', replyingTo.id);
+            }
+
+            // Xử lý file theo platform
             if (Platform.OS === 'web') {
                 // Web platform handling
                 const response = await fetch(fileAsset.uri);
@@ -106,14 +134,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 const file = new File([blob], fileAsset.name, {
                     type: fileAsset.mimeType || 'application/octet-stream',
                 });
-    
                 formData.append('file', file);
-                
-                console.log('Uploading web file:', {
-                    name: file.name,
-                    type: file.type,
-                    size: file.size
-                });
             } else {
                 // Mobile platform handling
                 formData.append('file', {
@@ -121,55 +142,48 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     type: fileAsset.mimeType,
                     name: fileAsset.name,
                 } as any);
-                
-                console.log('Uploading mobile file:', {
-                    name: fileAsset.name,
-                    type: fileAsset.mimeType,
-                    uri: fileAsset.uri
-                });
             }
-    
-            // Upload the file to server
-            const uploadResponse = await AttachmentService.uploadAttachment(formData);
-    
-            if (!uploadResponse.success) {
-                throw new Error(uploadResponse.statusMessage || 'Không thể tải file lên');
-            }
-    
-            console.log('File upload successful:', uploadResponse.data);
-    
-            // Send the message via socket
-            socketService.sendMessage(messageData);
-    
-            // Save the attachment in local state
-            // setAttachments(prev => ({
-            //     ...prev,
-            //     [messageData.id]: uploadResponse.data
-            // }));
-            if (uploadResponse.data) {
-                setAttachments(prev => ({
-                    ...prev,
-                    [messageData.id]: uploadResponse.data
-                }));
-            }
-    
-            // Add the message to local messages state for immediate display
-            setMessages(prev => [...prev, messageData]);
-    
-            // Reset reply state if there was one
-            if (replyingTo) {
-                setReplyingTo(null);
+
+            // Upload file sử dụng service đã cập nhật
+            const uploadResponse = await AttachmentService.uploadAttachment(selectedChat.id, formData);
+
+            if (uploadResponse.success) {
+                // Lấy attachment từ response
+                console.log('File upload successful:', uploadResponse.data);
+
+                // Lưu attachment vào state local
+                if (uploadResponse.data) {
+                    setAttachments((prev) => ({
+                        ...prev,
+                        [uploadResponse.data.messageId]: uploadResponse.data,
+                    }));
+                }
+
+                // Reset reply state nếu có
+                if (replyingTo) {
+                    setReplyingTo(null);
+                }
+
+                // Cập nhật danh sách tin nhắn
+                await fetchMessages();
+            } else {
+                throw new Error(uploadResponse.statusMessage);
             }
         } catch (error) {
             console.error('Error uploading file:', error);
-            setError(typeof error === 'string' ? error : 
-                   (error instanceof Error ? error.message : 'Không thể gửi file. Vui lòng thử lại.'));
+            setError(
+                typeof error === 'string'
+                    ? error
+                    : error instanceof Error
+                    ? error.message
+                    : 'Không thể gửi file. Vui lòng thử lại.'
+            );
         } finally {
             setFileUploading(false);
-            toggleModelChecked(); // Close file type selection modal
+            toggleModelChecked(); // Đóng modal chọn loại file
         }
     };
-    
+
     // Update the getAttachmentByMessageId function
     const getAttachmentByMessageId = async (messageId: string) => {
         try {
@@ -177,22 +191,22 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             if (attachments[messageId]) {
                 return attachments[messageId];
             }
-    
+
             // If not, fetch it from the server
             const response = await AttachmentService.getAttachmentByMessageId(messageId);
-            
+
             if (response.success && response.data && response.data.length > 0) {
                 const attachment = response.data[0]; // Get the first attachment if there are multiple
-                
+
                 // Save to local state for future use
                 setAttachments((prev) => ({
                     ...prev,
                     [messageId]: attachment,
                 }));
-                
+
                 return attachment;
             }
-    
+
             return null;
         } catch (error) {
             console.error('Error fetching attachment:', error);
@@ -557,43 +571,14 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                     ) : (
                                         msg.type === MessageType.FILE && (
                                             <View className="flex-row items-center">
-                                                <View className="w-10 h-10 rounded bg-white/20 items-center justify-center mr-2">
-                                                    <Ionicons
-                                                        name="document-outline"
-                                                        size={24}
-                                                        color={msg.senderId === user?.id ? 'white' : '#666'}
-                                                    />
-                                                </View>
-                                                <View className="flex-1">
-                                                    <Text
-                                                        className={`${
-                                                            msg.senderId === user?.id ? 'text-white' : 'text-gray-900'
-                                                        } font-medium`}
-                                                        numberOfLines={1}
-                                                    >
-                                                        {msg.content}
-                                                    </Text>
-                                                    <TouchableOpacity
-                                                        className={`mt-1 ${
-                                                            msg.senderId === user?.id ? 'bg-white/20' : 'bg-gray-200'
-                                                        } rounded px-2 py-1`}
-                                                        onPress={async () => {
-                                                            const attachment = await getAttachmentByMessageId(msg.id);
-                                                            if (attachment?.url) {
-                                                                // Mở file trong trình duyệt hoặc ứng dụng tương ứng
-                                                                Linking.openURL(attachment.url);
-                                                            }
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            className={`text-xs ${
-                                                                msg.senderId === user?.id ? 'text-white' : 'text-blue-600'
-                                                            }`}
-                                                        >
-                                                            Mở file
-                                                        </Text>
-                                                    </TouchableOpacity>
-                                                </View>
+                                                {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
+                                                <FileMessageContent
+                                                    messageId={msg.id}
+                                                    fileName={msg.content}
+                                                    isSender={msg.senderId === user?.id}
+                                                    getAttachment={getAttachmentByMessageId}
+                                                    onImagePress={setFullScreenImage}
+                                                />
                                             </View>
                                         )
                                     )}
@@ -867,6 +852,17 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     </TouchableOpacity>
                 </View>
             </View>
+            {fullScreenImage && (
+                <View className="absolute inset-0 bg-black z-50 flex-1 justify-center items-center">
+                    <Image source={{uri: fullScreenImage}} className="w-full h-full" resizeMode="contain" />
+                    <TouchableOpacity
+                        className="absolute top-10 right-5 bg-black/30 rounded-full p-2"
+                        onPress={() => setFullScreenImage(null)}
+                    >
+                        <Ionicons name="close" size={24} color="white" />
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 }

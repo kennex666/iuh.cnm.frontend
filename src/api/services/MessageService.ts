@@ -40,7 +40,7 @@ export const MessageService: MessageService = {
                 };
             }
 
-            const url = `${ApiEndpoints.API_MESSAGE}/conversation/${conversationId}/20`;
+            const url = `${ApiEndpoints.API_MESSAGE}/conversation/${conversationId}`;
 
             const response = await axios.get(url, {
                 headers: {
