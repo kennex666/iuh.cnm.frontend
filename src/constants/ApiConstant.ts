@@ -10,5 +10,6 @@ export const ApiEndpoints = {
     API_MESSAGE: `${URL_BE}/api/messages`,
     API_FILE: `${URL_BE}/api/file`,
     API_FRIEND_REQUEST: `${URL_BE}/api/friendRequests`,
+    API_REACTION: `${URL_BE}/api/reaction`,
     SOCKET_URL: `${URL_BE}`
 };

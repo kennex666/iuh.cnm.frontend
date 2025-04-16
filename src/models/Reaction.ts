@@ -3,11 +3,11 @@
 // userId: { type: String, required: true },
 // emoji: { type: String, required: true },
 
-interface Reaction {
-    id: string;
+export interface Reaction {
+    id?: string;
     messageId: string;
     userId: string;
     emoji: string;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
-
-export default Reaction;

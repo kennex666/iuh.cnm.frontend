@@ -21,7 +21,6 @@ import { MessageService } from '@/src/api/services/MessageService';
 import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
-import Reaction from '@/src/models/Reaction';
 import ForwardMessageModal from './ForwardMessageModal';
 
 
