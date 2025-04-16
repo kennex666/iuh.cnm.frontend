@@ -79,12 +79,19 @@ export default function FriendRequestList() {
             console.log('requestId', requestId);
             loadFriendRequests();
         }
+
+        const handleDeleteFriendRequest = (friendRequest: FriendRequest) => {
+            console.log('Delete friend request received:', friendRequest);
+            loadFriendRequests();
+        }
         socketService.onFriendRequestAction(handleActionFriendRequest);
         socketService.onFriendRequest(handleNewFriendRequest);
+        socketService.onDeleteFriendRequest(handleDeleteFriendRequest);
         
         // Cleanup socket listeners
         return () => {
             socketService.removeFriendRequestListener(handleNewFriendRequest);
+            socketService.removeDeleteFriendRequestListener(handleDeleteFriendRequest);
         };
     }, [user]);
 
@@ -212,6 +219,7 @@ export default function FriendRequestList() {
             const response = await FriendRequestService.deleteFriendRequest(requestId);
             if (response.success) {
                 console.log('Đã hủy lời mời kết bạn');
+                const socketService = SocketService.getInstance();
                 loadFriendRequests();
             } else {
                 console.log('Không thể hủy lời mời kết bạn');
@@ -307,13 +315,19 @@ export default function FriendRequestList() {
                                             <Text className="text-gray-700 font-medium">Bạn bè</Text>
                                         </View>
                                     ) : pendingRequestSent ? (
-                                        <TouchableOpacity
-                                            key={`search-cancel-${result.id}`}
-                                            className="bg-red-500 px-4 py-2 rounded-full"
-                                            onPress={() => handleCancelRequest(pendingRequestSent.id)}
-                                        >
-                                            <Text className="text-white font-medium">Hủy kết bạn</Text>
-                                        </TouchableOpacity>
+                                        pendingRequestSent.status === "declined" ? (
+                                            <View key={`search-decl ined-${result.id}`} className="bg-red-100 px-4 py-2 rounded-full">
+                                                <Text className="text-red-600 font-medium">Đã từ chối</Text>
+                                            </View>
+                                        ) : (
+                                            <TouchableOpacity
+                                                key={`search-cancel-${result.id}`}
+                                                className="bg-red-500 px-4 py-2 rounded-full"
+                                                onPress={() => handleCancelRequest(pendingRequestSent.id)}
+                                            >
+                                                <Text className="text-white font-medium">Hủy kết bạn</Text>
+                                            </TouchableOpacity>
+                                        )
                                     ) : pendingRequestReceived ? (
                                         <TouchableOpacity
                                             key={`search-accept-${result.id}`}
@@ -378,20 +392,28 @@ export default function FriendRequestList() {
                                 </Text>
                             </View>
                             <View key={`request-actions-${request.id}`} className="flex-row items-center">
-                                <TouchableOpacity
-                                    key={`request-accept-${request.id}`}
-                                    className="bg-blue-500 px-4 py-2 rounded-full mr-2"
-                                    onPress={() => handleAcceptRequest(request.id)}
-                                >
-                                    <Text className="text-white font-medium">Đồng ý</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    key={`request-decline-${request.id}`}
-                                    className="bg-gray-100 px-4 py-2 rounded-full"
-                                    onPress={() => handleDeclineRequest(request.id)}
-                                >
-                                    <Text className="text-gray-700 font-medium">Từ chối</Text>
-                                </TouchableOpacity>
+                                {request.status !== "declined" ? (
+                                    <>
+                                        <TouchableOpacity
+                                            key={`request-accept-${request.id}`}
+                                            className="bg-blue-500 px-4 py-2 rounded-full mr-2"
+                                            onPress={() => handleAcceptRequest(request.id)}
+                                        >
+                                            <Text className="text-white font-medium">Đồng ý</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            key={`request-decline-${request.id}`}
+                                            className="bg-gray-100 px-4 py-2 rounded-full"
+                                            onPress={() => handleDeclineRequest(request.id)}
+                                        >
+                                            <Text className="text-gray-700 font-medium">Từ chối</Text>
+                                        </TouchableOpacity>
+                                    </>
+                                ) : (
+                                    <View className="bg-red-100 px-4 py-2 rounded-full">
+                                        <Text className="text-red-600 font-medium">Đã từ chối</Text>
+                                    </View>
+                                )}
                             </View>
                         </View>
                     ))

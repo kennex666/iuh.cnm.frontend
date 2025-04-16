@@ -61,6 +61,10 @@ class SocketService {
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
         });
 
+        this.socket.on('friend_request:delete', (friendRequest: FriendRequest) => {
+            this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
         this.socket.on('delete_message', (message: Message) => {
             this.deleteMessageCallbacks.forEach(callback => callback(message));
         });
@@ -127,6 +131,16 @@ class SocketService {
         }
     }
 
+    public sendDeleteFriendRequest(friendRequest: any): void {
+        if (this.socket) {
+            this.socket.emit('friend_request:delete', friendRequest);
+        }
+    }
+
+    public onDeleteFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
+        this.friendRequestCallbacks.push(callback);
+    }
+
     public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks.push(callback);
     }
@@ -154,6 +168,10 @@ class SocketService {
     }
 
     public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
+        this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeDeleteFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
     }
     

@@ -169,7 +169,7 @@ export const FriendRequestService: FriendRequestService = {
                 },
             });
 
-            console.log(response.data);
+            console.log("create friend request response: ", response.data);
             if (response.data.success) {
                 return {
                     success: true,
