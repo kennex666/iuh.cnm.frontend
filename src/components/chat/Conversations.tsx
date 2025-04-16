@@ -79,32 +79,6 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     )
 
     useEffect(() => {
-        const handleNewMessage = (message: Message) => {
-            conversations.forEach((conversation) => {
-                if (conversation.id === message.conversationId) {
-                    const updatedConversation = {
-                        ...conversation,
-                        lastMessage: {
-                            ...message,
-                            readBy: message.readBy
-                                ? [...message.readBy, user?.id]
-                                : [user?.id],
-                        } as Message,
-                    };
-                    setConversations((prev) =>
-                        prev.map((conv) => (conv.id === conversation.id ? updatedConversation : conv)).sort((a, b) => {
-                            if (a.lastMessage && b.lastMessage) {
-                                return new Date(b.lastMessage.sentAt).getTime() - new Date(a.lastMessage.sentAt).getTime();
-                            } else if (a.lastMessage) {
-                                return -1;
-                            }
-                            return 0;
-                        })
-                    );
-                }
-            });
-        };
-        socketService.onNewMessage(handleNewMessage);
         setConversations((prev) =>
             prev.map((conv) => {
                 if (conv.id == selectedChat?.id) {
@@ -121,10 +95,52 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                 return conv;
             })
         );
+    }, [selectedChat?.id]);
+
+    useEffect(() => {
+        console.log("Socket listener added for new messages");
+        const handleNewMessage = (message: Message) => {
+        conversations.forEach((conversation) => {
+            if (conversation.id === message.conversationId) {
+                const updatedConversation = {
+					...conversation,
+					lastMessage: {
+						...message,
+						readBy: (selectedChat?.id == conversation.id)
+							? [...(message.readBy || []), user?.id] : message.readBy || [],
+					} as Message,
+				};
+                setConversations((prev) =>
+                    prev
+                        .map((conv) =>
+                            conv.id === conversation.id
+                                ? updatedConversation
+                                : conv
+                        )
+                        .sort((a, b) => {
+                            if (a.lastMessage && b.lastMessage) {
+                                return (
+                                    new Date(
+                                        b.lastMessage.sentAt
+                                    ).getTime() -
+                                    new Date(
+                                        a.lastMessage.sentAt
+                                    ).getTime()
+                                );
+                            } else if (a.lastMessage) {
+                                return -1;
+                            }
+                            return 0;
+                        })
+                );
+            }
+        });
+        };
+        socketService.onNewMessage(handleNewMessage);
         return () => {
             socketService.removeMessageListener(handleNewMessage);
         };
-    }, [selectedChat?.id]);
+    }, [conversations, socketService, user?.id]);
 
     const formatTime = (dateString: string | undefined) => {
         if (!dateString) return '';
