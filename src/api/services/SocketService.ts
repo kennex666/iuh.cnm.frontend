@@ -3,13 +3,16 @@ import { useEffect, useRef } from 'react';
 import { ApiEndpoints } from '@/src/constants/ApiConstant';
 import { Message } from '@/src/models/Message';
 import { Conversation } from '@/src/models/Conversation';
+import FriendRequest from '@/src/models/FriendRequest';
 
 class SocketService {
     private static instance: SocketService;
     private socket: Socket | null = null;
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
-    private friendRequestCallbacks: ((userId: string) => void)[] = [];
+    private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
+    private friendRequestActionCallbacks: ((requestId: string) => void)[] = [];
+    private deleteMessageCallbacks: ((message: Message) => void)[] = [];
 
     private constructor() {}
 
@@ -46,16 +49,7 @@ class SocketService {
             console.log('Socket disconnected');
         });
 
-        this.socket.on('online', (userId: string) => {
-            console.log(`User ${userId} is online`);
-        });
-
-        this.socket.on('login', ({ userId }) => {
-            console.log('Login successful for user:', userId);
-        });
-
         this.socket.on('new_message', (message: Message) => {
-            console.log('Received new message:', message);
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
@@ -63,8 +57,12 @@ class SocketService {
             this.conversationCallbacks.forEach(callback => callback(conversation));
         });
 
-        this.socket.on('friend_request', (userId: string) => {
-            this.friendRequestCallbacks.forEach(callback => callback(userId));
+        this.socket.on('friend_request', (friendRequest: FriendRequest) => {
+            this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
+        this.socket.on('delete_message', (message: Message) => {
+            this.deleteMessageCallbacks.forEach(callback => callback(message));
         });
 
         this.socket.on('pong', (message: string) => {
@@ -90,23 +88,55 @@ class SocketService {
         }
     }
 
+    public joinConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('join_conversation', conversationId);
+        }
+    }
+
+    public leaveConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('leave_conversation', conversationId);
+        }
+    }
+
     public sendMessage(message: Message): void {
         if (this.socket) {
             console.log('Sending message to socket is: ', message);
             this.socket.emit('send_message', message);
         }
     }
-
+    
     public onNewMessage(callback: (message: Message) => void): void {
         this.messageCallbacks.push(callback);
     }
 
-    public onNewConversation(callback: (conversation: Conversation) => void): void {
-        this.conversationCallbacks.push(callback);
+    public sendDeleteMessage(message: Message): void {
+        if (this.socket) {
+            this.socket.emit('send_delete_message', message);
+        }
     }
 
-    public onFriendRequest(callback: (userId: string) => void): void {
+    public onDeleteMessage(callback: (message: Message) => void): void {
+        this.deleteMessageCallbacks.push(callback);
+    }
+
+    public sendFriendRequest(friendRequest: any): void {
+        if (this.socket) {
+            this.socket.emit('send_friend_request', friendRequest);
+        }
+    }
+
+    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks.push(callback);
+    }
+
+    public onFriendRequestAction(callback: (requestId: string) => void): void {
+        this.friendRequestActionCallbacks.push(callback);
+    }
+
+    public onNewConversation(callback: (conversation: Conversation) => void): void {
+        this.conversationCallbacks.push(callback);
     }
 
     public removeMessageListener(callback: (message: Message) => void): void {
@@ -117,9 +147,10 @@ class SocketService {
         this.conversationCallbacks = this.conversationCallbacks.filter(cb => cb !== callback);
     }
 
-    public removeFriendRequestListener(callback: (userId: string) => void): void {
+    public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
     }
+    
 }
 
 export default SocketService;

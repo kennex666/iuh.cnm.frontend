@@ -14,6 +14,7 @@ import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import FriendRequest from '@/src/models/FriendRequest';
 import { useAuth } from '@/src/contexts/UserContext';
+import SocketService from '@/src/api/services/SocketService';
 
 export default function FriendRequestList() {
     const [requests, setRequests] = useState<FriendRequest[]>([]);
@@ -23,9 +24,34 @@ export default function FriendRequestList() {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const { user } = useAuth();
+    const [friendAccepted, setFriendAccepted] = useState<FriendRequest[]>([]);
+    const [friendSent, setFriendSent] = useState<FriendRequest[]>([]);
 
     useEffect(() => {
         loadFriendRequests();
+        // Set up socket listeners
+        const socketService = SocketService.getInstance();
+        
+        // Listen for new friend requests
+        const handleNewFriendRequest = (friendRequest: FriendRequest) => {
+            console.log('New friend request received:', friendRequest);
+            if (friendRequest.receiverId === user?.id) {
+                // If the current user is the receiver, add the request to the list
+                setRequests(prevRequests => [...prevRequests, friendRequest]);
+            }
+        };
+
+        const handleActionFriendRequest = (requestId: string) => {
+            console.log('requestId', requestId);
+            loadFriendRequests();
+        }
+        socketService.onFriendRequestAction(handleActionFriendRequest);
+        socketService.onFriendRequest(handleNewFriendRequest);
+        
+        // Cleanup socket listeners
+        return () => {
+            socketService.removeFriendRequestListener(handleNewFriendRequest);
+        };
     }, [user]);
 
     const loadFriendRequests = async () => {
@@ -37,9 +63,12 @@ export default function FriendRequestList() {
             }
 
             const response = await FriendRequestService.getAllPendingFriendRequests(user.id || "");
-            console.log(response);
-            if (response.success) {
+            const responseAccepted = await FriendRequestService.getAllAcceptedFriendRequests(user?.id || "");
+            const responseSent = await FriendRequestService.getAllPendingFriendRequestsBySenderId();
+            if (response.success && responseAccepted.success && responseSent.success) {
                 setRequests(response.friendRequests);
+                setFriendAccepted(responseAccepted.friendRequests);
+                setFriendSent(responseSent.friendRequests);
             } else {
                 setError(response.message);
             }
@@ -53,6 +82,8 @@ export default function FriendRequestList() {
 
     const handleSearch = async (query: string) => {
         setSearchQuery(query);
+        //reset
+        setSearchResults([]);
         if (query.length < 2) {
             setSearchResults([]);
             return;
@@ -87,26 +118,43 @@ export default function FriendRequestList() {
     const handleSendFriendRequest = async (receiverId: string) => {
         try {
             if (!user) {
-                Alert.alert('Lỗi', 'Không tìm thấy thông tin người dùng');
+                console.log('Không tìm thấy thông tin người dùng');
                 return;
             }
 
             const newRequest = {
-                senderId: user.id,
-                receiverId: receiverId,
+                senderId: user.id || '',
+                receiverId: receiverId
             };
 
             const response = await FriendRequestService.createFriendRequest(newRequest);
+            await loadFriendRequests();  
             if (response.success) {
-                Alert.alert('Thông báo', 'Đã gửi lời mời kết bạn');
-                setSearchQuery('');
-                setSearchResults([]);
+                // Send friend request through socket
+                const socketService = SocketService.getInstance();
+                socketService.sendFriendRequest(newRequest);
             } else {
-                Alert.alert('Lỗi', response.message || 'Không thể gửi lời mời kết bạn');
+                console.log('Không thể gửi lời mời kết bạn');
+            }
+
+            console.log('Đã gửi lời mời kết bạn');
+            setSearchQuery('');
+            setSearchResults([]);
+        } catch (err) {
+            console.log('Lỗi khi gửi lời mời kết bạn:', err);
+        }
+    };
+    const handleDeclineRequest = async (requestId: string) => {
+        try {
+            const response = await FriendRequestService.declineFriendRequest(requestId);
+            if (response.success) {
+                console.log('Đã từ chối lời mời kết bạn');
+                loadFriendRequests();
+            } else {
+                console.log('Không thể từ chối lời mời kết bạn');
             }
         } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi gửi lời mời kết bạn');
-            console.error('Lỗi khi gửi lời mời kết bạn:', err);
+            console.log('Lỗi khi từ chối lời mời kết bạn:', err);
         }
     };
 
@@ -114,29 +162,28 @@ export default function FriendRequestList() {
         try {
             const response = await FriendRequestService.acceptFriendRequest(requestId);
             if (response.success) {
-                Alert.alert('Thông báo', 'Đã chấp nhận lời mời kết bạn');
+                console.log('Đã chấp nhận    mời kết bạn');
                 loadFriendRequests(); // Reload the list
             } else {
-                Alert.alert('Lỗi', response.message || 'Không thể chấp nhận lời mời kết bạn');
+                console.log('Không thể chấp nhận lời mời kết bạn');
             }
         } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi chấp nhận lời mời kết bạn');
-            console.error('Lỗi khi chấp nhận lời mời kết bạn:', err);
+            console.log('Lỗi khi chấp nhận lời mời kết bạn:', err);
         }
     };
 
-    const handleDeclineRequest = async (requestId: string) => {
+    const handleCancelRequest = async (requestId: string) => {
         try {
-            const response = await FriendRequestService.declineFriendRequest(requestId);
+            console.log('requestId', requestId);
+            const response = await FriendRequestService.deleteFriendRequest(requestId);
             if (response.success) {
-                Alert.alert('Thông báo', 'Đã từ chối lời mời kết bạn');
-                loadFriendRequests(); // Reload the list
+                console.log('Đã hủy lời mời kết bạn');
+                loadFriendRequests();
             } else {
-                Alert.alert('Lỗi', response.message || 'Không thể từ chối lời mời kết bạn');
+                console.log('Không thể hủy lời mời kết bạn');
             }
         } catch (err) {
-            Alert.alert('Lỗi', 'Đã xảy ra lỗi khi từ chối lời mời kết bạn');
-            console.error('Lỗi khi từ chối lời mời kết bạn:', err);
+            console.log('Lỗi khi hủy lời mời kết bạn:', err);
         }
     };
 
@@ -188,31 +235,73 @@ export default function FriendRequestList() {
             {searchResults.length > 0 && (
                 <View className="border-b border-gray-200">
                     <Text className="px-4 py-2 text-sm font-semibold text-gray-500">Kết quả tìm kiếm</Text>
-                    {searchResults.map((result) => (
-                        <View
-                            key={result.id}
-                            className="flex-row items-center p-4 border-b border-gray-100"
-                        >
-                            <Image
-                                source={{ uri: result.avatar }}
-                                className="w-12 h-12 rounded-full"
-                            />
-                            <View className="flex-1 ml-3">
-                                <Text className="font-medium text-gray-900">
-                                    {result.name}
-                                </Text>
-                                <Text className="text-sm text-gray-500">
-                                    {result.phone}
-                                </Text>
-                            </View>
-                            <TouchableOpacity
-                                className="bg-blue-500 px-4 py-2 rounded-full"
-                                onPress={() => handleSendFriendRequest(result.id)}
-                            >
-                                <Text className="text-white font-medium">Kết bạn</Text>
-                            </TouchableOpacity>
-                        </View>
-                    ))}
+                    {searchResults.map((result) => {
+                        // Check if user is already a friend
+                        const isFriend = friendAccepted.some(
+                            request => request.senderId === result.id || request.receiverId === result.id
+                        );
+                        // Check if there's a pending request sent by current user
+                        const pendingRequestSent = friendSent.find(
+                            request => request.receiverId === result.id
+                        );
+                        // Check if there's a pending request received by current user
+                        const pendingRequestReceived = requests.find(
+                            request => request.senderId === result.id
+                        );
+
+                        if (result.id !== user?.id) {
+                            return (
+                                <View
+                                    key={`search-result-${result.id}`}
+                                    className="flex-row items-center p-4 border-b border-gray-100"
+                                >
+                                    <Image
+                                        key={`search-image-${result.id}`}
+                                        source={{ uri: result.avatar }}
+                                        className="w-12 h-12 rounded-full"
+                                    />
+                                    <View key={`search-info-${result.id}`} className="flex-1 ml-3">
+                                        <Text className="font-medium text-gray-900">
+                                            {result.name}
+                                        </Text>
+                                        <Text className="text-sm text-gray-500">
+                                            {result.phone}
+                                        </Text>
+                                    </View>
+                                    {isFriend ? (
+                                        <View key={`search-friend-${result.id}`} className="bg-gray-100 px-4 py-2 rounded-full">
+                                            <Text className="text-gray-700 font-medium">Bạn bè</Text>
+                                        </View>
+                                    ) : pendingRequestSent ? (
+                                        <TouchableOpacity
+                                            key={`search-cancel-${result.id}`}
+                                            className="bg-red-500 px-4 py-2 rounded-full"
+                                            onPress={() => handleCancelRequest(pendingRequestSent.id)}
+                                        >
+                                            <Text className="text-white font-medium">Hủy kết bạn</Text>
+                                        </TouchableOpacity>
+                                    ) : pendingRequestReceived ? (
+                                        <TouchableOpacity
+                                            key={`search-accept-${result.id}`}
+                                            className="bg-blue-500 px-4 py-2 rounded-full"
+                                            onPress={() => handleAcceptRequest(pendingRequestReceived.id)}
+                                        >
+                                            <Text className="text-white font-medium">Đồng ý</Text>
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <TouchableOpacity
+                                            key={`search-add-${result.id}`}
+                                            className="bg-blue-500 px-4 py-2 rounded-full"
+                                            onPress={() => handleSendFriendRequest(result.id)}
+                                        >
+                                            <Text className="text-white font-medium">Kết bạn</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
+                            );
+                        }
+                        return null;
+                    })}
                 </View>
             )}
 
@@ -220,23 +309,24 @@ export default function FriendRequestList() {
             <ScrollView className="flex-1">
                 <Text className="px-4 py-2 text-sm font-semibold text-gray-500">Lời mời kết bạn</Text>
                 {requests.length === 0 ? (
-                    <View className="items-center justify-center p-4">
+                    <View key="no-requests" className="items-center justify-center p-4">
                         <Ionicons name="people-outline" size={48} color="#666" />
                         <Text className="text-gray-500 mt-2">Không có lời mời kết bạn nào</Text>
                     </View>
                 ) : (
                     requests.map((request) => (
                         <View
-                            key={request.id}
+                            key={`request-${request.id}`}
                             className="flex-row items-center p-4 border-b border-gray-100"
                         >
                             <Image
+                                key={`request-image-${request.id}`}
                                 source={{
-                                    uri: `https://ui-avatars.com/api/?name=${request.senderId}&background=0068FF&color=fff`
+                                    uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(request.senderId)}&background=0068FF&color=fff`
                                 }}
                                 className="w-12 h-12 rounded-full"
                             />
-                            <View className="flex-1 ml-3">
+                            <View key={`request-info-${request.id}`} className="flex-1 ml-3">
                                 <Text className="font-medium text-gray-900">
                                     {request.senderId}
                                 </Text>
@@ -244,14 +334,16 @@ export default function FriendRequestList() {
                                     {new Date(request.createAt).toLocaleDateString()}
                                 </Text>
                             </View>
-                            <View className="flex-row items-center">
+                            <View key={`request-actions-${request.id}`} className="flex-row items-center">
                                 <TouchableOpacity
+                                    key={`request-accept-${request.id}`}
                                     className="bg-blue-500 px-4 py-2 rounded-full mr-2"
                                     onPress={() => handleAcceptRequest(request.id)}
                                 >
                                     <Text className="text-white font-medium">Đồng ý</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
+                                    key={`request-decline-${request.id}`}
                                     className="bg-gray-100 px-4 py-2 rounded-full"
                                     onPress={() => handleDeclineRequest(request.id)}
                                 >

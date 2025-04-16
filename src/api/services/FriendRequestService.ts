@@ -49,6 +49,16 @@ interface FriendRequestService {
         friendRequests: FriendRequest[];
         message: string;
     }>;
+    getAllPendingFriendRequestsByReceiverId: (receiverId: string) => Promise<{
+        success: boolean;
+        friendRequests: FriendRequest[];
+        message: string;
+    }>;
+    getAllPendingFriendRequestsBySenderId: () => Promise<{
+        success: boolean;
+        friendRequests: FriendRequest[];
+        message: string;
+    }>;
 }
 
 export const FriendRequestService: FriendRequestService = {
@@ -283,7 +293,8 @@ export const FriendRequestService: FriendRequestService = {
                 };
             }
 
-            const response = await axios.delete(`${ApiEndpoints.API_FRIEND_REQUEST}/${id}`, {
+            //http://localhost:8087/api/friendRequests/302997088919094272
+            const response = await axios.delete(`http://localhost:8087/api/friendRequests/${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -436,4 +447,90 @@ export const FriendRequestService: FriendRequestService = {
             };
         }
     },
+
+    async getAllPendingFriendRequestsByReceiverId(receiverId: string): Promise<{
+        success: boolean;
+        friendRequests: FriendRequest[];
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    friendRequests: [],
+                    message: "No token found",
+                }
+            }
+
+            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/receiver`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.data.success) {
+                return {
+                    success: true,
+                    friendRequests: response.data.data,
+                    message: response.data.message || "Successfully fetched pending friend requests",
+                };
+            }
+            return {
+                success: false,
+                friendRequests: [],
+                message: response.data.message || "Failed to fetch pending friend requests",
+            };
+        } catch (error) {
+            console.error("Get pending friend requests by receiver id error:", error);
+            return {
+                success: false,
+                friendRequests: [],
+                message: "Failed to get pending friend requests by receiver id",
+            };
+        }
+    },
+
+    async getAllPendingFriendRequestsBySenderId(): Promise<{
+        success: boolean;
+        friendRequests: FriendRequest[];
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    friendRequests: [],
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/sender`, { 
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (response.data.success) {
+                return {
+                    success: true,
+                    friendRequests: response.data.data,
+                    message: response.data.message || "Successfully fetched pending friend requests",
+                };
+            }
+            return {
+                success: false,
+                friendRequests: [],
+                message: response.data.message || "Failed to fetch pending friend requests",
+            };
+        } catch (error) {
+            console.error("Get pending friend requests by sender id error:", error);
+            return {
+                success: false,
+                friendRequests: [],
+                message: "Failed to get pending friend requests by sender id",
+            };
+        }
+    }   
 }; 

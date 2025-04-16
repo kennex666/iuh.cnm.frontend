@@ -1,5 +1,5 @@
-import {HOST_BE, PORT_BE} from '@env';
-
+const HOST_BE = process.env.EXPO_PUBLIC_HOST_BE;
+const PORT_BE = process.env.EXPO_PUBLIC_PORT_BE;
 const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
 
 export const ApiEndpoints = {
