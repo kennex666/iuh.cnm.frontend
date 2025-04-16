@@ -50,6 +50,7 @@ class SocketService {
         });
 
         this.socket.on('message:new', (message: Message) => {
+            console.log('New message received: ', message);
             this.messageCallbacks.forEach(callback => callback(message));
         });
 

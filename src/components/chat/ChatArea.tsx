@@ -32,6 +32,7 @@ export interface ChatAreaProps {
 export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: ChatAreaProps) {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
+    const [messagesReplied, setMessagesReplied] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isNewer, setIsNewer] = useState(false);
@@ -133,7 +134,6 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         };
 
         socketService.onNewMessage(handleNewMessage);
-
         // Cleanup on unmount
         return () => {
             socketService.removeMessageListener(handleNewMessage);
@@ -148,6 +148,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                 fetchUserInfo(id);
             }
         });
+        // load lai messages
     }, [messages]);
 
     // Load other participant info when selectedChat changes
@@ -186,7 +187,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             senderId: user.id,
             content: newMessage.trim(),
             type: MessageType.TEXT,
-            repliedToId: '',
+            repliedToId: replyingTo?.id || '',
             readBy: [],
             sentAt: new Date().toISOString()
         };
@@ -196,6 +197,8 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             socketService.sendMessage(messageData);
             
             setNewMessage('');
+            setReplyingTo(null);
+            setSelectedMessage(null);
         } catch (err) {
             console.error('Error sending message:', err);
             setError('Failed to send message');
@@ -259,14 +262,17 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     };
 
     const handleReplyMessage = (msg: Message) => {
+        console.log('msg now: ', msg);
         setReplyingTo(msg);
         setShowMessageOptions(false);
         // Focus vào input
     };
 
     const handleForwardMessage = async (msg: Message) => {
-        // TODO: Implement forward message logic
+        // Set the message being forwarded as the replyingTo message
+        setReplyingTo(msg);
         setShowMessageOptions(false);
+        // Focus vào input để người dùng có thể nhập nội dung forward
     };
 
     const handleDeleteMessage = async (msg: Message) => {
@@ -408,10 +414,9 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         </View>
                     </View>
                 )}
-                {messages.map((msg, index) => {
-                    const repliedToMessage = msg.repliedToId ? messages.find(m => m.repliedToId === msg.repliedToId) : null;
+                {messages.map(msg => {
+                    const repliedToMessage = msg.repliedToId ? messages.find(m => m.id == msg.repliedToId) : null;
                     return (
-                        (
                             <TouchableOpacity
                                 key={msg.id}
                                 onLongPress={() => handleLongPressMessage(msg)}
@@ -471,7 +476,6 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 </View>
                             </TouchableOpacity>
                         )
-                    )
                 })}
             </ScrollView>
 
@@ -510,7 +514,10 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         <View className="divide-y divide-gray-100">
                             <TouchableOpacity 
                                 className="flex-row items-center p-4 active:bg-gray-50"
-                                onPress={() => handleReplyMessage(selectedMessage)}
+                                onPress={() => {
+                                    console.log('selectedMessage: ', selectedMessage);
+                                    handleReplyMessage(selectedMessage)
+                                }}
                             >
                                 <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
                                     <Ionicons name="return-up-back" size={20} color="#3B82F6" />
