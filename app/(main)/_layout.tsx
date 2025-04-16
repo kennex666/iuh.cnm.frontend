@@ -148,7 +148,6 @@ export default function AppLayout() {
 
 			{!isDesktop &&
 				isTabBarVisible && (
-					<TabBarProvider>
 						<View
 							className="absolute bottom-0 left-0 right-0 flex-row bg-white border-t border-gray-200"
 							style={{
@@ -209,7 +208,6 @@ export default function AppLayout() {
 								</View>
 							</TouchableOpacity>
 						</View>
-					</TabBarProvider>
 				)}
 
 			<ProfileModal
