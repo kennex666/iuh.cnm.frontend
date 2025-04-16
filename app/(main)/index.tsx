@@ -1,9 +1,11 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/chat/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
 import Info from '@/src/components/chat/Info';
 import {Conversation} from '@/src/models/Conversation';
+import { useNavigation } from 'expo-router';
+import { useTabBar } from '@/src/contexts/TabBarContext';
 
 export default function MessagesScreen() {
     // slectedChat state to manage the currently selected chat
@@ -11,6 +13,7 @@ export default function MessagesScreen() {
     const [showInfo, setShowInfo] = useState(false);
     const {width} = useWindowDimensions();
     const isDesktop = width >= 768;
+    const { hideTabBar, showTabBar } = useTabBar();
 
     const handleBackPress = () => {
         if (showInfo) {
@@ -23,6 +26,14 @@ export default function MessagesScreen() {
     const handleInfoPress = () => {
         setShowInfo(true);
     };
+
+
+    useEffect(() => {
+        if (!isDesktop && selectedChat) {
+			hideTabBar();
+			return () => showTabBar(); // khi unmount thì hiện lại
+		}
+    }, [selectedChat]);
 
     if (isDesktop) {
         return (
@@ -69,7 +80,6 @@ export default function MessagesScreen() {
                         onBackPress={handleBackPress}
                         onInfoPress={handleInfoPress}
                     />
-                    <View className='h-24'></View>
                 </View>
             )}
 
