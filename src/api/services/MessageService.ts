@@ -59,15 +59,15 @@ export const MessageService: MessageService = {
             console.log("response of get messages: ", response.data);
             if (response.data.success) {
                 const messages = response.data.data.map((msg: Message) => ({
-                    id: msg.id,
-                    conversationId: msg.conversationId,
-                    senderId: msg.senderId,
-                    content: msg.content,
-                    type: msg.type,
-                    repliedToId: msg.repliedTold,
-                    sentAt: msg.sentAt,
-                    readBy: msg.readBy || []
-                }));
+					id: msg.id,
+					conversationId: msg.conversationId,
+					senderId: msg.senderId,
+					content: msg.content,
+					type: msg.type,
+					repliedToId: msg.repliedToId,
+					sentAt: msg.sentAt,
+					readBy: msg.readBy || [],
+				}));
 
                 console.log("messages of conversation: ", messages);
 
