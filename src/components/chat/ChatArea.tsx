@@ -415,7 +415,9 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     </View>
                 )}
                 {messages.map(msg => {
-                    const repliedToMessage = msg.repliedToId ? messages.find(m => m.id == msg.repliedToId) : null;
+                    console.log('msg: ', messages.length);
+                    console.log('msg: ', msg.content, msg.repliedToId, msg.repliedTold);
+                    const repliedToMessage = msg.repliedToId || msg.repliedTold ? messages.find(m => m.id == msg.repliedToId || m.id == msg.repliedTold) : null;
                     return (
                             <TouchableOpacity
                                 key={msg.id}
@@ -444,7 +446,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                     <View 
                                         className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
                                     >
-                                        {msg.repliedToId && (
+                                        {(msg.repliedToId || msg.repliedTold) && (
                                             <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
                                                 <Text className="text-xs text-gray-500">
                                                     Trả lời tin nhắn
@@ -463,7 +465,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                         >
                                             <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
                                                 {msg.content}
-                                            </Text>
+                                            </Text>                                      
                                         </View>
                                         <MessageReaction
                                             messageId={msg.id}
