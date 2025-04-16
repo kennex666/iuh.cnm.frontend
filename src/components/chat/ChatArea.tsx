@@ -78,7 +78,6 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     };
 
     // Thêm hàm xử lý chọn file
-    // Thêm hàm xử lý chọn file
     const handleSelectFile = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
@@ -98,9 +97,6 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         }
     };
 
-    // Thêm hàm xử lý upload và gửi file
-
-    // Update the uploadAndSendFile function
     const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
         if (!selectedChat?.id || !user?.id) return;
 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import {Attachment} from '@/src/models/Attachment';
+import {ApiEndpoints} from "@/src/constants/ApiConstant";
 
 export class AttachmentService {
     static async uploadAttachment(conversationId: string, formData: FormData) {
@@ -34,7 +35,7 @@ export class AttachmentService {
 
     static async getAttachmentByMessageId(messageId: string) {
         try {
-            const response = await axios.get(`/attachments/message/${messageId}`);
+            const response = await axios.get(`${ApiEndpoints.API_ATTACHMENTS}/message/${messageId}`);
 
             if (response.data.success) {
                 return {

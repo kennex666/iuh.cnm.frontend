@@ -22,6 +22,7 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
         const fetchAttachment = async () => {
             setLoading(true);
             const result = await getAttachment(messageId);
+            console.log(`Fetched attachment with URL: ${result?.url}`);
             if (result) {
                 setAttachment(result);
             }
@@ -85,6 +86,7 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
                     className="rounded-lg"
                     style={{ width: '100%', minWidth: 200, height: 200 }}
                     resizeMode="cover"
+                    onError={(error) => {console.error('Error loading image:', error);}}
                 />
                 <View className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center">
                     <Text className="text-white text-xs">{fileName}</Text>
