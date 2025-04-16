@@ -9,9 +9,12 @@ export class AttachmentService {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            console.log('Attachment uploaded successfully:', response.data);
             return response.data;
         } catch (error) {
             console.error('Error uploading attachment:', error);
+            console.log(`Error response: ${error}`);
+            
             return {
                 success: false,
                 statusMessage: 'Không thể tải file lên. Vui lòng thử lại sau.'
