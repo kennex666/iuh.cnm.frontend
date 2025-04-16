@@ -88,6 +88,7 @@ export default function FriendRequestList() {
         // Cleanup socket listeners
         return () => {
             socketService.removeFriendRequestListener(handleNewFriendRequest);
+            socketService.removeFriendRequestActionListener(handleDeleteFriendRequest);
         };
     }, [user]);
 
@@ -202,6 +203,7 @@ export default function FriendRequestList() {
 
     // Chấp nhận lời mời kết bạn
     const handleAcceptRequest = async (requestId: string) => {
+        await loadFriendRequests();
         try {
             const response = await FriendRequestService.acceptFriendRequest(requestId);
             if (response.success) {
