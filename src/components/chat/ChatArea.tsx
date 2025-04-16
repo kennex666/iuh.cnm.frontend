@@ -1,27 +1,35 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useEffect, useRef, useState} from 'react';
+import {Ionicons} from '@expo/vector-icons';
 import {
     ActivityIndicator,
     Animated,
     Easing,
     Image,
+    Linking,
+    Platform,
     ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
-import { Conversation } from '@/src/models/Conversation';
+import {Conversation} from '@/src/models/Conversation';
 import EmojiPicker from './EmojiPicker';
 import StickerPicker from './StickerPicker';
 import MessageReaction from './MessageReaction';
-import { Shadows } from '@/src/styles/Shadow';
-import { Message, MessageType } from '@/src/models/Message';
-import { MessageService } from '@/src/api/services/MessageService';
-import { useAuth } from '@/src/contexts/UserContext';
-import { UserService } from '@/src/api/services/UserService';
+import {Shadows} from '@/src/styles/Shadow';
+import {Message, MessageType} from '@/src/models/Message';
+import {MessageService} from '@/src/api/services/MessageService';
+import {useAuth} from '@/src/contexts/UserContext';
+import {UserService} from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import {AttachmentService} from '@/src/api/services/AttachmentService';
+import {Attachment} from '@/src/models/Attachment';
+import axios from 'axios';
+import FileMessageContent from './FileMessageContent';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -29,8 +37,8 @@ export interface ChatAreaProps {
     onInfoPress?: () => void;
 }
 
-export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: ChatAreaProps) {
-    const { user } = useAuth();
+export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
+    const {user} = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -47,7 +55,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     const scrollViewRef = useRef<ScrollView>(null);
 
     const [inputHeight, setInputHeight] = useState(28);
-    const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
+    const [messageUsers, setMessageUsers] = useState<{[key: string]: any}>({});
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
     const [showMessageOptions, setShowMessageOptions] = useState(false);
@@ -59,13 +67,150 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         isOnline: boolean;
     } | null>(null);
 
+    // Thêm vào danh sách state trong ChatArea
+    const [fileUploading, setFileUploading] = useState(false);
+    const [attachments, setAttachments] = useState<{[key: string]: Attachment}>({});
+    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+
+    const isImageFile = (mimeType: string): boolean => {
+        if (!mimeType) return false;
+        return mimeType.startsWith('image/');
+    };
+
+    // Thêm hàm xử lý chọn file
+    // Thêm hàm xử lý chọn file
+    const handleSelectFile = async () => {
+        try {
+            const result = await DocumentPicker.getDocumentAsync({
+                type: '*/*', // Cho phép chọn mọi loại file
+                copyToCacheDirectory: true,
+            });
+
+            if (result.canceled) {
+                console.log('User cancelled file picker');
+                return;
+            }
+
+            await uploadAndSendFile(result.assets[0]);
+        } catch (error) {
+            console.error('Error picking document:', error);
+            setError('Không thể chọn file. Vui lòng thử lại.');
+        }
+    };
+
+    // Thêm hàm xử lý upload và gửi file
+
+    // Update the uploadAndSendFile function
+    const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
+        if (!selectedChat?.id || !user?.id) return;
+
+        try {
+            setFileUploading(true);
+            setError(null);
+
+            // Tạo FormData cho việc upload file
+            const formData = new FormData();
+
+            // Thêm repliedToId vào FormData nếu có
+            if (replyingTo?.id) {
+                formData.append('repliedTold', replyingTo.id);
+            }
+
+            // Xử lý file theo platform
+            if (Platform.OS === 'web') {
+                // Web platform handling
+                const response = await fetch(fileAsset.uri);
+                const blob = await response.blob();
+                const file = new File([blob], fileAsset.name, {
+                    type: fileAsset.mimeType || 'application/octet-stream',
+                });
+                formData.append('file', file);
+            } else {
+                // Mobile platform handling
+                formData.append('file', {
+                    uri: fileAsset.uri,
+                    type: fileAsset.mimeType,
+                    name: fileAsset.name,
+                } as any);
+            }
+
+            // Upload file sử dụng service đã cập nhật
+            const uploadResponse = await AttachmentService.uploadAttachment(selectedChat.id, formData);
+
+            if (uploadResponse.success) {
+                // Lấy attachment từ response
+                console.log('File upload successful:', uploadResponse.data);
+
+                // Lưu attachment vào state local
+                if (uploadResponse.data) {
+                    setAttachments((prev) => ({
+                        ...prev,
+                        [uploadResponse.data.messageId]: uploadResponse.data,
+                    }));
+                }
+
+                // Reset reply state nếu có
+                if (replyingTo) {
+                    setReplyingTo(null);
+                }
+
+                // Cập nhật danh sách tin nhắn
+                await fetchMessages();
+            } else {
+                throw new Error(uploadResponse.statusMessage);
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            setError(
+                typeof error === 'string'
+                    ? error
+                    : error instanceof Error
+                    ? error.message
+                    : 'Không thể gửi file. Vui lòng thử lại.'
+            );
+        } finally {
+            setFileUploading(false);
+            toggleModelChecked(); // Đóng modal chọn loại file
+        }
+    };
+
+    // Update the getAttachmentByMessageId function
+    const getAttachmentByMessageId = async (messageId: string) => {
+        try {
+            // Check if we already have the attachment in local state
+            if (attachments[messageId]) {
+                return attachments[messageId];
+            }
+
+            // If not, fetch it from the server
+            const response = await AttachmentService.getAttachmentByMessageId(messageId);
+
+            if (response.success && response.data && response.data.length > 0) {
+                const attachment = response.data[0]; // Get the first attachment if there are multiple
+
+                // Save to local state for future use
+                setAttachments((prev) => ({
+                    ...prev,
+                    [messageId]: attachment,
+                }));
+
+                return attachment;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error fetching attachment:', error);
+            return null;
+        }
+    };
+
     const fetchUserInfo = async (userId: string) => {
         try {
             const response = await UserService.getUserById(userId);
             if (response.success) {
-                setMessageUsers(prev => ({
+                setMessageUsers((prev) => ({
                     ...prev,
-                    [userId]: response.user
+                    [userId]: response.user,
                 }));
             }
         } catch (err) {
@@ -116,7 +261,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     // Auto scroll to bottom when messages change
     useEffect(() => {
         setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
+            scrollViewRef.current?.scrollToEnd({animated: true});
         }, 100);
     }, [messages]);
 
@@ -124,10 +269,10 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     useEffect(() => {
         const handleNewMessage = (message: Message) => {
             if (message.conversationId === selectedChat?.id) {
-                setMessages(prev => [...prev, message]);
+                setMessages((prev) => [...prev, message]);
                 // Scroll to bottom when new message arrives
                 setTimeout(() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                    scrollViewRef.current?.scrollToEnd({animated: true});
                 }, 100);
             }
         };
@@ -142,8 +287,8 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
 
     // Fetch user info for each unique sender
     useEffect(() => {
-        const senderIds = [...new Set(messages.map(msg => msg.senderId))];
-        senderIds.forEach(id => {
+        const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
+        senderIds.forEach((id) => {
             if (!messageUsers[id]) {
                 fetchUserInfo(id);
             }
@@ -188,13 +333,13 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             type: MessageType.TEXT,
             repliedToId: '',
             readBy: [],
-            sentAt: new Date().toISOString()
+            sentAt: new Date().toISOString(),
         };
 
         try {
             // Send through socket
             socketService.sendMessage(messageData);
-            
+
             setNewMessage('');
         } catch (err) {
             console.error('Error sending message:', err);
@@ -277,17 +422,16 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
 
     const confirmDeleteMessage = async () => {
         if (!messageToDelete) return;
-        
+
         try {
             console.log('messageToDelete: ', messageToDelete.id);
             const response = await MessageService.deleteMessage(messageToDelete.id);
             console.log('response delete message: ', response);
             socketService.sendDeleteMessage(messageToDelete);
             if (response.success) {
-                setMessages(prev => prev.filter(m => m.id !== messageToDelete.id));
+                setMessages((prev) => prev.filter((m) => m.id !== messageToDelete.id));
                 setShowDeleteConfirm(false);
                 setMessageToDelete(null);
-                
             } else {
                 setError(response.statusMessage || 'Không thể xóa tin nhắn');
             }
@@ -332,7 +476,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{ uri: otherParticipant?.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
+                        source={{uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                         className="w-10 h-10 rounded-full"
                         resizeMode="cover"
                         onError={() => {
@@ -342,15 +486,12 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             } : null);
                         }}
                     />
-                    <View className="ml-3" style={{ maxWidth: '45%' }}>
-                        <Text className="font-semibold text-gray-900 text-base"
-                            numberOfLines={1}
-                            ellipsizeMode="tail">
-                            {otherParticipant?.name || 'Loading...'}
+                    <View className="ml-3" style={{maxWidth: '45%'}}>
+                        <Text className="font-semibold text-gray-900 text-base" numberOfLines={1} ellipsizeMode="tail">
+                            {selectedChat.name || selectedChat.participants.join(', ')}
                         </Text>
                         {selectedChat.isGroup && (
-                            <Text className="text-sm text-gray-500">{selectedChat.participants.length} thành
-                                viên</Text>
+                            <Text className="text-sm text-gray-500">{selectedChat.participants.length} thành viên</Text>
                         )}
                         {!selectedChat.isGroup && selectedChat.participants.length > 0 && (
                             <Text className="text-sm text-green-500">Đang hoạt động</Text>
@@ -358,7 +499,8 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     </View>
                 </View>
                 <View className="flex-row items-center">
-                    <TouchableOpacity className="p-2 mr-1"
+                    <TouchableOpacity
+                        className="p-2 mr-1"
                         onPress={() => {
                             socketService.ping();
                         }}
@@ -375,11 +517,11 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             </View>
 
             {/* Messages Area */}
-            <ScrollView 
+            <ScrollView
                 ref={scrollViewRef}
                 className="flex-1 p-4"
                 onContentSizeChange={() => {
-                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                    scrollViewRef.current?.scrollToEnd({animated: true});
                 }}
             >
                 {messages.length === 0 && (
@@ -419,7 +561,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         }}
                         delayLongPress={200}
                         activeOpacity={0.7}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
                     >
                         <View
                             className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
@@ -427,36 +569,65 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             {msg.senderId !== user?.id && (
                                 <Image
                                     source={{
-                                        uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                        uri:
+                                            messageUsers[msg.senderId]?.avatarURL ||
+                                            'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G',
                                     }}
                                     className="w-8 h-8 rounded-full mr-2"
                                     resizeMode="cover"
                                 />
                             )}
-                            <View 
-                                className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                            <View
+                                className={`max-w-[70%] flex flex-col ${
+                                    msg.senderId === user?.id ? 'items-end' : 'items-start'
+                                }`}
                             >
                                 {msg.repliedToId && (
                                     <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
                                         <Text className="text-xs text-gray-500">
-                                            Trả lời tin nhắn
+                                            Trả lời{' '}
+                                            {messageUsers[messages.find((m) => m.id === msg.repliedToId)?.senderId || '']?.name}
                                         </Text>
                                         <Text className="text-sm text-gray-700" numberOfLines={1}>
-                                            ID: {msg.repliedToId}
+                                            {messages.find((m) => m.id === msg.repliedToId)?.content}
+
                                         </Text>
                                     </View>
                                 )}
-                                <View 
+                                <View
                                     className={`rounded-2xl px-4 py-2 ${
-                                        msg.senderId === user?.id 
-                                            ? 'bg-blue-500 rounded-br-none' 
+                                        msg.senderId === user?.id
+                                            ? 'bg-blue-500 rounded-br-none'
                                             : 'bg-gray-100 rounded-bl-none'
                                     }`}
                                 >
-                                    <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
-                                        {msg.content}
-                                    </Text>
+                                    {msg.type === MessageType.TEXT ? (
+                                        <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
+                                            {msg.content}
+                                        </Text>
+                                    ) : (
+                                        msg.type === MessageType.FILE && (
+                                            <View className="flex-row items-center">
+                                                {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
+                                                <FileMessageContent
+                                                    messageId={msg.id}
+                                                    fileName={msg.content}
+                                                    isSender={msg.senderId === user?.id}
+                                                    getAttachment={getAttachmentByMessageId}
+                                                    onImagePress={setFullScreenImage}
+                                                />
+                                            </View>
+                                        )
+                                    )}
                                 </View>
+                              
+                                <Text className="text-xs text-gray-500 mt-1">
+                                    {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                </Text>
+
                                 <MessageReaction
                                     messageId={msg.id}
                                     isVisible={activeReactionId === msg.id}
@@ -478,7 +649,9 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             <View className="flex-row items-center">
                                 <Image
                                     source={{
-                                        uri: messageUsers[selectedMessage.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                        uri:
+                                            messageUsers[selectedMessage.senderId]?.avatarURL ||
+                                            'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G',
                                     }}
                                     className="w-10 h-10 rounded-full"
                                     resizeMode="cover"
@@ -493,7 +666,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                             minute: '2-digit',
                                             day: '2-digit',
                                             month: '2-digit',
-                                            year: 'numeric'
+                                            year: 'numeric',
                                         })}
                                     </Text>
                                 </View>
@@ -503,7 +676,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             </View>
                         </View>
                         <View className="divide-y divide-gray-100">
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 className="flex-row items-center p-4 active:bg-gray-50"
                                 onPress={() => handleReplyMessage(selectedMessage)}
                             >
@@ -512,7 +685,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 </View>
                                 <Text className="ml-3 text-gray-800">Trả lời</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 className="flex-row items-center p-4 active:bg-gray-50"
                                 onPress={() => handleForwardMessage(selectedMessage)}
                             >
@@ -522,7 +695,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
                             </TouchableOpacity>
                             {selectedMessage.senderId === user?.id && (
-                                <TouchableOpacity 
+                                <TouchableOpacity
                                     className="flex-row items-center p-4 active:bg-gray-50"
                                     onPress={() => handleDeleteMessage(selectedMessage)}
                                 >
@@ -533,7 +706,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 </TouchableOpacity>
                             )}
                         </View>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
                             onPress={() => setShowMessageOptions(false)}
                         >
@@ -557,7 +730,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             </Text>
                         </View>
                         <View className="flex-row p-4 border-t border-gray-100">
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 className="flex-1 mr-2 h-12 rounded-xl bg-gray-100 items-center justify-center active:bg-gray-200"
                                 onPress={() => {
                                     setShowDeleteConfirm(false);
@@ -566,7 +739,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             >
                                 <Text className="text-gray-800 font-medium">Hủy</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 className="flex-1 h-12 rounded-xl bg-red-500 items-center justify-center active:bg-red-600"
                                 onPress={confirmDeleteMessage}
                             >
@@ -591,7 +764,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             {replyingTo.content}
                         </Text>
                     </View>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
                         onPress={() => setReplyingTo(null)}
                     >
@@ -607,7 +780,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         <Ionicons name="add-circle-outline" size={24} color="#666" />
                     </TouchableOpacity>
                     {isModelChecked && (
-                        <View className='absolute bottom-full left-0 bg-white z-50'>
+                        <View className="absolute bottom-full left-0 bg-white z-50">
                             <Animated.View
                                 style={{
                                     transform: [
@@ -630,16 +803,14 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                     }),
                                 }}
                             >
-                                <View
-                                    className="bg-white rounded-lg p-4 w-[300px]"
-                                    style={Shadows.md}>
+                                <View className="bg-white rounded-lg p-4 w-[300px]" style={Shadows.md}>
                                     <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
 
                                     <TouchableOpacity className="flex-row items-center mb-2" onPress={toggleModelImage}>
                                         <Ionicons name="image-outline" size={24} color="#666" />
                                         <Text className="ml-2  text-gray-800">Hình ảnh</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity className="flex-row items-center mb-2">
+                                    <TouchableOpacity className="flex-row items-center mb-2" onPress={handleSelectFile}>
                                         <Ionicons name="file-tray-full-outline" size={24} color="#666" />
                                         <Text className="ml-2 text-gray-800">File</Text>
                                     </TouchableOpacity>
@@ -651,18 +822,16 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             </Animated.View>
                         </View>
                     )}
-                    <View className='relative'>
+                    <View className="relative">
                         <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
                             <Ionicons name="gift-outline" size={24} color="#666" />
                         </TouchableOpacity>
                         {isModelSticker && (
                             <View
-                                className='absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200'
-                                style={Shadows.xl}>
-                                <StickerPicker
-                                    setMessage={setNewMessage}
-                                    toggleModelSticker={toggleModelSticker}
-                                />
+                                className="absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200"
+                                style={Shadows.xl}
+                            >
+                                <StickerPicker setMessage={setNewMessage} toggleModelSticker={toggleModelSticker} />
                             </View>
                         )}
                     </View>
@@ -681,7 +850,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 height: Math.min(inputHeight, 26 * 3),
                             }}
                             onContentSizeChange={(event) => {
-                                const { height } = event.nativeEvent.contentSize;
+                                const {height} = event.nativeEvent.contentSize;
                                 setInputHeight(height > 26 ? height : 26);
                             }}
                             onBlur={() => {
@@ -694,40 +863,45 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             }}
                         />
                     </View>
-                    <View className='relative'>
+                    <View className="relative">
                         <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
                             <Ionicons name="happy-outline" size={24} color="#666" />
                         </TouchableOpacity>
-                        {
-                            isModelEmoji && (
-                                <View
-                                    className='absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200'
-                                    style={Shadows.xl}>
-                                    <EmojiPicker setMessage={setNewMessage} toggleModelEmoji={toggleModelEmoji} />
-                                </View>
-                            )
-                        }
+                        {isModelEmoji && (
+                            <View
+                                className="absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200"
+                                style={Shadows.xl}
+                            >
+                                <EmojiPicker setMessage={setNewMessage} toggleModelEmoji={toggleModelEmoji} />
+                            </View>
+                        )}
                     </View>
                     <TouchableOpacity
-                        className={`p-3 rounded-full ${newMessage.trim() ? 'bg-blue-500' : 'bg-gray-200'
-                            }`}
+                        className={`p-3 rounded-full ${newMessage.trim() ? 'bg-blue-500' : 'bg-gray-200'}`}
                         onPress={handleSendMessage}
                         disabled={!newMessage.trim()}
                         style={[
                             newMessage.trim() && Shadows.md,
                             {
-                                transform: [{ scale: newMessage.trim() ? 1 : 0.95 }]
-                            }
+                                transform: [{scale: newMessage.trim() ? 1 : 0.95}],
+                            },
                         ]}
                     >
-                        <Ionicons
-                            name="send"
-                            size={20}
-                            color={newMessage.trim() ? '#FFF' : '#999'}
-                        />
+                        <Ionicons name="send" size={20} color={newMessage.trim() ? '#FFF' : '#999'} />
                     </TouchableOpacity>
                 </View>
             </View>
+            {fullScreenImage && (
+                <View className="absolute inset-0 bg-black z-50 flex-1 justify-center items-center">
+                    <Image source={{uri: fullScreenImage}} className="w-full h-full" resizeMode="contain" />
+                    <TouchableOpacity
+                        className="absolute top-10 right-5 bg-black/30 rounded-full p-2"
+                        onPress={() => setFullScreenImage(null)}
+                    >
+                        <Ionicons name="close" size={24} color="white" />
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 }
