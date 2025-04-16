@@ -12,6 +12,8 @@ interface FileMessageContentProps {
     onImagePress: (url: string) => void;
 }
 
+type GLYPHS = keyof typeof Ionicons.glyphMap;
+
 const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onImagePress }: FileMessageContentProps) => {
     const [attachment, setAttachment] = useState<Attachment | null>(null);
     const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
 
     const isImage = attachment?.fileType && attachment.fileType.startsWith('image/');
     
-    const getFileIcon = (fileType: string | undefined): string => {
+    const getFileIcon = (fileType: string | undefined): GLYPHS => {
         if (!fileType) return 'document-outline';
         
         if (fileType.startsWith('image/')) return 'image-outline';

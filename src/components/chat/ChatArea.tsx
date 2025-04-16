@@ -72,21 +72,6 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         return mimeType.startsWith('image/');
     };
 
-    const getFileIcon = (mimeType: string): string => {
-        if (!mimeType) return 'document-outline';
-
-        if (mimeType.startsWith('image/')) return 'image-outline';
-        if (mimeType.startsWith('video/')) return 'videocam-outline';
-        if (mimeType.startsWith('audio/')) return 'musical-notes-outline';
-        if (mimeType.includes('pdf')) return 'document-text-outline';
-        if (mimeType.includes('word') || mimeType.includes('document')) return 'document-text-outline';
-        if (mimeType.includes('excel') || mimeType.includes('sheet')) return 'grid-outline';
-        if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return 'easel-outline';
-        if (mimeType.includes('zip') || mimeType.includes('compressed')) return 'archive-outline';
-
-        return 'document-outline';
-    };
-
     // Thêm hàm xử lý chọn file
     // Thêm hàm xử lý chọn file
     const handleSelectFile = async () => {
