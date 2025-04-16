@@ -11,6 +11,7 @@ class SocketService {
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
+    private friendRequestActionCallbacks: ((requestId: string) => void)[] = [];
 
     private constructor() {}
 
@@ -48,7 +49,6 @@ class SocketService {
         });
 
         this.socket.on('new_message', (message: Message) => {
-            console.log('Received new message:', message);
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
@@ -57,8 +57,11 @@ class SocketService {
         });
 
         this.socket.on('friend_request', (friendRequest: FriendRequest) => {
-            console.log('Received friend request:', friendRequest);
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
+        this.socket.on('friend_request', (requestId: string) => {
+            this.friendRequestActionCallbacks.forEach(callback => callback(requestId));
         });
 
         this.socket.on('pong', (message: string) => {
@@ -90,6 +93,10 @@ class SocketService {
             this.socket.emit('send_message', message);
         }
     }
+    
+    public onNewMessage(callback: (message: Message) => void): void {
+        this.messageCallbacks.push(callback);
+    }
 
     public sendFriendRequest(friendRequest: any): void {
         if (this.socket) {
@@ -97,16 +104,16 @@ class SocketService {
         }
     }
 
-    public onNewMessage(callback: (message: Message) => void): void {
-        this.messageCallbacks.push(callback);
+    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
+        this.friendRequestCallbacks.push(callback);
+    }
+
+    public onFriendRequestAction(callback: (requestId: string) => void): void {
+        this.friendRequestActionCallbacks.push(callback);
     }
 
     public onNewConversation(callback: (conversation: Conversation) => void): void {
         this.conversationCallbacks.push(callback);
-    }
-
-    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
-        this.friendRequestCallbacks.push(callback);
     }
 
     public removeMessageListener(callback: (message: Message) => void): void {
