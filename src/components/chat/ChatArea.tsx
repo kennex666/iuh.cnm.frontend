@@ -21,6 +21,8 @@ import { MessageService } from '@/src/api/services/MessageService';
 import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
+import Reaction from '@/src/models/Reaction';
+import ForwardMessageModal from './ForwardMessageModal';
 
 
 export interface ChatAreaProps {
@@ -54,6 +56,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     const [showMessageOptions, setShowMessageOptions] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+    const [showForwardModal, setShowForwardModal] = useState(false);
     const [otherParticipant, setOtherParticipant] = useState<{
         name: string;
         avatar: string;
@@ -215,8 +218,52 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
 
     const handleReaction = (messageId: string, reactionId: string) => {
         console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
+
+        const reactionData = {
+            messageId: messageId,
+            userId: user?.id || '',
+            emoji: reactionId
+        };
+
+        try {
+            // TODO: Implement reaction handling
+            console.log('Reaction data:', reactionData);
+        } catch (err) {
+            console.error('Error sending reaction:', err);
+            setError('Failed to send reaction');
+        }
+        
         setActiveReactionId(null);
-        // TODO: Implement reaction handling
+    };
+
+    const handleForward = async (selectedConversations: string[]) => {
+        if (!replyingTo || !user?.id) return;
+
+        try {
+            // Tạo tin nhắn mới cho mỗi cuộc trò chuyện được chọn
+            for (const conversationId of selectedConversations) {
+                const newMessage: Message = {
+                    id: new Date().getTime().toString(),
+                    conversationId: conversationId,
+                    senderId: user.id,
+                    content: replyingTo.content,
+                    type: MessageType.TEXT,
+                    repliedToId: replyingTo.id,
+                    readBy: [],
+                    sentAt: new Date().toISOString()
+                };
+
+                // Gửi tin nhắn qua socket
+                socketService.sendMessage(newMessage);
+            }
+
+            // Đóng modal và reset state
+            setShowForwardModal(false);
+            setReplyingTo(null);
+        } catch (err) {
+            console.error('Error forwarding message:', err);
+            setError('Failed to forward message');
+        }
     };
 
     // Toggle models
@@ -272,6 +319,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         // Set the message being forwarded as the replyingTo message
         setReplyingTo(msg);
         setShowMessageOptions(false);
+        setShowForwardModal(true);
         // Focus vào input để người dùng có thể nhập nội dung forward
     };
 
@@ -415,8 +463,6 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     </View>
                 )}
                 {messages.map(msg => {
-                    console.log('msg: ', messages.length);
-                    console.log('msg: ', msg.content, msg.repliedToId, msg.repliedTold);
                     const repliedToMessage = msg.repliedToId || msg.repliedTold ? messages.find(m => m.id == msg.repliedToId || m.id == msg.repliedTold) : null;
                     return (
                             <TouchableOpacity
@@ -612,6 +658,15 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         <Ionicons name="close" size={16} color="#666" />
                     </TouchableOpacity>
                 </View>
+            )}
+
+            {/* Forward Message Modal */}
+            {showForwardModal && replyingTo && (
+                <ForwardMessageModal
+                    message={replyingTo}
+                    onClose={() => setShowForwardModal(false)}
+                    onForward={handleForward}
+                />
             )}
 
             {/* Input Area */}
