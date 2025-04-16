@@ -100,6 +100,8 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
         if (!selectedChat?.id || !user?.id) return;
 
+        const isLargeFile = (fileAsset.size || 0) > 10 * 1024 * 1024;
+
         try {
             // Show upload modal
             setShowUploadModal(true);
@@ -107,6 +109,13 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             setError(null);
             setUploadProgress(0);
             setUploadStatusMessage('Preparing file...');
+
+            if (isLargeFile) {
+                setUploadStatusMessage('File too large. Please try again.');
+                // setShowUploadModal(false);
+                // setError('Tệp quá lớn. Vui lòng thử lại.');
+                return;
+            }
 
             // Chuẩn bị fileData để gửi qua socket
             let fileBuffer: ArrayBuffer;
@@ -988,7 +997,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                 onPress={() => {
                                     // Add cancellation logic here if possible
                                     setShowUploadModal(false);
-                                    setError('Upload cancelled');
+                                    // setError('Upload cancelled');
                                 }}
                             >
                                 <Text className="text-gray-700 font-medium">Cancel</Text>
