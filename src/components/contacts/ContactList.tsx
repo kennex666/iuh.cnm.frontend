@@ -12,12 +12,19 @@ import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import FriendRequest from '@/src/models/FriendRequest';
 import { AuthStorage } from '@/src/services/AuthStorage';
 import { useAuth } from '@/src/contexts/UserContext';
+import { UserService } from '@/src/api/services/UserService';
+import { User } from '@/src/models/User';
+
+interface FriendInfo extends User {
+    friendRequestDate: Date;
+}
 
 export default function ContactList() {
     const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [friends, setFriends] = useState<FriendInfo[]>([]);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -33,9 +40,22 @@ export default function ContactList() {
             }
 
             const response = await FriendRequestService.getAllAcceptedFriendRequests(user.id || "");
-            console.log(response);
             if (response.success) {
                 setFriendRequests(response.friendRequests);
+                // Tạo mảng tạm để lưu thông tin bạn bè
+                const tempFriends: FriendInfo[] = [];
+                for(const request of response.friendRequests) {
+                    const friendId = request.senderId === user.id ? request.receiverId : request.senderId;
+                    const friend = await UserService.getUserById(friendId);
+                    if(friend.success && friend.user) {
+                        tempFriends.push({
+                            ...friend.user,
+                            friendRequestDate: request.createAt
+                        } as FriendInfo);
+                    }
+                }
+                // Cập nhật state friends một lần duy nhất
+                setFriends(tempFriends);
             } else {
                 setError(response.message);
             }
@@ -47,28 +67,9 @@ export default function ContactList() {
         }
     };
 
-    const handleAcceptRequest = async (id: string) => {
-        try {
-            const response = await FriendRequestService.acceptFriendRequest(id);
-            if (response.success) {
-                loadFriendRequests(); // Reload the list
-            }
-        } catch (err) {
-            console.error('Lỗi khi chấp nhận lời mời kết bạn:', err);
-        }
-    };
+    
 
-    const handleDeclineRequest = async (id: string) => {
-        try {
-            const response = await FriendRequestService.declineFriendRequest(id);
-            if (response.success) {
-                loadFriendRequests(); // Reload the list
-            }
-        } catch (err) {
-            console.error('Lỗi khi từ chối lời mời kết bạn:', err);
-        }
-    };
-
+    console.log('friendRequests', friendRequests);
     const filteredRequests = friendRequests.filter(request => 
         request.senderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.receiverId.toLowerCase().includes(searchQuery.toLowerCase())
@@ -106,47 +107,43 @@ export default function ContactList() {
                 </View>
             </View>
 
-            {/* Friend Requests List */}
+            {/* Friend List */}
             <ScrollView className="flex-1">
-                {filteredRequests.map(request => (
-                    <View key={request.id} className="border-b border-gray-100">
-                        <View className="flex-row items-center px-4 py-3">
-                            <Image
-                                source={{ uri: `https://ui-avatars.com/api/?name=${request.senderId}` }}
-                                className="w-12 h-12 rounded-full"
-                            />
-                            <View className="flex-1 ml-3">
-                                <Text className="text-base font-medium text-gray-800">
-                                    {request.senderId}
-                                </Text>
-                                <Text className="text-sm text-gray-500">
-                                    {request.status === 'pending' ? 'Đang chờ xác nhận' :
-                                     request.status === 'accepted' ? 'Đã chấp nhận' :
-                                     'Đã từ chối'}
-                                </Text>
-                                <Text className="text-xs text-gray-400">
-                                    {new Date(request.createAt).toLocaleDateString()}
-                                </Text>
-                            </View>
-                            {request.status === 'pending' && (
-                                <View className="flex-row">
-                                    <TouchableOpacity 
-                                        className="p-2 mr-2"
-                                        onPress={() => handleAcceptRequest(request.id)}
-                                    >
-                                        <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity 
-                                        className="p-2"
-                                        onPress={() => handleDeclineRequest(request.id)}
-                                    >
-                                        <Ionicons name="close-circle" size={24} color="#F44336" />
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        </View>
+                {friends.length === 0 ? (
+                    <View className="flex-1 justify-center items-center p-4">
+                        <Ionicons name="people-outline" size={48} color="#666" />
+                        <Text className="text-gray-500 mt-2">Chưa có bạn bè nào</Text>
                     </View>
-                ))}
+                ) : (
+                    friends.map((friend) => (
+                        <View key={friend.id} className="border-b border-gray-100">
+                            <View className="flex-row items-center px-4 py-3">
+                                <Image
+                                    source={{ 
+                                        uri: friend.avatarURL === "default" ? 
+                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.name)}&background=0068FF&color=fff` 
+                                            : friend.avatarURL
+                                    }}
+                                    className="w-12 h-12 rounded-full"
+                                />
+                                <View className="flex-1 ml-3">
+                                    <Text className="text-base font-medium text-gray-800">
+                                        {friend.name}
+                                    </Text>
+                                    <Text className="text-sm text-gray-500">
+                                        {friend.phone}
+                                    </Text>
+                                    <Text className="text-xs text-gray-400">
+                                        {friend.email}
+                                    </Text>
+                                    <Text className="text-xs text-gray-400 mt-1">
+                                        Kết bạn từ: {new Date(friend.friendRequestDate).toLocaleDateString('vi-VN')}
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    ))
+                )}
             </ScrollView>
         </View>
     );

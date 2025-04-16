@@ -11,6 +11,8 @@ class SocketService {
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
+    private friendRequestActionCallbacks: ((requestId: string) => void)[] = [];
+    private deleteMessageCallbacks: ((message: Message) => void)[] = [];
 
     private constructor() {}
 
@@ -48,7 +50,6 @@ class SocketService {
         });
 
         this.socket.on('new_message', (message: Message) => {
-            console.log('Received new message:', message);
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
@@ -57,8 +58,11 @@ class SocketService {
         });
 
         this.socket.on('friend_request', (friendRequest: FriendRequest) => {
-            console.log('Received friend request:', friendRequest);
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
+        this.socket.on('delete_message', (message: Message) => {
+            this.deleteMessageCallbacks.forEach(callback => callback(message));
         });
 
         this.socket.on('pong', (message: string) => {
@@ -84,11 +88,37 @@ class SocketService {
         }
     }
 
+    public joinConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('join_conversation', conversationId);
+        }
+    }
+
+    public leaveConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('leave_conversation', conversationId);
+        }
+    }
+
     public sendMessage(message: Message): void {
         if (this.socket) {
             console.log('Sending message to socket is: ', message);
             this.socket.emit('send_message', message);
         }
+    }
+    
+    public onNewMessage(callback: (message: Message) => void): void {
+        this.messageCallbacks.push(callback);
+    }
+
+    public sendDeleteMessage(message: Message): void {
+        if (this.socket) {
+            this.socket.emit('send_delete_message', message);
+        }
+    }
+
+    public onDeleteMessage(callback: (message: Message) => void): void {
+        this.deleteMessageCallbacks.push(callback);
     }
 
     public sendFriendRequest(friendRequest: any): void {
@@ -97,16 +127,16 @@ class SocketService {
         }
     }
 
-    public onNewMessage(callback: (message: Message) => void): void {
-        this.messageCallbacks.push(callback);
+    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
+        this.friendRequestCallbacks.push(callback);
+    }
+
+    public onFriendRequestAction(callback: (requestId: string) => void): void {
+        this.friendRequestActionCallbacks.push(callback);
     }
 
     public onNewConversation(callback: (conversation: Conversation) => void): void {
         this.conversationCallbacks.push(callback);
-    }
-
-    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
-        this.friendRequestCallbacks.push(callback);
     }
 
     public removeMessageListener(callback: (message: Message) => void): void {
@@ -119,19 +149,6 @@ class SocketService {
 
     public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
-    }
-
-    // join room
-    public joinConversation(conversationId: string): void {
-        if (this.socket) {
-            this.socket.emit('join_conversation', conversationId);
-        }
-    }
-    
-    public leaveConversation(conversationId: string): void {
-        if (this.socket) {
-            this.socket.emit('leave_conversation', conversationId);
-        }
     }
     
 }

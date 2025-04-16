@@ -61,7 +61,7 @@ export const MessageService: MessageService = {
             }
             if (response.data.success) {
                 const messages = response.data.data.map((msg: any) => ({
-                    id: msg._id || msg.id,
+                    id: msg.id,
                     conversationId: msg.conversationId,
                     senderId: msg.senderId,
                     content: msg.content,
@@ -119,7 +119,7 @@ export const MessageService: MessageService = {
                 return {
                     success: true,
                     message: {
-                        id: msg._id || msg.id,
+                        id: msg.id || msg._id,
                         conversationId: msg.conversationId,
                         senderId: msg.senderId,
                         content: msg.content,
@@ -189,7 +189,7 @@ export const MessageService: MessageService = {
                 throw new Error("No token found");
             }
 
-            const url = `${ApiEndpoints.API_MESSAGE}/${messageId}`;
+            const url = `http://localhost:8087/api/messages/${messageId}`;
 
             const response = await axios.delete(url, {
                 headers: {
@@ -197,17 +197,25 @@ export const MessageService: MessageService = {
                 }
             });
 
-            if (response.data.status === '200') {
+            console.log('response delete message: ', response);
+
+            if (response.data.success || response.data.status === '200' || response.status === 200) {
                 return {
                     success: true,
                     statusMessage: response.data.message || "Message deleted successfully"
                 };
             }
 
-            throw new Error(response.data.message || "Failed to delete message");
+            return {
+                success: false,
+                statusMessage: response.data.message || "Failed to delete message"
+            };
         } catch (error: any) {
             console.error("Delete message error:", error);
-            throw error;
+            return {
+                success: false,
+                statusMessage: error.response?.data?.message || error.message || "Failed to delete message"
+            };
         }
     }
 };

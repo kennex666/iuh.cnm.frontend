@@ -44,9 +44,15 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     const [isModelGift, setIsModelGift] = useState(false);
     const scaleAnimation = useRef(new Animated.Value(0)).current;
     const socketService = useRef(SocketService.getInstance()).current;
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const [inputHeight, setInputHeight] = useState(28);
     const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
+    const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+    const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+    const [showMessageOptions, setShowMessageOptions] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
 
     const fetchUserInfo = async (userId: string) => {
         try {
@@ -62,17 +68,61 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         }
     };
 
+    // Fetch messages from server
+    const fetchMessages = async () => {
+        if (!selectedChat?.id) return;
+
+        try {
+            setLoading(true);
+            const response = await MessageService.getMessages(selectedChat.id);
+            console.log('response fetch messages: ', response);
+            if (response.success) {
+                setMessages(response.messages);
+                setIsNewer(response.isNewer);
+                setError(null);
+            } else {
+                setError(response.statusMessage);
+            }
+        } catch (err) {
+            setError('Failed to load messages');
+            console.error('Error fetching messages:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Join conversation when component mounts
     useEffect(() => {
         if (selectedChat) {
             fetchMessages();
+            // Join new conversation
+            socketService.joinConversation(selectedChat.id);
         }
+
+        // Cleanup function to leave conversation when component unmounts or conversation changes
+        return () => {
+            if (selectedChat) {
+                socketService.leaveConversation(selectedChat.id);
+            }
+        };
     }, [selectedChat]);
 
+    // Auto scroll to bottom when messages change
     useEffect(() => {
-        // Listen for new messages
+        setTimeout(() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+    }, [messages]);
+
+    // Listen for new messages
+    useEffect(() => {
         const handleNewMessage = (message: Message) => {
             if (message.conversationId === selectedChat?.id) {
                 setMessages(prev => [...prev, message]);
+                // Scroll to bottom when new message arrives
+                setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                }, 100);
             }
         };
 
@@ -94,28 +144,6 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         });
     }, [messages]);
 
-    // Fetch messages from server
-    const fetchMessages = async () => {
-        if (!selectedChat?.id) return;
-
-        try {
-            setLoading(true);
-            const response = await MessageService.getMessages(selectedChat.id);
-            if (response.success) {
-                setMessages(response.messages);
-                setIsNewer(response.isNewer);
-                setError(null);
-            } else {
-                setError(response.statusMessage);
-            }
-        } catch (err) {
-            setError('Failed to load messages');
-            console.error('Error fetching messages:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     // Send message to server
     const handleSendMessage = async () => {
         if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
@@ -135,6 +163,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             // Send through socket
             socketService.sendMessage(messageData);
             
+            setNewMessage('');
         } catch (err) {
             console.error('Error sending message:', err);
             setError('Failed to send message');
@@ -192,6 +221,50 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         setIsModelGift(!isModelGift);
     };
 
+    const handleLongPressMessage = (msg: Message) => {
+        setSelectedMessage(msg);
+        setShowMessageOptions(true);
+    };
+
+    const handleReplyMessage = (msg: Message) => {
+        setReplyingTo(msg);
+        setShowMessageOptions(false);
+        // Focus vào input
+    };
+
+    const handleForwardMessage = async (msg: Message) => {
+        // TODO: Implement forward message logic
+        setShowMessageOptions(false);
+    };
+
+    const handleDeleteMessage = async (msg: Message) => {
+        setMessageToDelete(msg);
+        setShowDeleteConfirm(true);
+        setShowMessageOptions(false);
+    };
+
+    const confirmDeleteMessage = async () => {
+        if (!messageToDelete) return;
+        
+        try {
+            console.log('messageToDelete: ', messageToDelete.id);
+            const response = await MessageService.deleteMessage(messageToDelete.id);
+            console.log('response delete message: ', response);
+            socketService.sendDeleteMessage(messageToDelete);
+            if (response.success) {
+                setMessages(prev => prev.filter(m => m.id !== messageToDelete.id));
+                setShowDeleteConfirm(false);
+                setMessageToDelete(null);
+                
+            } else {
+                setError(response.statusMessage || 'Không thể xóa tin nhắn');
+            }
+        } catch (err) {
+            console.error('Error deleting message:', err);
+            setError('Có lỗi xảy ra khi xóa tin nhắn');
+        }
+    };
+
     if (loading) {
         return (
             <View className="flex-1 items-center justify-center">
@@ -229,6 +302,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     <Image
                         source={{ uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
                         className="w-10 h-10 rounded-full"
+                        resizeMode="cover"
                     />
                     <View className="ml-3" style={{ maxWidth: '45%' }}>
                         <Text className="font-semibold text-gray-900 text-base"
@@ -263,7 +337,13 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             </View>
 
             {/* Messages Area */}
-            <ScrollView className="flex-1 p-4">
+            <ScrollView 
+                ref={scrollViewRef}
+                className="flex-1 p-4"
+                onContentSizeChange={() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                }}
+            >
                 {isNewer && (
                     <View className="items-center justify-center mb-8">
                         <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
@@ -277,36 +357,203 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         </View>
                     </View>
                 )}
-                {messages.map((msg) => (
-                    <View
+                {messages.map((msg, index) => (
+                    <TouchableOpacity
                         key={msg.id}
-                        className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+                        onLongPress={() => handleLongPressMessage(msg)}
+                        onPress={() => {
+                            // Nhấn một lần để hiện thông tin tin nhắn
+                            setSelectedMessage(msg);
+                            setShowMessageOptions(true);
+                        }}
+                        delayLongPress={200}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        {msg.senderId !== user?.id && (
-                            <Image
-                                source={{
-                                    uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
-                                }}
-                                className="w-8 h-8 rounded-full mr-2"
-                            />
-                        )}
-                        <View className={`max-w-[40%] flex flex-col  ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}>
-                            <View className={`rounded-2xl px-4 py-2 ${msg.senderId === user?.id ? 'bg-blue-500' : 'bg-gray-100'}`} >
-                                <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
-                                    {msg.content}
+                        <View
+                            className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+                        >
+                            {msg.senderId !== user?.id && (
+                                <Image
+                                    source={{
+                                        uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                    }}
+                                    className="w-8 h-8 rounded-full mr-2"
+                                    resizeMode="cover"
+                                />
+                            )}
+                            <View 
+                                className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                            >
+                                {msg.repliedToId && (
+                                    <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
+                                        <Text className="text-xs text-gray-500">
+                                            Trả lời {messageUsers[messages.find(m => m.id === msg.repliedToId)?.senderId || '']?.name}
+                                        </Text>
+                                        <Text className="text-sm text-gray-700" numberOfLines={1}>
+                                            {messages.find(m => m.id === msg.repliedToId)?.content}
+                                        </Text>
+                                    </View>
+                                )}
+                                <View 
+                                    className={`rounded-2xl px-4 py-2 ${
+                                        msg.senderId === user?.id 
+                                            ? 'bg-blue-500 rounded-br-none' 
+                                            : 'bg-gray-100 rounded-bl-none'
+                                    }`}
+                                >
+                                    <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
+                                        {msg.content}
+                                    </Text>
+                                </View>
+                                <Text className="text-xs text-gray-500 mt-1">
+                                    {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
                                 </Text>
+                                <MessageReaction
+                                    messageId={msg.id}
+                                    isVisible={activeReactionId === msg.id}
+                                    onReact={handleReaction}
+                                    onToggle={() => handleReactionToggle(msg.id)}
+                                    isSender={msg.senderId === user?.id}
+                                />
                             </View>
-                            <MessageReaction
-                                messageId={msg.id}
-                                isVisible={activeReactionId === msg.id}
-                                onReact={handleReaction}
-                                onToggle={() => handleReactionToggle(msg.id)}
-                                isSender={msg.senderId === user?.id}
-                            />
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 ))}
             </ScrollView>
+
+            {/* Message Options Modal */}
+            {showMessageOptions && selectedMessage && (
+                <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                    <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
+                        <View className="p-4 border-b border-gray-100">
+                            <View className="flex-row items-center">
+                                <Image
+                                    source={{
+                                        uri: messageUsers[selectedMessage.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                    }}
+                                    className="w-10 h-10 rounded-full"
+                                    resizeMode="cover"
+                                />
+                                <View className="ml-3 flex-1">
+                                    <Text className="text-gray-800 font-medium">
+                                        {messageUsers[selectedMessage.senderId]?.name}
+                                    </Text>
+                                    <Text className="text-gray-500 text-sm">
+                                        {new Date(selectedMessage.sentAt).toLocaleString('vi-VN', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        })}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View className="mt-3 bg-gray-50 rounded-lg p-3">
+                                <Text className="text-gray-800">{selectedMessage.content}</Text>
+                            </View>
+                        </View>
+                        <View className="divide-y divide-gray-100">
+                            <TouchableOpacity 
+                                className="flex-row items-center p-4 active:bg-gray-50"
+                                onPress={() => handleReplyMessage(selectedMessage)}
+                            >
+                                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+                                    <Ionicons name="return-up-back" size={20} color="#3B82F6" />
+                                </View>
+                                <Text className="ml-3 text-gray-800">Trả lời</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                className="flex-row items-center p-4 active:bg-gray-50"
+                                onPress={() => handleForwardMessage(selectedMessage)}
+                            >
+                                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+                                    <Ionicons name="arrow-redo" size={20} color="#3B82F6" />
+                                </View>
+                                <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
+                            </TouchableOpacity>
+                            {selectedMessage.senderId === user?.id && (
+                                <TouchableOpacity 
+                                    className="flex-row items-center p-4 active:bg-gray-50"
+                                    onPress={() => handleDeleteMessage(selectedMessage)}
+                                >
+                                    <View className="w-8 h-8 rounded-full bg-red-50 items-center justify-center">
+                                        <Ionicons name="trash" size={20} color="#EF4444" />
+                                    </View>
+                                    <Text className="ml-3 text-red-500">Xóa tin nhắn</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                        <TouchableOpacity 
+                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
+                            onPress={() => setShowMessageOptions(false)}
+                        >
+                            <Ionicons name="close" size={20} color="#666" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && messageToDelete && (
+                <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                    <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
+                        <View className="p-6 items-center">
+                            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
+                                <Ionicons name="trash" size={32} color="#EF4444" />
+                            </View>
+                            <Text className="text-xl font-semibold text-gray-800 mb-2">Xóa tin nhắn</Text>
+                            <Text className="text-gray-600 text-center">
+                                Bạn có chắc chắn muốn xóa tin nhắn này?{'\n'}Hành động này không thể hoàn tác.
+                            </Text>
+                        </View>
+                        <View className="flex-row p-4 border-t border-gray-100">
+                            <TouchableOpacity 
+                                className="flex-1 mr-2 h-12 rounded-xl bg-gray-100 items-center justify-center active:bg-gray-200"
+                                onPress={() => {
+                                    setShowDeleteConfirm(false);
+                                    setMessageToDelete(null);
+                                }}
+                            >
+                                <Text className="text-gray-800 font-medium">Hủy</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                className="flex-1 h-12 rounded-xl bg-red-500 items-center justify-center active:bg-red-600"
+                                onPress={confirmDeleteMessage}
+                            >
+                                <Text className="text-white font-medium">Xóa</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
+
+            {/* Reply Preview */}
+            {replyingTo && (
+                <View className="bg-gray-50 px-4 py-3 flex-row items-center border-t border-gray-200">
+                    <View className="flex-1">
+                        <View className="flex-row items-center">
+                            <Ionicons name="return-up-back" size={16} color="#3B82F6" />
+                            <Text className="text-blue-500 text-sm font-medium ml-1">
+                                Trả lời {messageUsers[replyingTo.senderId]?.name}
+                            </Text>
+                        </View>
+                        <Text className="text-gray-600 text-sm mt-1" numberOfLines={1}>
+                            {replyingTo.content}
+                        </Text>
+                    </View>
+                    <TouchableOpacity 
+                        className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
+                        onPress={() => setReplyingTo(null)}
+                    >
+                        <Ionicons name="close" size={16} color="#666" />
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Input Area */}
             <View className="border-t border-gray-200 p-4">

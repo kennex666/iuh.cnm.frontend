@@ -293,7 +293,8 @@ export const FriendRequestService: FriendRequestService = {
                 };
             }
 
-            const response = await axios.delete(`${ApiEndpoints.API_FRIEND_REQUEST}/${id}`, {
+            //http://localhost:8087/api/friendRequests/302997088919094272
+            const response = await axios.delete(`http://localhost:8087/api/friendRequests/${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },

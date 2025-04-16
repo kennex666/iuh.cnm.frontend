@@ -63,12 +63,13 @@ export default function MessagesScreen() {
 
             {selectedChat && !showInfo && (
                 <View className='flex-1'>
-                    <View className='h-8'></View>
+                    <View className='h-18'></View>
                     <ChatArea
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}
                         onInfoPress={handleInfoPress}
                     />
+                    <View className='h-24'></View>
                 </View>
             )}
 
