@@ -12,6 +12,7 @@ class SocketService {
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
     private friendRequestActionCallbacks: ((requestId: string) => void)[] = [];
+    private deleteMessageCallbacks: ((message: Message) => void)[] = [];
 
     private constructor() {}
 
@@ -60,8 +61,8 @@ class SocketService {
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
         });
 
-        this.socket.on('friend_request', (requestId: string) => {
-            this.friendRequestActionCallbacks.forEach(callback => callback(requestId));
+        this.socket.on('delete_message', (message: Message) => {
+            this.deleteMessageCallbacks.forEach(callback => callback(message));
         });
 
         this.socket.on('pong', (message: string) => {
@@ -108,6 +109,16 @@ class SocketService {
     
     public onNewMessage(callback: (message: Message) => void): void {
         this.messageCallbacks.push(callback);
+    }
+
+    public sendDeleteMessage(message: Message): void {
+        if (this.socket) {
+            this.socket.emit('send_delete_message', message);
+        }
+    }
+
+    public onDeleteMessage(callback: (message: Message) => void): void {
+        this.deleteMessageCallbacks.push(callback);
     }
 
     public sendFriendRequest(friendRequest: any): void {

@@ -75,6 +75,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         try {
             setLoading(true);
             const response = await MessageService.getMessages(selectedChat.id);
+            console.log('response fetch messages: ', response);
             if (response.success) {
                 setMessages(response.messages);
                 setIsNewer(response.isNewer);
@@ -246,11 +247,15 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
         if (!messageToDelete) return;
         
         try {
+            console.log('messageToDelete: ', messageToDelete.id);
             const response = await MessageService.deleteMessage(messageToDelete.id);
+            console.log('response delete message: ', response);
+            socketService.sendDeleteMessage(messageToDelete);
             if (response.success) {
                 setMessages(prev => prev.filter(m => m.id !== messageToDelete.id));
                 setShowDeleteConfirm(false);
                 setMessageToDelete(null);
+                
             } else {
                 setError(response.statusMessage || 'Không thể xóa tin nhắn');
             }
