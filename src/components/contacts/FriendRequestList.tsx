@@ -310,6 +310,10 @@ export default function FriendRequestList() {
                         const pendingRequestReceived = requests.find(
                             request => request.senderId === result.id
                         );
+                        // Kiểm tra xem đã bị từ chối chưa
+                        const isDeclined = friendSent.some(
+                            request => request.receiverId === result.id && request.status === "declined"
+                        );
 
                         if (result.id !== user?.id) {
                             return (
@@ -410,11 +414,6 @@ export default function FriendRequestList() {
                                 <Text className="text-sm text-gray-500">
                                     {new Date(request.createAt).toLocaleString()}
                                 </Text>
-                            </View>
-                            <View>
-                                {
-                                    request.id
-                                }
                             </View>
                             <View key={`request-actions-${request.id}`} className="flex-row items-center">
                                 {request.status !== "declined" ? (
