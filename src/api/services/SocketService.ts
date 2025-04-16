@@ -11,7 +11,7 @@ class SocketService {
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
-    private friendRequestActionCallbacks: ((requestId: string) => void)[] = [];
+    private friendRequestActionCallbacks: ((requestId: string, receiverId: string) => void)[] = [];
     private deleteMessageCallbacks: ((message: Message) => void)[] = [];
 
     private constructor() {}
@@ -49,16 +49,21 @@ class SocketService {
             console.log('Socket disconnected');
         });
 
-        this.socket.on('new_message', (message: Message) => {
+        this.socket.on('message:new', (message: Message) => {
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
-        this.socket.on('new_conversation', (conversation: Conversation) => {
+        this.socket.on('conversation:new', (conversation: Conversation) => {
             this.conversationCallbacks.forEach(callback => callback(conversation));
         });
 
-        this.socket.on('friend_request', (friendRequest: FriendRequest) => {
+        this.socket.on('friend_request:new', (friendRequest: FriendRequest) => {
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
+        this.socket.on('friend_request:new_delete', (data: { senderId: string, receiverId: string }) => {
+            console.log('Delete friend request received:', data);
+            this.friendRequestActionCallbacks.forEach(callback => callback(data.senderId, data.receiverId));
         });
 
         this.socket.on('delete_message', (message: Message) => {
@@ -103,7 +108,7 @@ class SocketService {
     public sendMessage(message: Message): void {
         if (this.socket) {
             console.log('Sending message to socket is: ', message);
-            this.socket.emit('send_message', message);
+            this.socket.emit('message:send', message);
         }
     }
     
@@ -121,18 +126,30 @@ class SocketService {
         this.deleteMessageCallbacks.push(callback);
     }
 
-    public sendFriendRequest(friendRequest: any): void {
+    public sendFriendRequest(friendRequest: FriendRequest): void {
         if (this.socket) {
-            this.socket.emit('send_friend_request', friendRequest);
+            this.socket.emit('friend_request:send', friendRequest);
         }
+    }
+
+    public sendDeleteFriendRequest(data: { senderId: string, receiverId: string }): void {
+        if (this.socket) {
+            this.socket.emit('friend_request:delete', data);
+        }
+    }
+    
+    public onDeleteFriendRequest(callback: (requestId: string, receiverId: string) => void): void {
+        this.friendRequestActionCallbacks.push(callback);
     }
 
     public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks.push(callback);
     }
-
-    public onFriendRequestAction(callback: (requestId: string) => void): void {
-        this.friendRequestActionCallbacks.push(callback);
+    
+    public sendConversation(conversation: Conversation): void {
+        if (this.socket) {
+            this.socket.emit('conversation:new', conversation);
+        }
     }
 
     public onNewConversation(callback: (conversation: Conversation) => void): void {
@@ -150,7 +167,16 @@ class SocketService {
     public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
     }
-    
+
+    public removeFriendRequestActionListener(callback: (requestId: string, receiverId: string) => void): void {
+        this.friendRequestActionCallbacks = this.friendRequestActionCallbacks.filter(cb => cb !== callback);
+    }
+
+    public sendAcceptFriendRequest(requestId: string): void {
+        if (this.socket) {
+            this.socket.emit('friend_request:accept', requestId);
+        }
+    }
 }
 
 export default SocketService;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
@@ -6,6 +6,7 @@ import {Conversation} from "@/src/models/Conversation";
 import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
+import { Message } from '@/src/models/Message';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -18,8 +19,11 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [error, setError] = useState<string | null>(null);
     const { user } = useAuth();
     const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
+    const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
+    const socketService = useRef(SocketService.getInstance()).current;
 
-    useEffect(() => {
+    // Fetch conversations
+    useEffect(() => {    
         const fetchConversations = async () => {
             try {
                 const response = await ConversationService.getConversations();
@@ -38,10 +42,12 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                             const userResponse = await UserService.getUserById(participantId);
                             if (userResponse.success && userResponse.user) {
                                 avatars[participantId] = userResponse.user.avatarURL;
+                                participantNames[participantId] = userResponse.user.name;
                             }
                         }
                     }
                     setParticipantAvatars(avatars);
+                    setParticipantNames(participantNames);
                 } else {
                     setError(response.message || "Failed to fetch conversations");
                 }
@@ -53,12 +59,41 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         };
 
         fetchConversations();
-    }, [user?.id]); 
+    }, [user?.id]);
+
+    useEffect(() => {
+        const handleNewConversation = (conversation: Conversation) => {
+            setConversations(prev => [...prev, conversation]);
+        };
+        socketService.onNewConversation(handleNewConversation);
+        return () => {
+            socketService.removeConversationListener(handleNewConversation);
+        };
+    }, [selectedChat?.id]);
 
     const formatTime = (dateString: string | undefined) => {
         if (!dateString) return '';
         const date = new Date(dateString);
         return date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    };
+
+    const getConversationName = (conversation: Conversation) => {
+        if (conversation.name) {
+            return conversation.name;
+        }
+        
+        if (conversation.isGroup) {
+            // Lấy tên của 2 người đầu tiên trong nhóm
+            const otherParticipants = conversation.participants
+                .filter(id => id !== user?.id)
+                .slice(0, 2);
+            const names = otherParticipants.map(id => participantNames[id] || 'Unknown');
+            return names.join(', ');
+        }
+        
+        // Trong chat riêng tư, lấy tên của người còn lại
+        const otherParticipantId = conversation.participants.find(id => id !== user?.id);
+        return otherParticipantId ? participantNames[otherParticipantId] || 'Unknown' : 'Unknown';
     };
 
     if (loading) {
@@ -106,7 +141,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                         <View className="relative">
                             <Image
                                 source={{
-                                    uri: !conversation.isGroup && conversation.participants.length > 0 
+                                    uri: !conversation.isGroup && conversation.participants.length < 3 
                                         ? participantAvatars[conversation.participants.find(id => id !== user?.id) || ''] || conversation.avatar
                                         : conversation.avatar,
                                     headers: {
@@ -124,7 +159,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                         <View className="flex-1 ml-3">
                             <View className="flex-row justify-between items-center">
                                 <Text className="font-semibold text-gray-900">
-                                    {conversation.name || conversation.participants.join(', ')}
+                                    {getConversationName(conversation)}
                                 </Text>
                                 {conversation.lastMessage?.sentAt && (
                                     <Text className="text-sm text-gray-500">
