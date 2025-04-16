@@ -61,6 +61,11 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const [showMessageOptions, setShowMessageOptions] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+    const [otherParticipant, setOtherParticipant] = useState<{
+        name: string;
+        avatar: string;
+        isOnline: boolean;
+    } | null>(null);
 
     // Thêm vào danh sách state trong ChatArea
     const [fileUploading, setFileUploading] = useState(false);
@@ -238,6 +243,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     // Join conversation when component mounts
     useEffect(() => {
+            
         if (selectedChat) {
             fetchMessages();
             // Join new conversation
@@ -289,6 +295,32 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         });
     }, [messages]);
 
+    // Load other participant info when selectedChat changes
+    useEffect(() => {
+        const loadOtherParticipant = async () => {
+            if (!selectedChat || !user) return;
+            
+            // Find the other participant's ID
+            const otherUserId = selectedChat.participants.find(id => id !== user.id);
+            if (!otherUserId) return;
+
+            try {
+                const response = await UserService.getUserById(otherUserId);
+                if (response.success && response.user) {
+                    setOtherParticipant({
+                        name: response.user.name,
+                        avatar: response.user.avatarURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user.name)}&background=0068FF&color=fff`,
+                        isOnline: response.user.isOnline
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading other participant:', error);
+            }
+        };
+
+        loadOtherParticipant();
+    }, [selectedChat, user]);
+
     // Send message to server
     const handleSendMessage = async () => {
         if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
@@ -299,7 +331,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             senderId: user.id,
             content: newMessage.trim(),
             type: MessageType.TEXT,
-            repliedToId: undefined,
+            repliedToId: '',
             readBy: [],
             sentAt: new Date().toISOString(),
         };
@@ -447,6 +479,12 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         source={{uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'}}
                         className="w-10 h-10 rounded-full"
                         resizeMode="cover"
+                        onError={() => {
+                            setOtherParticipant(prev => prev ? {
+                                ...prev,
+                                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(prev.name)}&background=0068FF&color=fff`
+                            } : null);
+                        }}
                     />
                     <View className="ml-3" style={{maxWidth: '45%'}}>
                         <Text className="font-semibold text-gray-900 text-base" numberOfLines={1} ellipsizeMode="tail">
@@ -486,6 +524,19 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     scrollViewRef.current?.scrollToEnd({animated: true});
                 }}
             >
+                {messages.length === 0 && (
+                    <View className="items-center justify-center mb-8">
+                        <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
+                            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
+                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
+                                Chưa có tin nhắn nào
+                            </Text>
+                            <Text className="text-gray-600 text-center mt-2">
+                                Hãy gửi lời chào để bắt đầu cuộc trò chuyện với {selectedChat.name || 'người dùng này'}
+                            </Text>
+                        </View>
+                    </View>
+                )}
                 {isNewer && (
                     <View className="items-center justify-center mb-8">
                         <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
@@ -539,6 +590,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                         </Text>
                                         <Text className="text-sm text-gray-700" numberOfLines={1}>
                                             {messages.find((m) => m.id === msg.repliedToId)?.content}
+
                                         </Text>
                                     </View>
                                 )}
@@ -568,12 +620,14 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                         )
                                     )}
                                 </View>
+                              
                                 <Text className="text-xs text-gray-500 mt-1">
                                     {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
                                         hour: '2-digit',
                                         minute: '2-digit',
                                     })}
                                 </Text>
+
                                 <MessageReaction
                                     messageId={msg.id}
                                     isVisible={activeReactionId === msg.id}

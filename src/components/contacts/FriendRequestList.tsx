@@ -26,6 +26,40 @@ export default function FriendRequestList() {
     const { user } = useAuth();
     const [friendAccepted, setFriendAccepted] = useState<FriendRequest[]>([]);
     const [friendSent, setFriendSent] = useState<FriendRequest[]>([]);
+    const [senderNames, setSenderNames] = useState<Record<string, string>>({});
+    const [senderAvatars, setSenderAvatars] = useState<Record<string, string>>({});
+
+    // Fetch sender info
+    useEffect(() => {
+        const fetchSenderInfo = async () => {
+            const uniqueSenderIds = new Set<string>();
+            requests.forEach(request => uniqueSenderIds.add(request.senderId));
+            friendAccepted.forEach(request => uniqueSenderIds.add(request.senderId));
+            friendSent.forEach(request => uniqueSenderIds.add(request.senderId));
+
+            for (const senderId of uniqueSenderIds) {
+                if (!senderNames[senderId] || !senderAvatars[senderId]) {
+                    try {
+                        const response = await UserService.getUserById(senderId);
+                        if (response.success && response.user) {
+                            setSenderNames(prev => ({
+                                ...prev,
+                                [senderId]: response.user?.name || 'Unknown'
+                            }));
+                            setSenderAvatars(prev => ({
+                                ...prev,
+                                [senderId]: response.user?.avatarURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.name || 'User')}&background=0068FF&color=fff`
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user:', error);
+                    }
+                }
+            }
+        };
+
+        fetchSenderInfo();
+    }, [requests, friendAccepted, friendSent]);
 
     useEffect(() => {
         loadFriendRequests();
@@ -41,16 +75,20 @@ export default function FriendRequestList() {
             }
         };
 
-        const handleActionFriendRequest = (requestId: string) => {
-            console.log('requestId', requestId);
-            loadFriendRequests();
-        }
-        socketService.onFriendRequestAction(handleActionFriendRequest);
+        const handleDeleteFriendRequest = (senderId: string, receiverId: string) => {
+            console.log('Delete friend request received:', senderId, receiverId);
+            if (receiverId === user?.id) {
+                setRequests(prevRequests => prevRequests.filter(request => request.senderId !== senderId));
+            }
+        };
+
         socketService.onFriendRequest(handleNewFriendRequest);
+        socketService.onDeleteFriendRequest(handleDeleteFriendRequest);
         
         // Cleanup socket listeners
         return () => {
             socketService.removeFriendRequestListener(handleNewFriendRequest);
+            socketService.removeFriendRequestActionListener(handleDeleteFriendRequest);
         };
     }, [user]);
 
@@ -63,6 +101,7 @@ export default function FriendRequestList() {
             }
 
             const response = await FriendRequestService.getAllPendingFriendRequests(user.id || "");
+            console.log(" Day la danh sach lời mời kết bạn", response);
             const responseAccepted = await FriendRequestService.getAllAcceptedFriendRequests(user?.id || "");
             const responseSent = await FriendRequestService.getAllPendingFriendRequestsBySenderId();
             if (response.success && responseAccepted.success && responseSent.success) {
@@ -103,6 +142,8 @@ export default function FriendRequestList() {
                         : user.avatarURL
                 }));
                 setSearchResults(results);
+                // Tải lại danh sách yêu cầu kết bạn để cập nhật trạng thái nút
+                await loadFriendRequests();
             } else {
                 setSearchResults([]);
                 Alert.alert('Thông báo', 'Không tìm thấy người dùng');
@@ -115,6 +156,7 @@ export default function FriendRequestList() {
         }
     };
 
+    // Gửi lời mời kết bạn
     const handleSendFriendRequest = async (receiverId: string) => {
         try {
             if (!user) {
@@ -128,11 +170,23 @@ export default function FriendRequestList() {
             };
 
             const response = await FriendRequestService.createFriendRequest(newRequest);
-            await loadFriendRequests();  
-            if (response.success) {
+            if (response.success && response.friendRequest) {
+                // Tạo đối tượng FriendRequest từ response
+                const friendRequest: FriendRequest = {
+                    id: response.friendRequest._doc.id,
+                    senderId: response.friendRequest._doc.senderId,
+                    receiverId: response.friendRequest._doc.receiverId,
+                    status: response.friendRequest._doc.status,
+                    createAt: response.friendRequest._doc.createAt,
+                    updateAt: response.friendRequest._doc.updateAt
+                };
+                
                 // Send friend request through socket
                 const socketService = SocketService.getInstance();
-                socketService.sendFriendRequest(newRequest);
+                socketService.sendFriendRequest(friendRequest);
+                
+                // Cập nhật UI
+                setFriendSent(prev => [...prev, friendRequest]);
             } else {
                 console.log('Không thể gửi lời mời kết bạn');
             }
@@ -144,6 +198,8 @@ export default function FriendRequestList() {
             console.log('Lỗi khi gửi lời mời kết bạn:', err);
         }
     };
+
+    // Từ chối lời mời kết bạn
     const handleDeclineRequest = async (requestId: string) => {
         try {
             const response = await FriendRequestService.declineFriendRequest(requestId);
@@ -158,11 +214,13 @@ export default function FriendRequestList() {
         }
     };
 
+    // Chấp nhận lời mời kết bạn
     const handleAcceptRequest = async (requestId: string) => {
+        await loadFriendRequests();
         try {
             const response = await FriendRequestService.acceptFriendRequest(requestId);
             if (response.success) {
-                console.log('Đã chấp nhận    mời kết bạn');
+                console.log('Đã chấp nhận mời kết bạn');
                 loadFriendRequests(); // Reload the list
             } else {
                 console.log('Không thể chấp nhận lời mời kết bạn');
@@ -172,13 +230,17 @@ export default function FriendRequestList() {
         }
     };
 
-    const handleCancelRequest = async (requestId: string) => {
+    // Hủy lời mời kết bạn
+    const handleCancelRequest = async (requestId: string, receiverId: string) => {
         try {
-            console.log('requestId', requestId);
             const response = await FriendRequestService.deleteFriendRequest(requestId);
             if (response.success) {
-                console.log('Đã hủy lời mời kết bạn');
                 loadFriendRequests();
+                const socketService = SocketService.getInstance();
+                socketService.sendDeleteFriendRequest({
+                    senderId: user?.id || '',
+                    receiverId: receiverId
+                });
             } else {
                 console.log('Không thể hủy lời mời kết bạn');
             }
@@ -236,17 +298,21 @@ export default function FriendRequestList() {
                 <View className="border-b border-gray-200">
                     <Text className="px-4 py-2 text-sm font-semibold text-gray-500">Kết quả tìm kiếm</Text>
                     {searchResults.map((result) => {
-                        // Check if user is already a friend
+                        // Xem có phải là bạn bè không
                         const isFriend = friendAccepted.some(
                             request => request.senderId === result.id || request.receiverId === result.id
                         );
-                        // Check if there's a pending request sent by current user
+                        // Kiểm tra xem có yêu cầu kết bạn đã gửi không
                         const pendingRequestSent = friendSent.find(
                             request => request.receiverId === result.id
                         );
-                        // Check if there's a pending request received by current user
+                        // Kiểm tra xem có yêu cầu kết bạn đã nhận không
                         const pendingRequestReceived = requests.find(
                             request => request.senderId === result.id
+                        );
+                        // Kiểm tra xem đã bị từ chối chưa
+                        const isDeclined = friendSent.some(
+                            request => request.receiverId === result.id && request.status === "declined"
                         );
 
                         if (result.id !== user?.id) {
@@ -273,13 +339,19 @@ export default function FriendRequestList() {
                                             <Text className="text-gray-700 font-medium">Bạn bè</Text>
                                         </View>
                                     ) : pendingRequestSent ? (
-                                        <TouchableOpacity
-                                            key={`search-cancel-${result.id}`}
-                                            className="bg-red-500 px-4 py-2 rounded-full"
-                                            onPress={() => handleCancelRequest(pendingRequestSent.id)}
-                                        >
-                                            <Text className="text-white font-medium">Hủy kết bạn</Text>
-                                        </TouchableOpacity>
+                                        pendingRequestSent.status === "declined" ? (
+                                            <View key={`search-declined-${result.id}`} className="bg-red-100 px-4 py-2 rounded-full">
+                                                <Text className="text-red-600 font-medium">Đã từ chối</Text>
+                                            </View>
+                                        ) : (
+                                            <TouchableOpacity
+                                                key={`search-cancel-${result.id}`}
+                                                className="bg-red-500 px-4 py-2 rounded-full"
+                                                onPress={() => handleCancelRequest(pendingRequestSent.id, result.id)}
+                                            >
+                                                <Text className="text-white font-medium">Hủy kết bạn</Text>
+                                            </TouchableOpacity>
+                                        )
                                     ) : pendingRequestReceived ? (
                                         <TouchableOpacity
                                             key={`search-accept-${result.id}`}
@@ -321,34 +393,51 @@ export default function FriendRequestList() {
                         >
                             <Image
                                 key={`request-image-${request.id}`}
-                                source={{
-                                    uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(request.senderId)}&background=0068FF&color=fff`
-                                }}
+                                source={{ uri: senderAvatars[request.senderId] || `https://ui-avatars.com/api/?name=${encodeURIComponent(senderNames[request.senderId] || 'User')}&background=0068FF&color=fff` }}
                                 className="w-12 h-12 rounded-full"
+                                onError={(e) => {
+                                    console.log('Avatar load error:', e.nativeEvent.error);
+                                    // Fallback to ui-avatars if the original avatar fails to load
+                                    const fallbackURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(senderNames[request.senderId] || 'User')}&background=0068FF&color=fff`;
+                                    if (senderAvatars[request.senderId] !== fallbackURL) {
+                                        setSenderAvatars(prev => ({
+                                            ...prev,
+                                            [request.senderId]: fallbackURL
+                                        }));
+                                    }
+                                }}
                             />
                             <View key={`request-info-${request.id}`} className="flex-1 ml-3">
                                 <Text className="font-medium text-gray-900">
-                                    {request.senderId}
+                                    {senderNames[request.senderId] || 'Loading...'}
                                 </Text>
                                 <Text className="text-sm text-gray-500">
-                                    {new Date(request.createAt).toLocaleDateString()}
+                                    {new Date(request.createAt).toLocaleString()}
                                 </Text>
                             </View>
                             <View key={`request-actions-${request.id}`} className="flex-row items-center">
-                                <TouchableOpacity
-                                    key={`request-accept-${request.id}`}
-                                    className="bg-blue-500 px-4 py-2 rounded-full mr-2"
-                                    onPress={() => handleAcceptRequest(request.id)}
-                                >
-                                    <Text className="text-white font-medium">Đồng ý</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    key={`request-decline-${request.id}`}
-                                    className="bg-gray-100 px-4 py-2 rounded-full"
-                                    onPress={() => handleDeclineRequest(request.id)}
-                                >
-                                    <Text className="text-gray-700 font-medium">Từ chối</Text>
-                                </TouchableOpacity>
+                                {request.status !== "declined" ? (
+                                    <>
+                                        <TouchableOpacity
+                                            key={`request-accept-${request.id}`}
+                                            className="bg-blue-500 px-4 py-2 rounded-full mr-2"
+                                            onPress={() => handleAcceptRequest(request.id)}
+                                        >
+                                            <Text className="text-white font-medium">Đồng ý</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            key={`request-decline-${request.id}`}
+                                            className="bg-gray-100 px-4 py-2 rounded-full"
+                                            onPress={() => handleDeclineRequest(request.id)}
+                                        >
+                                            <Text className="text-gray-700 font-medium">Từ chối</Text>
+                                        </TouchableOpacity>
+                                    </>
+                                ) : (
+                                    <View className="bg-red-100 px-4 py-2 rounded-full">
+                                        <Text className="text-red-600 font-medium">Đã từ chối</Text>
+                                    </View>
+                                )}
                             </View>
                         </View>
                     ))
