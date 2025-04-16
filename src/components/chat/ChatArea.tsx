@@ -78,7 +78,6 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     };
 
     // Thêm hàm xử lý chọn file
-    // Thêm hàm xử lý chọn file
     const handleSelectFile = async () => {
         try {
             const result = await DocumentPicker.getDocumentAsync({
@@ -274,6 +273,8 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({animated: true});
                 }, 100);
+
+                socketService.sendSeen(message.id, selectedChat.id);
             }
         };
 
