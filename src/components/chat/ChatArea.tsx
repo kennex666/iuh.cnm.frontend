@@ -348,10 +348,12 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                             ellipsizeMode="tail">
                             {otherParticipant?.name || 'Loading...'}
                         </Text>
-                        {otherParticipant && (
-                            <Text className={`text-sm ${otherParticipant.isOnline ? 'text-green-500' : 'text-gray-500'}`}>
-                                {otherParticipant.isOnline ? 'Đang hoạt động' : 'Offline'}
-                            </Text>
+                        {selectedChat.isGroup && (
+                            <Text className="text-sm text-gray-500">{selectedChat.participants.length} thành
+                                viên</Text>
+                        )}
+                        {!selectedChat.isGroup && selectedChat.participants.length > 0 && (
+                            <Text className="text-sm text-green-500">Đang hoạt động</Text>
                         )}
                     </View>
                 </View>

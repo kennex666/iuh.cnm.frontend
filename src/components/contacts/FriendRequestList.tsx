@@ -101,6 +101,7 @@ export default function FriendRequestList() {
             }
 
             const response = await FriendRequestService.getAllPendingFriendRequests(user.id || "");
+            console.log(" Day la danh sach lời mời kết bạn", response);
             const responseAccepted = await FriendRequestService.getAllAcceptedFriendRequests(user?.id || "");
             const responseSent = await FriendRequestService.getAllPendingFriendRequestsBySenderId();
             if (response.success && responseAccepted.success && responseSent.success) {
@@ -169,11 +170,23 @@ export default function FriendRequestList() {
             };
 
             const response = await FriendRequestService.createFriendRequest(newRequest);
-            await loadFriendRequests();  
-            if (response.success) {
+            if (response.success && response.friendRequest) {
+                // Tạo đối tượng FriendRequest từ response
+                const friendRequest: FriendRequest = {
+                    id: response.friendRequest._doc.id,
+                    senderId: response.friendRequest._doc.senderId,
+                    receiverId: response.friendRequest._doc.receiverId,
+                    status: response.friendRequest._doc.status,
+                    createAt: response.friendRequest._doc.createAt,
+                    updateAt: response.friendRequest._doc.updateAt
+                };
+                
                 // Send friend request through socket
                 const socketService = SocketService.getInstance();
-                socketService.sendFriendRequest(newRequest);
+                socketService.sendFriendRequest(friendRequest);
+                
+                // Cập nhật UI
+                setFriendSent(prev => [...prev, friendRequest]);
             } else {
                 console.log('Không thể gửi lời mời kết bạn');
             }
@@ -285,15 +298,15 @@ export default function FriendRequestList() {
                 <View className="border-b border-gray-200">
                     <Text className="px-4 py-2 text-sm font-semibold text-gray-500">Kết quả tìm kiếm</Text>
                     {searchResults.map((result) => {
-                        // Check if user is already a friend
+                        // Xem có phải là bạn bè không
                         const isFriend = friendAccepted.some(
                             request => request.senderId === result.id || request.receiverId === result.id
                         );
-                        // Check if there's a pending request sent by current user
+                        // Kiểm tra xem có yêu cầu kết bạn đã gửi không
                         const pendingRequestSent = friendSent.find(
                             request => request.receiverId === result.id
                         );
-                        // Check if there's a pending request received by current user
+                        // Kiểm tra xem có yêu cầu kết bạn đã nhận không
                         const pendingRequestReceived = requests.find(
                             request => request.senderId === result.id
                         );
@@ -397,6 +410,11 @@ export default function FriendRequestList() {
                                 <Text className="text-sm text-gray-500">
                                     {new Date(request.createAt).toLocaleString()}
                                 </Text>
+                            </View>
+                            <View>
+                                {
+                                    request.id
+                                }
                             </View>
                             <View key={`request-actions-${request.id}`} className="flex-row items-center">
                                 {request.status !== "declined" ? (

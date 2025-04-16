@@ -126,7 +126,7 @@ class SocketService {
         this.deleteMessageCallbacks.push(callback);
     }
 
-    public sendFriendRequest(friendRequest: any): void {
+    public sendFriendRequest(friendRequest: FriendRequest): void {
         if (this.socket) {
             this.socket.emit('friend_request:send', friendRequest);
         }
@@ -170,6 +170,12 @@ class SocketService {
 
     public removeFriendRequestActionListener(callback: (requestId: string, receiverId: string) => void): void {
         this.friendRequestActionCallbacks = this.friendRequestActionCallbacks.filter(cb => cb !== callback);
+    }
+
+    public sendAcceptFriendRequest(requestId: string): void {
+        if (this.socket) {
+            this.socket.emit('friend_request:accept', requestId);
+        }
     }
 }
 
