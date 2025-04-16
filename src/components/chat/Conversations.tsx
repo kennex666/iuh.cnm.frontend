@@ -23,7 +23,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const socketService = useRef(SocketService.getInstance()).current;
 
     // Fetch conversations
-    useEffect(() => {    
+    useEffect(() => {  
         const fetchConversations = async () => {
             try {
                 const response = await ConversationService.getConversations();
@@ -62,12 +62,29 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     }, [user?.id]);
 
     useEffect(() => {
-        const handleNewConversation = (conversation: Conversation) => {
-            setConversations(prev => [...prev, conversation]);
+        const handleNewMessage = (message: Message) => {
+            conversations.forEach((conversation) => {
+                if (conversation.id === message.conversationId) {
+                    const updatedConversation = {
+                        ...conversation,
+                        lastMessage: message,
+                    };
+                    setConversations((prev) =>
+                        prev.map((conv) => (conv.id === conversation.id ? updatedConversation : conv)).sort((a, b) => {
+                            if (a.lastMessage && b.lastMessage) {
+                                return new Date(b.lastMessage.sentAt).getTime() - new Date(a.lastMessage.sentAt).getTime();
+                            } else if (a.lastMessage) {
+                                return -1;
+                            }
+                            return 0;
+                        })
+                    );
+                }
+            });
         };
-        socketService.onNewConversation(handleNewConversation);
+        socketService.onNewMessage(handleNewMessage);
         return () => {
-            socketService.removeConversationListener(handleNewConversation);
+            socketService.removeMessageListener(handleNewMessage);
         };
     }, [selectedChat?.id]);
 
