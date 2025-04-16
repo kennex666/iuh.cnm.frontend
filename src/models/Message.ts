@@ -12,7 +12,7 @@ export interface Message {
     senderId: string;
     content: string;
     type: MessageType;
-    repliedToId?: string;  // Optional vì có default value trong schema
+    repliedToId: string;  // Optional vì có default value trong schema
     sentAt: Date | string;
     readBy: string[];
 }

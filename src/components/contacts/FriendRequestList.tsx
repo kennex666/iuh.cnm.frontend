@@ -340,7 +340,7 @@ export default function FriendRequestList() {
                                         </View>
                                     ) : pendingRequestSent ? (
                                         pendingRequestSent.status === "declined" ? (
-                                            <View key={`search-decl ined-${result.id}`} className="bg-red-100 px-4 py-2 rounded-full">
+                                            <View key={`search-declined-${result.id}`} className="bg-red-100 px-4 py-2 rounded-full">
                                                 <Text className="text-red-600 font-medium">Đã từ chối</Text>
                                             </View>
                                         ) : (

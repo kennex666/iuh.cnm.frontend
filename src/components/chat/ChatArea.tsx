@@ -186,7 +186,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             senderId: user.id,
             content: newMessage.trim(),
             type: MessageType.TEXT,
-            repliedToId: undefined,
+            repliedToId: '',
             readBy: [],
             sentAt: new Date().toISOString()
         };
@@ -382,6 +382,19 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     scrollViewRef.current?.scrollToEnd({ animated: true });
                 }}
             >
+                {messages.length === 0 && (
+                    <View className="items-center justify-center mb-8">
+                        <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
+                            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
+                            <Text className="text-blue-600 font-semibold text-lg mt-4 text-center">
+                                Chưa có tin nhắn nào
+                            </Text>
+                            <Text className="text-gray-600 text-center mt-2">
+                                Hãy gửi lời chào để bắt đầu cuộc trò chuyện với {selectedChat.name || 'người dùng này'}
+                            </Text>
+                        </View>
+                    </View>
+                )}
                 {isNewer && (
                     <View className="items-center justify-center mb-8">
                         <View className="bg-blue-50 rounded-2xl p-6 max-w-[80%] items-center">
@@ -426,10 +439,10 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                 {msg.repliedToId && (
                                     <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
                                         <Text className="text-xs text-gray-500">
-                                            Trả lời {messageUsers[messages.find(m => m.id === msg.repliedToId)?.senderId || '']?.name}
+                                            Trả lời tin nhắn
                                         </Text>
                                         <Text className="text-sm text-gray-700" numberOfLines={1}>
-                                            {messages.find(m => m.id === msg.repliedToId)?.content}
+                                            ID: {msg.repliedToId}
                                         </Text>
                                     </View>
                                 )}
@@ -444,12 +457,6 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                         {msg.content}
                                     </Text>
                                 </View>
-                                <Text className="text-xs text-gray-500 mt-1">
-                                    {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })}
-                                </Text>
                                 <MessageReaction
                                     messageId={msg.id}
                                     isVisible={activeReactionId === msg.id}

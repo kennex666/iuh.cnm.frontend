@@ -22,7 +22,7 @@ interface MessageReactionProps {
 
 export default function MessageReaction({messageId, isVisible, onReact, onToggle, isSender}: MessageReactionProps) {
     return (
-        <View className="relative">
+        <View className="relative z-50">
             {/* Nút reaction chính - hiển thị trái tim màu xám */}
             <TouchableOpacity
                 onPress={onToggle}

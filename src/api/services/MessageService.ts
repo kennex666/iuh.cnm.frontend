@@ -48,9 +48,6 @@ export const MessageService: MessageService = {
                 }
             });
 
-            console.log("Response Status Message:", response.data.message);
-            console.log("Response Data Messages:", response.data.data);
-
             if(response.data.data == null) {
                 return {
                     success: true,
@@ -59,17 +56,20 @@ export const MessageService: MessageService = {
                     statusMessage: response.data.message || "Hãy làm quen với người dùng này"
                 };
             }
+            console.log("response of get messages: ", response.data);
             if (response.data.success) {
-                const messages = response.data.data.map((msg: any) => ({
+                const messages = response.data.data.map((msg: Message) => ({
                     id: msg.id,
                     conversationId: msg.conversationId,
                     senderId: msg.senderId,
                     content: msg.content,
                     type: msg.type,
-                    repliedToId: msg.repliedToId,
+                    repliedToId: msg.repliedTold,
                     sentAt: msg.sentAt,
                     readBy: msg.readBy || []
                 }));
+
+                console.log("messages of conversation: ", messages);
 
                 return {
                     success: true,
