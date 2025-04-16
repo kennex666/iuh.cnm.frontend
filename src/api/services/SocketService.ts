@@ -13,6 +13,8 @@ class SocketService {
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
     private friendRequestActionCallbacks: ((requestId: string, receiverId: string) => void)[] = [];
     private deleteMessageCallbacks: ((message: Message) => void)[] = [];
+    private attachmentSentCallbacks: ((data: { success: boolean, messageId: string }) => void)[] = [];
+    private attachmentErrorCallbacks: ((error: { message: string }) => void)[] = [];
 
     private constructor() {}
 
@@ -76,6 +78,15 @@ class SocketService {
 
         this.socket.on('error', (error: { message: string }) => {
             console.error('Socket error:', error.message);
+        });
+
+        this.socket.on('attachment:sent', (data: { success: boolean, messageId: string }) => {
+            this.attachmentSentCallbacks.forEach(callback => callback(data));
+        });
+
+        this.socket.on('attachment:error', (error: { message: string }) => {
+            console.error('Attachment error:', error.message);
+            this.attachmentErrorCallbacks.forEach(callback => callback(error));
         });
     }
 
@@ -176,6 +187,41 @@ class SocketService {
         if (this.socket) {
             this.socket.emit('friend_request:accept', requestId);
         }
+    }
+
+    public sendAttachment(
+        conversationId: string, 
+        fileData: { 
+            buffer: ArrayBuffer, 
+            fileName: string, 
+            contentType: string 
+        }, 
+        repliedTold?: string
+    ): void {
+        if (this.socket) {
+            console.log('Sending attachment to socket:', fileData.fileName);
+            this.socket.emit('attachment:send', {
+                conversationId,
+                fileData,
+                repliedTold
+            });
+        }
+    }
+
+    public onAttachmentSent(callback: (data: { success: boolean, messageId: string }) => void): void {
+        this.attachmentSentCallbacks.push(callback);
+    }
+
+    public onAttachmentError(callback: (error: { message: string }) => void): void {
+        this.attachmentErrorCallbacks.push(callback);
+    }
+
+    public removeAttachmentSentListener(callback: (data: { success: boolean, messageId: string }) => void): void {
+        this.attachmentSentCallbacks = this.attachmentSentCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeAttachmentErrorListener(callback: (error: { message: string }) => void): void {
+        this.attachmentErrorCallbacks = this.attachmentErrorCallbacks.filter(cb => cb !== callback);
     }
 }
 

@@ -97,64 +97,80 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
         }
     };
 
-    const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
+        const uploadAndSendFile = async (fileAsset: DocumentPicker.DocumentPickerAsset) => {
         if (!selectedChat?.id || !user?.id) return;
-
+    
         try {
             setFileUploading(true);
             setError(null);
-
-            // Tạo FormData cho việc upload file
-            const formData = new FormData();
-
-            // Thêm repliedToId vào FormData nếu có
-            if (replyingTo?.id) {
-                formData.append('repliedTold', replyingTo.id);
-            }
-
-            // Xử lý file theo platform
+    
+            // Chuẩn bị fileData để gửi qua socket
+            let fileBuffer: ArrayBuffer;
+            
+            // Đọc nội dung file theo cách phù hợp với platform
             if (Platform.OS === 'web') {
                 // Web platform handling
                 const response = await fetch(fileAsset.uri);
                 const blob = await response.blob();
-                const file = new File([blob], fileAsset.name, {
-                    type: fileAsset.mimeType || 'application/octet-stream',
-                });
-                formData.append('file', file);
+                fileBuffer = await blob.arrayBuffer();
             } else {
                 // Mobile platform handling
-                formData.append('file', {
-                    uri: fileAsset.uri,
-                    type: fileAsset.mimeType,
-                    name: fileAsset.name,
-                } as any);
-            }
-
-            // Upload file sử dụng service đã cập nhật
-            const uploadResponse = await AttachmentService.uploadAttachment(selectedChat.id, formData);
-
-            if (uploadResponse.success) {
-                // Lấy attachment từ response
-                console.log('File upload successful:', uploadResponse.data);
-
-                // Lưu attachment vào state local
-                if (uploadResponse.data) {
-                    setAttachments((prev) => ({
-                        ...prev,
-                        [uploadResponse.data.messageId]: uploadResponse.data,
-                    }));
+                const base64 = await FileSystem.readAsStringAsync(fileAsset.uri, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+                // Chuyển Base64 thành ArrayBuffer
+                const binaryString = atob(base64);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
                 }
-
-                // Reset reply state nếu có
-                if (replyingTo) {
-                    setReplyingTo(null);
-                }
-
-                // Cập nhật danh sách tin nhắn
-                await fetchMessages();
-            } else {
-                throw new Error(uploadResponse.statusMessage);
+                fileBuffer = bytes.buffer;
             }
+    
+            // Cấu trúc dữ liệu file để gửi qua socket
+            const fileData = {
+                buffer: fileBuffer,
+                fileName: fileAsset.name,
+                contentType: fileAsset.mimeType || 'application/octet-stream'
+            };
+    
+            // Lắng nghe phản hồi từ socket về việc gửi attachment thành công
+            const attachmentSentHandler = (data: { success: boolean, messageId: string }) => {
+                console.log('Attachment sent successfully:', data);
+                if (data.success) {
+                    // Sau khi gửi thành công, cập nhật danh sách tin nhắn
+                    fetchMessages();
+                    
+                    // Reset reply state nếu có
+                    if (replyingTo) {
+                        setReplyingTo(null);
+                    }
+                }
+                // Gỡ bỏ event listener sau khi nhận được phản hồi
+                socketService.removeAttachmentSentListener(attachmentSentHandler);
+            };
+    
+            // Lắng nghe lỗi từ socket (nếu có)
+            const attachmentErrorHandler = (error: { message: string }) => {
+                console.error('Attachment error:', error.message);
+                setError(`Không thể gửi tệp đính kèm: ${error.message}`);
+                // Gỡ bỏ event listener sau khi nhận được lỗi
+                socketService.removeAttachmentErrorListener(attachmentErrorHandler);
+            };
+    
+            // Đăng ký các event handlers
+            socketService.onAttachmentSent(attachmentSentHandler);
+            socketService.onAttachmentError(attachmentErrorHandler);
+    
+            // Gửi file thông qua socket
+            socketService.sendAttachment(
+                selectedChat.id,
+                fileData,
+                replyingTo?.id // Truyền repliedTold nếu có
+            );
+    
+            console.log(`Sending file via socket: ${fileAsset.name}`);
+    
         } catch (error) {
             console.error('Error uploading file:', error);
             setError(
