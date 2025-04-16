@@ -100,6 +100,22 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
             });
         };
         socketService.onNewMessage(handleNewMessage);
+        setConversations((prev) =>
+            prev.map((conv) => {
+                if (conv.id == selectedChat?.id) {
+                    return {
+                        ...conv,
+                        lastMessage: {
+                            ...conv.lastMessage,
+                            readBy: conv.lastMessage?.readBy
+                                ? [...conv.lastMessage.readBy, user?.id]
+                                : [user?.id],
+                        } as Message,
+                    };
+                }
+                return conv;
+            })
+        );
         return () => {
             socketService.removeMessageListener(handleNewMessage);
         };
@@ -112,6 +128,9 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     };
 
     const isReadByMe = (conversation: Conversation) => {
+        if (selectedChat?.id && selectedChat.id == conversation.id) {
+            return true;
+        }
         if (conversation.lastMessage && conversation.lastMessage.readBy) {
             return conversation.lastMessage.readBy.includes(user?.id || '');
         }
