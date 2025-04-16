@@ -423,101 +423,130 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
             {/* Message Options Modal */}
             {showMessageOptions && selectedMessage && (
                 <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                    <View className="bg-white rounded-lg w-[80%] overflow-hidden">
+                    <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
                         <View className="p-4 border-b border-gray-100">
-                            <Text className="text-gray-500 text-sm">Tin nhắn của {messageUsers[selectedMessage.senderId]?.name}</Text>
-                            <Text className="text-gray-800 mt-1">{selectedMessage.content}</Text>
-                            <Text className="text-gray-400 text-xs mt-1">
-                                {new Date(selectedMessage.sentAt).toLocaleString('vi-VN', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric'
-                                })}
-                            </Text>
+                            <View className="flex-row items-center">
+                                <Image
+                                    source={{
+                                        uri: messageUsers[selectedMessage.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                    }}
+                                    className="w-10 h-10 rounded-full"
+                                    resizeMode="cover"
+                                />
+                                <View className="ml-3 flex-1">
+                                    <Text className="text-gray-800 font-medium">
+                                        {messageUsers[selectedMessage.senderId]?.name}
+                                    </Text>
+                                    <Text className="text-gray-500 text-sm">
+                                        {new Date(selectedMessage.sentAt).toLocaleString('vi-VN', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            day: '2-digit',
+                                            month: '2-digit',
+                                            year: 'numeric'
+                                        })}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View className="mt-3 bg-gray-50 rounded-lg p-3">
+                                <Text className="text-gray-800">{selectedMessage.content}</Text>
+                            </View>
+                        </View>
+                        <View className="divide-y divide-gray-100">
+                            <TouchableOpacity 
+                                className="flex-row items-center p-4 active:bg-gray-50"
+                                onPress={() => handleReplyMessage(selectedMessage)}
+                            >
+                                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+                                    <Ionicons name="return-up-back" size={20} color="#3B82F6" />
+                                </View>
+                                <Text className="ml-3 text-gray-800">Trả lời</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                className="flex-row items-center p-4 active:bg-gray-50"
+                                onPress={() => handleForwardMessage(selectedMessage)}
+                            >
+                                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+                                    <Ionicons name="arrow-redo" size={20} color="#3B82F6" />
+                                </View>
+                                <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
+                            </TouchableOpacity>
+                            {selectedMessage.senderId === user?.id && (
+                                <TouchableOpacity 
+                                    className="flex-row items-center p-4 active:bg-gray-50"
+                                    onPress={() => handleDeleteMessage(selectedMessage)}
+                                >
+                                    <View className="w-8 h-8 rounded-full bg-red-50 items-center justify-center">
+                                        <Ionicons name="trash" size={20} color="#EF4444" />
+                                    </View>
+                                    <Text className="ml-3 text-red-500">Xóa tin nhắn</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                         <TouchableOpacity 
-                            className="flex-row items-center p-4 border-b border-gray-100"
-                            onPress={() => handleReplyMessage(selectedMessage)}
-                        >
-                            <Ionicons name="return-up-back" size={24} color="#3B82F6" />
-                            <Text className="ml-3 text-gray-800">Trả lời</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            className="flex-row items-center p-4 border-b border-gray-100"
-                            onPress={() => handleForwardMessage(selectedMessage)}
-                        >
-                            <Ionicons name="arrow-redo" size={24} color="#3B82F6" />
-                            <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
-                        </TouchableOpacity>
-                        {selectedMessage.senderId === user?.id && (
-                            <TouchableOpacity 
-                                className="flex-row items-center p-4"
-                                onPress={() => handleDeleteMessage(selectedMessage)}
-                            >
-                                <Ionicons name="trash" size={24} color="#EF4444" />
-                                <Text className="ml-3 text-red-500">Xóa tin nhắn</Text>
-                            </TouchableOpacity>
-                        )}
-                        <TouchableOpacity 
-                            className="absolute top-0 right-0 p-4"
+                            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
                             onPress={() => setShowMessageOptions(false)}
                         >
-                            <Ionicons name="close" size={24} color="#666" />
+                            <Ionicons name="close" size={20} color="#666" />
                         </TouchableOpacity>
                     </View>
-                </View>
-            )}
-
-            {/* Reply Preview */}
-            {replyingTo && (
-                <View className="bg-gray-50 px-4 py-2 flex-row items-center border-t border-gray-200">
-                    <View className="flex-1">
-                        <Text className="text-blue-500 text-sm font-medium">
-                            Trả lời {messageUsers[replyingTo.senderId]?.name}
-                        </Text>
-                        <Text className="text-gray-600 text-sm" numberOfLines={1}>
-                            {replyingTo.content}
-                        </Text>
-                    </View>
-                    <TouchableOpacity 
-                        className="p-2"
-                        onPress={() => setReplyingTo(null)}
-                    >
-                        <Ionicons name="close" size={20} color="#666" />
-                    </TouchableOpacity>
                 </View>
             )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && messageToDelete && (
                 <View className="absolute inset-0 bg-black/30 items-center justify-center">
-                    <View className="bg-white rounded-lg w-[80%] overflow-hidden">
-                        <View className="p-4 border-b border-gray-100">
-                            <Text className="text-lg font-semibold text-gray-800">Xóa tin nhắn</Text>
-                            <Text className="text-gray-600 mt-2">
-                                Bạn có chắc chắn muốn xóa tin nhắn này? Hành động này không thể hoàn tác.
+                    <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
+                        <View className="p-6 items-center">
+                            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
+                                <Ionicons name="trash" size={32} color="#EF4444" />
+                            </View>
+                            <Text className="text-xl font-semibold text-gray-800 mb-2">Xóa tin nhắn</Text>
+                            <Text className="text-gray-600 text-center">
+                                Bạn có chắc chắn muốn xóa tin nhắn này?{'\n'}Hành động này không thể hoàn tác.
                             </Text>
                         </View>
-                        <View className="flex-row justify-end p-4">
+                        <View className="flex-row p-4 border-t border-gray-100">
                             <TouchableOpacity 
-                                className="px-4 py-2 mr-2"
+                                className="flex-1 mr-2 h-12 rounded-xl bg-gray-100 items-center justify-center active:bg-gray-200"
                                 onPress={() => {
                                     setShowDeleteConfirm(false);
                                     setMessageToDelete(null);
                                 }}
                             >
-                                <Text className="text-gray-600">Hủy</Text>
+                                <Text className="text-gray-800 font-medium">Hủy</Text>
                             </TouchableOpacity>
                             <TouchableOpacity 
-                                className="px-4 py-2 bg-red-500 rounded-lg"
+                                className="flex-1 h-12 rounded-xl bg-red-500 items-center justify-center active:bg-red-600"
                                 onPress={confirmDeleteMessage}
                             >
-                                <Text className="text-white">Xóa</Text>
+                                <Text className="text-white font-medium">Xóa</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
+                </View>
+            )}
+
+            {/* Reply Preview */}
+            {replyingTo && (
+                <View className="bg-gray-50 px-4 py-3 flex-row items-center border-t border-gray-200">
+                    <View className="flex-1">
+                        <View className="flex-row items-center">
+                            <Ionicons name="return-up-back" size={16} color="#3B82F6" />
+                            <Text className="text-blue-500 text-sm font-medium ml-1">
+                                Trả lời {messageUsers[replyingTo.senderId]?.name}
+                            </Text>
+                        </View>
+                        <Text className="text-gray-600 text-sm mt-1" numberOfLines={1}>
+                            {replyingTo.content}
+                        </Text>
+                    </View>
+                    <TouchableOpacity 
+                        className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center active:bg-gray-200"
+                        onPress={() => setReplyingTo(null)}
+                    >
+                        <Ionicons name="close" size={16} color="#666" />
+                    </TouchableOpacity>
                 </View>
             )}
 
