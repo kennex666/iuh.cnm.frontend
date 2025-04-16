@@ -408,66 +408,71 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                         </View>
                     </View>
                 )}
-                {messages.map((msg, index) => (
-                    <TouchableOpacity
-                        key={msg.id}
-                        onLongPress={() => handleLongPressMessage(msg)}
-                        onPress={() => {
-                            // Nhấn một lần để hiện thông tin tin nhắn
-                            setSelectedMessage(msg);
-                            setShowMessageOptions(true);
-                        }}
-                        delayLongPress={200}
-                        activeOpacity={0.7}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                        <View
-                            className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-                        >
-                            {msg.senderId !== user?.id && (
-                                <Image
-                                    source={{
-                                        uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
-                                    }}
-                                    className="w-8 h-8 rounded-full mr-2"
-                                    resizeMode="cover"
-                                />
-                            )}
-                            <View 
-                                className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                {messages.map((msg, index) => {
+                    const repliedToMessage = msg.repliedToId ? messages.find(m => m.repliedToId === msg.repliedToId) : null;
+                    return (
+                        (
+                            <TouchableOpacity
+                                key={msg.id}
+                                onLongPress={() => handleLongPressMessage(msg)}
+                                onPress={() => {
+                                    // Nhấn một lần để hiện thông tin tin nhắn
+                                    setSelectedMessage(msg);
+                                    setShowMessageOptions(true);
+                                }}
+                                delayLongPress={200}
+                                activeOpacity={0.7}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
-                                {msg.repliedToId && (
-                                    <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
-                                        <Text className="text-xs text-gray-500">
-                                            Trả lời tin nhắn
-                                        </Text>
-                                        <Text className="text-sm text-gray-700" numberOfLines={1}>
-                                            ID: {msg.repliedToId}
-                                        </Text>
-                                    </View>
-                                )}
-                                <View 
-                                    className={`rounded-2xl px-4 py-2 ${
-                                        msg.senderId === user?.id 
-                                            ? 'bg-blue-500 rounded-br-none' 
-                                            : 'bg-gray-100 rounded-bl-none'
-                                    }`}
+                                <View
+                                    className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                                 >
-                                    <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
-                                        {msg.content}
-                                    </Text>
+                                    {msg.senderId !== user?.id && (
+                                        <Image
+                                            source={{
+                                                uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                            }}
+                                            className="w-8 h-8 rounded-full mr-2"
+                                            resizeMode="cover"
+                                        />
+                                    )}
+                                    <View 
+                                        className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                                    >
+                                        {msg.repliedToId && (
+                                            <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
+                                                <Text className="text-xs text-gray-500">
+                                                    Trả lời tin nhắn
+                                                </Text>
+                                                <Text className="text-sm text-gray-700" numberOfLines={1}>
+                                                    {repliedToMessage?.content || 'Tin nhắn đã bị xoá'}
+                                                </Text>
+                                            </View>
+                                        )}  
+                                        <View 
+                                            className={`rounded-2xl px-4 py-2 ${
+                                                msg.senderId === user?.id 
+                                                    ? 'bg-blue-500 rounded-br-none' 
+                                                    : 'bg-gray-100 rounded-bl-none'
+                                            }`}
+                                        >
+                                            <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
+                                                {msg.content}
+                                            </Text>
+                                        </View>
+                                        <MessageReaction
+                                            messageId={msg.id}
+                                            isVisible={activeReactionId === msg.id}
+                                            onReact={handleReaction}
+                                            onToggle={() => handleReactionToggle(msg.id)}
+                                            isSender={msg.senderId === user?.id}
+                                        />
+                                    </View>
                                 </View>
-                                <MessageReaction
-                                    messageId={msg.id}
-                                    isVisible={activeReactionId === msg.id}
-                                    onReact={handleReaction}
-                                    onToggle={() => handleReactionToggle(msg.id)}
-                                    isSender={msg.senderId === user?.id}
-                                />
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                            </TouchableOpacity>
+                        )
+                    )
+                })}
             </ScrollView>
 
             {/* Message Options Modal */}
