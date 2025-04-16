@@ -281,6 +281,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     <Image
                         source={{ uri: selectedChat.avatar || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G' }}
                         className="w-10 h-10 rounded-full"
+                        resizeMode="cover"
                     />
                     <View className="ml-3" style={{ maxWidth: '45%' }}>
                         <Text className="font-semibold text-gray-900 text-base"
@@ -357,6 +358,7 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                                         uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
                                     }}
                                     className="w-8 h-8 rounded-full mr-2"
+                                    resizeMode="cover"
                                 />
                             )}
                             <View 
