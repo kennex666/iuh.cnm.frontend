@@ -1,6 +1,7 @@
 import React from 'react';
 import {Image, ImageSourcePropType, View} from 'react-native';
-import {ImageConstant} from "@/src/constants/ImageConstant";
+import {ImageConstants} from "@/src/constants/ImageConstant";
+import {Shadows} from '@/src/styles/Shadow';
 
 interface AppLogoProps {
     size?: number;
@@ -9,11 +10,13 @@ interface AppLogoProps {
 
 const AppLogo = ({
                      size = 80,
-                     logoSource = ImageConstant.logo,
+                     logoSource = ImageConstants.logo,
                  }: AppLogoProps) => {
     return (
         <View className="items-center mb-6">
-            <View className="bg-white rounded-2xl shadow-sm p-2">
+            <View
+                className="bg-white rounded-2xl p-2"
+                style={Shadows.sm}>
                 <Image
                     source={logoSource}
                     style={{width: size, height: size}}
