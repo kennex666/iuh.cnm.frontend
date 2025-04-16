@@ -1,9 +1,10 @@
 // Định nghĩa enum cho các loại tin nhắn
 export enum MessageType {
-    TEXT = 'text',
-    IMAGE = 'image',
-    FILE = 'file',
-    REACTION = 'reaction'
+    TEXT = "text",
+    IMAGE = "image",
+    FILE = "file",
+    AUDIO = "audio",
+    VIDEO = "video"
 }
 
 export interface Message {
