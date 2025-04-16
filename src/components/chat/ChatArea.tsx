@@ -51,6 +51,8 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
     const [showMessageOptions, setShowMessageOptions] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
 
     const fetchUserInfo = async (userId: string) => {
         try {
@@ -235,12 +237,26 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
     };
 
     const handleDeleteMessage = async (msg: Message) => {
+        setMessageToDelete(msg);
+        setShowDeleteConfirm(true);
+        setShowMessageOptions(false);
+    };
+
+    const confirmDeleteMessage = async () => {
+        if (!messageToDelete) return;
+        
         try {
-            // TODO: Call API to delete message
-            setMessages(prev => prev.filter(m => m.id !== msg.id));
-            setShowMessageOptions(false);
+            const response = await MessageService.deleteMessage(messageToDelete.id);
+            if (response.success) {
+                setMessages(prev => prev.filter(m => m.id !== messageToDelete.id));
+                setShowDeleteConfirm(false);
+                setMessageToDelete(null);
+            } else {
+                setError(response.statusMessage || 'Không thể xóa tin nhắn');
+            }
         } catch (err) {
             console.error('Error deleting message:', err);
+            setError('Có lỗi xảy ra khi xóa tin nhắn');
         }
     };
 
@@ -471,6 +487,37 @@ export default function ChatArea({ selectedChat, onBackPress, onInfoPress }: Cha
                     >
                         <Ionicons name="close" size={20} color="#666" />
                     </TouchableOpacity>
+                </View>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && messageToDelete && (
+                <View className="absolute inset-0 bg-black/30 items-center justify-center">
+                    <View className="bg-white rounded-lg w-[80%] overflow-hidden">
+                        <View className="p-4 border-b border-gray-100">
+                            <Text className="text-lg font-semibold text-gray-800">Xóa tin nhắn</Text>
+                            <Text className="text-gray-600 mt-2">
+                                Bạn có chắc chắn muốn xóa tin nhắn này? Hành động này không thể hoàn tác.
+                            </Text>
+                        </View>
+                        <View className="flex-row justify-end p-4">
+                            <TouchableOpacity 
+                                className="px-4 py-2 mr-2"
+                                onPress={() => {
+                                    setShowDeleteConfirm(false);
+                                    setMessageToDelete(null);
+                                }}
+                            >
+                                <Text className="text-gray-600">Hủy</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                className="px-4 py-2 bg-red-500 rounded-lg"
+                                onPress={confirmDeleteMessage}
+                            >
+                                <Text className="text-white">Xóa</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             )}
 
