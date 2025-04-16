@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
@@ -7,6 +7,7 @@ import { useAuth } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import { Message } from '@/src/models/Message';
+import { useFocusEffect } from 'expo-router';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -23,43 +24,59 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const socketService = useRef(SocketService.getInstance()).current;
 
     // Fetch conversations
-    useEffect(() => {  
-        const fetchConversations = async () => {
-            try {
-                const response = await ConversationService.getConversations();
-                if (response.success) {
-                    setConversations(response.conversations);
-                    
-                    // Fetch avatars for all participants
-                    const uniqueParticipantIds = new Set<string>();
-                    response.conversations.forEach(conv => {
-                        conv.participants.forEach(id => uniqueParticipantIds.add(id));
-                    });
-                    
-                    const avatars: Record<string, string> = {};
-                    for (const participantId of uniqueParticipantIds) {
-                        if (participantId !== user?.id) {
-                            const userResponse = await UserService.getUserById(participantId);
-                            if (userResponse.success && userResponse.user) {
-                                avatars[participantId] = userResponse.user.avatarURL;
-                                participantNames[participantId] = userResponse.user.name;
+    useFocusEffect(
+        useCallback(() => {
+            console.log("Fetching conversations...");
+            const fetchConversations = async () => {
+                try {
+                    const response = await ConversationService.getConversations();
+                    if (response.success) {
+                        setConversations(response.conversations);
+
+                        // Fetch avatars for all participants
+                        const uniqueParticipantIds = new Set<string>();
+                        response.conversations.forEach((conv) => {
+                            conv.participants.forEach((id) =>
+                                uniqueParticipantIds.add(id)
+                            );
+                        });
+
+                        const avatars: Record<string, string> = {};
+                        for (const participantId of uniqueParticipantIds) {
+                            if (participantId !== user?.id) {
+                                const userResponse = await UserService.getUserById(
+                                    participantId
+                                );
+                                if (userResponse.success && userResponse.user) {
+                                    avatars[participantId] =
+                                        userResponse.user.avatarURL;
+                                    participantNames[participantId] =
+                                        userResponse.user.name;
+                                }
                             }
                         }
+                        setParticipantAvatars(avatars);
+                        setParticipantNames(participantNames);
+                    } else {
+                        setError(
+                            response.message || "Failed to fetch conversations"
+                        );
                     }
-                    setParticipantAvatars(avatars);
-                    setParticipantNames(participantNames);
-                } else {
-                    setError(response.message || "Failed to fetch conversations");
+                } catch (error) {
+                    setError(
+                        error instanceof Error
+                            ? error.message
+                            : "An unknown error occurred"
+                    );
+                } finally {
+                    console.log("Conversations fetched");
+                    setLoading(false);
                 }
-            } catch (error) {
-                setError(error instanceof Error ? error.message : "An unknown error occurred");
-            } finally {
-                setLoading(false);
-            }
-        };
+            };
 
-        fetchConversations();
-    }, [user?.id]);
+            fetchConversations();
+        }, [user?.id])
+    )
 
     useEffect(() => {
         const handleNewMessage = (message: Message) => {
