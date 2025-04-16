@@ -274,7 +274,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                     scrollViewRef.current?.scrollToEnd({animated: true});
                 }, 100);
 
-                socketService.sendSeen(message.id, selectedChat.id);
+                socketService.sendSeen(message.id);
             }
         };
 
@@ -596,18 +596,25 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                     </View>
                                 )}
                                 <View
-                                    className={`rounded-2xl px-4 py-2 ${
+                                    className={`rounded-xl ${
                                         msg.senderId === user?.id
                                             ? 'bg-blue-500 rounded-br-none'
                                             : 'bg-gray-100 rounded-bl-none'
                                     }`}
+                                    style={
+                                        {
+                                            paddingLeft: 10,
+                                            paddingRight: 12,
+                                            paddingVertical: 8
+                                        }
+                                    }
                                 >
                                     {msg.type === MessageType.TEXT ? (
                                         <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
                                             {msg.content}
                                         </Text>
                                     ) : (
-                                        msg.type === MessageType.FILE && (
+                                        msg.type === MessageType.FILE ? (
                                             <View className="flex-row items-center">
                                                 {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
                                                 <FileMessageContent
@@ -618,6 +625,12 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                                     onImagePress={setFullScreenImage}
                                                 />
                                             </View>
+                                        ) : (
+                                            msg.type === MessageType.CALL &&  (
+                                                <Text className="text-gray-500">
+                                                     {msg.content === 'start' ? '📞 Cuộc gọi đang bắt đầu' : '📴 Cuộc gọi đã kết thúc'}
+                                                </Text>
+                                            )
                                         )
                                     )}
                                 </View>
