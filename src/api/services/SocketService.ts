@@ -11,7 +11,7 @@ class SocketService {
     private messageCallbacks: ((message: Message) => void)[] = [];
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
-    private friendRequestActionCallbacks: ((requestId: string) => void)[] = [];
+    private friendRequestActionCallbacks: ((requestId: string, receiverId: string) => void)[] = [];
     private deleteMessageCallbacks: ((message: Message) => void)[] = [];
 
     private constructor() {}
@@ -59,6 +59,11 @@ class SocketService {
 
         this.socket.on('friend_request:new', (friendRequest: FriendRequest) => {
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
+        this.socket.on('friend_request:new_delete', (data: { senderId: string, receiverId: string }) => {
+            console.log('Delete friend request received:', data);
+            this.friendRequestActionCallbacks.forEach(callback => callback(data.senderId, data.receiverId));
         });
 
         this.socket.on('delete_message', (message: Message) => {
@@ -127,6 +132,16 @@ class SocketService {
         }
     }
 
+    public sendDeleteFriendRequest(data: { senderId: string, receiverId: string }): void {
+        if (this.socket) {
+            this.socket.emit('friend_request:delete', data);
+        }
+    }
+    
+    public onDeleteFriendRequest(callback: (requestId: string, receiverId: string) => void): void {
+        this.friendRequestActionCallbacks.push(callback);
+    }
+
     public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks.push(callback);
     }
@@ -151,6 +166,10 @@ class SocketService {
 
     public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
         this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeFriendRequestActionListener(callback: (requestId: string, receiverId: string) => void): void {
+        this.friendRequestActionCallbacks = this.friendRequestActionCallbacks.filter(cb => cb !== callback);
     }
 }
 

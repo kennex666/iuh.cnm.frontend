@@ -75,8 +75,15 @@ export default function FriendRequestList() {
             }
         };
 
-        socketService.onFriendRequest(handleNewFriendRequest);
+        const handleDeleteFriendRequest = (senderId: string, receiverId: string) => {
+            console.log('Delete friend request received:', senderId, receiverId);
+            if (receiverId === user?.id) {
+                setRequests(prevRequests => prevRequests.filter(request => request.senderId !== senderId));
+            }
+        };
 
+        socketService.onFriendRequest(handleNewFriendRequest);
+        socketService.onDeleteFriendRequest(handleDeleteFriendRequest);
         
         // Cleanup socket listeners
         return () => {
@@ -147,6 +154,7 @@ export default function FriendRequestList() {
         }
     };
 
+    // Gửi lời mời kết bạn
     const handleSendFriendRequest = async (receiverId: string) => {
         try {
             if (!user) {
@@ -176,6 +184,8 @@ export default function FriendRequestList() {
             console.log('Lỗi khi gửi lời mời kết bạn:', err);
         }
     };
+
+    // Từ chối lời mời kết bạn
     const handleDeclineRequest = async (requestId: string) => {
         try {
             const response = await FriendRequestService.declineFriendRequest(requestId);
@@ -190,6 +200,7 @@ export default function FriendRequestList() {
         }
     };
 
+    // Chấp nhận lời mời kết bạn
     const handleAcceptRequest = async (requestId: string) => {
         try {
             const response = await FriendRequestService.acceptFriendRequest(requestId);
@@ -204,14 +215,17 @@ export default function FriendRequestList() {
         }
     };
 
-    const handleCancelRequest = async (requestId: string) => {
+    // Hủy lời mời kết bạn
+    const handleCancelRequest = async (requestId: string, receiverId: string) => {
         try {
-            console.log('requestId', requestId);
             const response = await FriendRequestService.deleteFriendRequest(requestId);
             if (response.success) {
-                console.log('Đã hủy lời mời kết bạn');
-                const socketService = SocketService.getInstance();
                 loadFriendRequests();
+                const socketService = SocketService.getInstance();
+                socketService.sendDeleteFriendRequest({
+                    senderId: user?.id || '',
+                    receiverId: receiverId
+                });
             } else {
                 console.log('Không thể hủy lời mời kết bạn');
             }
@@ -314,7 +328,7 @@ export default function FriendRequestList() {
                                             <TouchableOpacity
                                                 key={`search-cancel-${result.id}`}
                                                 className="bg-red-500 px-4 py-2 rounded-full"
-                                                onPress={() => handleCancelRequest(pendingRequestSent.id)}
+                                                onPress={() => handleCancelRequest(pendingRequestSent.id, result.id)}
                                             >
                                                 <Text className="text-white font-medium">Hủy kết bạn</Text>
                                             </TouchableOpacity>
