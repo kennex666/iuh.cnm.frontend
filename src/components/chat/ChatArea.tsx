@@ -700,7 +700,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                                         />
                                     )}
                                     <View 
-                                        className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                                        className={`relative max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
                                     >
                                         {(msg.repliedToId || msg.repliedTold) && (
                                             <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
