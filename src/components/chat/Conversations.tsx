@@ -84,7 +84,12 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                 if (conversation.id === message.conversationId) {
                     const updatedConversation = {
                         ...conversation,
-                        lastMessage: message,
+                        lastMessage: {
+                            ...message,
+                            readBy: message.readBy
+                                ? [...message.readBy, user?.id]
+                                : [user?.id],
+                        } as Message,
                     };
                     setConversations((prev) =>
                         prev.map((conv) => (conv.id === conversation.id ? updatedConversation : conv)).sort((a, b) => {
