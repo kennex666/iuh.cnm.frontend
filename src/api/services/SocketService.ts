@@ -57,7 +57,7 @@ class SocketService {
             this.conversationCallbacks.forEach(callback => callback(conversation));
         });
 
-        this.socket.on('friend_request', (friendRequest: FriendRequest) => {
+        this.socket.on('friend_request:new', (friendRequest: FriendRequest) => {
             this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
         });
 
@@ -123,7 +123,7 @@ class SocketService {
 
     public sendFriendRequest(friendRequest: any): void {
         if (this.socket) {
-            this.socket.emit('send_friend_request', friendRequest);
+            this.socket.emit('friend_request:send', friendRequest);
         }
     }
 

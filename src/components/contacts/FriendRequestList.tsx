@@ -26,6 +26,40 @@ export default function FriendRequestList() {
     const { user } = useAuth();
     const [friendAccepted, setFriendAccepted] = useState<FriendRequest[]>([]);
     const [friendSent, setFriendSent] = useState<FriendRequest[]>([]);
+    const [senderNames, setSenderNames] = useState<Record<string, string>>({});
+    const [senderAvatars, setSenderAvatars] = useState<Record<string, string>>({});
+
+    // Fetch sender info
+    useEffect(() => {
+        const fetchSenderInfo = async () => {
+            const uniqueSenderIds = new Set<string>();
+            requests.forEach(request => uniqueSenderIds.add(request.senderId));
+            friendAccepted.forEach(request => uniqueSenderIds.add(request.senderId));
+            friendSent.forEach(request => uniqueSenderIds.add(request.senderId));
+
+            for (const senderId of uniqueSenderIds) {
+                if (!senderNames[senderId] || !senderAvatars[senderId]) {
+                    try {
+                        const response = await UserService.getUserById(senderId);
+                        if (response.success && response.user) {
+                            setSenderNames(prev => ({
+                                ...prev,
+                                [senderId]: response.user?.name || 'Unknown'
+                            }));
+                            setSenderAvatars(prev => ({
+                                ...prev,
+                                [senderId]: response.user?.avatarURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(response.user?.name || 'User')}&background=0068FF&color=fff`
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Error fetching user:', error);
+                    }
+                }
+            }
+        };
+
+        fetchSenderInfo();
+    }, [requests, friendAccepted, friendSent]);
 
     useEffect(() => {
         loadFriendRequests();
@@ -321,17 +355,26 @@ export default function FriendRequestList() {
                         >
                             <Image
                                 key={`request-image-${request.id}`}
-                                source={{
-                                    uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(request.senderId)}&background=0068FF&color=fff`
-                                }}
+                                source={{ uri: senderAvatars[request.senderId] || `https://ui-avatars.com/api/?name=${encodeURIComponent(senderNames[request.senderId] || 'User')}&background=0068FF&color=fff` }}
                                 className="w-12 h-12 rounded-full"
+                                onError={(e) => {
+                                    console.log('Avatar load error:', e.nativeEvent.error);
+                                    // Fallback to ui-avatars if the original avatar fails to load
+                                    const fallbackURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(senderNames[request.senderId] || 'User')}&background=0068FF&color=fff`;
+                                    if (senderAvatars[request.senderId] !== fallbackURL) {
+                                        setSenderAvatars(prev => ({
+                                            ...prev,
+                                            [request.senderId]: fallbackURL
+                                        }));
+                                    }
+                                }}
                             />
                             <View key={`request-info-${request.id}`} className="flex-1 ml-3">
                                 <Text className="font-medium text-gray-900">
-                                    {request.senderId}
+                                    {senderNames[request.senderId] || 'Loading...'}
                                 </Text>
                                 <Text className="text-sm text-gray-500">
-                                    {new Date(request.createAt).toLocaleDateString()}
+                                    {new Date(request.createAt).toLocaleString()}
                                 </Text>
                             </View>
                             <View key={`request-actions-${request.id}`} className="flex-row items-center">
