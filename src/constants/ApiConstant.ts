@@ -11,5 +11,6 @@ export const ApiEndpoints = {
     API_FILE: `${URL_BE}/api/file`,
     API_FRIEND_REQUEST: `${URL_BE}/api/friendRequests`,
     API_ATTACHMENTS: `${URL_BE}/api/attachments`,
+    API_REACTION: `${URL_BE}/api/reaction`,
     SOCKET_URL: `${URL_BE}`
 };

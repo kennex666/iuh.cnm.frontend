@@ -4,7 +4,8 @@ export enum MessageType {
     IMAGE = "image",
     FILE = "file",
     AUDIO = "audio",
-    VIDEO = "video"
+    VIDEO = "video",
+    CALL = "call",
 }
 
 export interface Message {
@@ -13,7 +14,8 @@ export interface Message {
     senderId: string;
     content: string;
     type: MessageType;
-    repliedToId: string;  // Optional vì có default value trong schema
+    repliedToId: string;
+    repliedTold?: string;  // Optional vì có default value trong schema
     sentAt: Date | string;
     readBy: string[];
 }

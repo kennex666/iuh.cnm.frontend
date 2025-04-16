@@ -38,8 +38,8 @@ export default function MessageReaction({messageId, isVisible, onReact, onToggle
                     // - absolute + top-0: hiển thị từ trên xuống
                     // - mt-6: tạo khoảng cách với nút chính để không bị che
                     // - left/right-0: căn theo người gửi/nhận
-                    className={`absolute top-0 bg-white rounded-full py-1 px-2 mt-6 flex-row items-center ${
-                        isSender ? '-right-2' : '-left-2'
+                    className={`absolute bottom-0 bg-white rounded-full py-1 px-2 mt-6 flex-row items-center ${
+                        isSender ? 'right-6' : 'left-6'
                     }`}
                     style={Shadows.lg}>
                     {/* Map qua danh sách reaction để tạo các nút */}

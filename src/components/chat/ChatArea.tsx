@@ -23,6 +23,7 @@ import {MessageService} from '@/src/api/services/MessageService';
 import {useAuth} from '@/src/contexts/UserContext';
 import {UserService} from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
+import ForwardMessageModal from './ForwardMessageModal';
 
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
@@ -40,6 +41,7 @@ export interface ChatAreaProps {
 export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
     const {user} = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
+    const [messagesReplied, setMessagesReplied] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isNewer, setIsNewer] = useState(false);
@@ -61,6 +63,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     const [showMessageOptions, setShowMessageOptions] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+    const [showForwardModal, setShowForwardModal] = useState(false);
     const [otherParticipant, setOtherParticipant] = useState<{
         name: string;
         avatar: string;
@@ -333,11 +336,12 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({animated: true});
                 }, 100);
+
+                socketService.sendSeen(message.id);
             }
         };
 
         socketService.onNewMessage(handleNewMessage);
-
         // Cleanup on unmount
         return () => {
             socketService.removeMessageListener(handleNewMessage);
@@ -352,6 +356,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                 fetchUserInfo(id);
             }
         });
+        // load lai messages
     }, [messages]);
 
     // Load other participant info when selectedChat changes
@@ -394,7 +399,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             senderId: user.id,
             content: newMessage.trim(),
             type: MessageType.TEXT,
-            repliedToId: '',
+            repliedToId: replyingTo?.id || '',
             readBy: [],
             sentAt: new Date().toISOString(),
         };
@@ -404,6 +409,8 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
             socketService.sendMessage(messageData);
 
             setNewMessage('');
+            setReplyingTo(null);
+            setSelectedMessage(null);
         } catch (err) {
             console.error('Error sending message:', err);
             setError('Failed to send message');
@@ -420,8 +427,52 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
     const handleReaction = (messageId: string, reactionId: string) => {
         console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
+
+        const reactionData = {
+            messageId: messageId,
+            userId: user?.id || '',
+            emoji: reactionId
+        };
+
+        try {
+            // TODO: Implement reaction handling
+            console.log('Reaction data:', reactionData);
+        } catch (err) {
+            console.error('Error sending reaction:', err);
+            setError('Failed to send reaction');
+        }
+        
         setActiveReactionId(null);
-        // TODO: Implement reaction handling
+    };
+
+    const handleForward = async (selectedConversations: string[]) => {
+        if (!replyingTo || !user?.id) return;
+
+        try {
+            // Tạo tin nhắn mới cho mỗi cuộc trò chuyện được chọn
+            for (const conversationId of selectedConversations) {
+                const newMessage: Message = {
+                    id: new Date().getTime().toString(),
+                    conversationId: conversationId,
+                    senderId: user.id,
+                    content: replyingTo.content,
+                    type: MessageType.TEXT,
+                    repliedToId: replyingTo.id,
+                    readBy: [],
+                    sentAt: new Date().toISOString()
+                };
+
+                // Gửi tin nhắn qua socket
+                socketService.sendMessage(newMessage);
+            }
+
+            // Đóng modal và reset state
+            setShowForwardModal(false);
+            setReplyingTo(null);
+        } catch (err) {
+            console.error('Error forwarding message:', err);
+            setError('Failed to forward message');
+        }
     };
 
     // Toggle models
@@ -467,14 +518,18 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     };
 
     const handleReplyMessage = (msg: Message) => {
+        console.log('msg now: ', msg);
         setReplyingTo(msg);
         setShowMessageOptions(false);
         // Focus vào input
     };
 
     const handleForwardMessage = async (msg: Message) => {
-        // TODO: Implement forward message logic
+        // Set the message being forwarded as the replyingTo message
+        setReplyingTo(msg);
         setShowMessageOptions(false);
+        setShowForwardModal(true);
+        // Focus vào input để người dùng có thể nhập nội dung forward
     };
 
     const handleDeleteMessage = async (msg: Message) => {
@@ -617,94 +672,98 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         </View>
                     </View>
                 )}
-                {messages.map((msg, index) => (
-                    <TouchableOpacity
-                        key={msg.id}
-                        onLongPress={() => handleLongPressMessage(msg)}
-                        onPress={() => {
-                            // Nhấn một lần để hiện thông tin tin nhắn
-                            setSelectedMessage(msg);
-                            setShowMessageOptions(true);
-                        }}
-                        delayLongPress={200}
-                        activeOpacity={0.7}
-                        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                    >
-                        <View
-                            className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
-                        >
-                            {msg.senderId !== user?.id && (
-                                <Image
-                                    source={{
-                                        uri:
-                                            messageUsers[msg.senderId]?.avatarURL ||
-                                            'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G',
-                                    }}
-                                    className="w-8 h-8 rounded-full mr-2"
-                                    resizeMode="cover"
-                                />
-                            )}
-                            <View
-                                className={`max-w-[70%] flex flex-col ${
-                                    msg.senderId === user?.id ? 'items-end' : 'items-start'
-                                }`}
+                {messages.map(msg => {
+                    const repliedToMessage = msg.repliedToId || msg.repliedTold ? messages.find(m => m.id == msg.repliedToId || m.id == msg.repliedTold) : null;
+                    return (
+                            <TouchableOpacity
+                                key={msg.id}
+                                onLongPress={() => handleLongPressMessage(msg)}
+                                onPress={() => {
+                                    // Nhấn một lần để hiện thông tin tin nhắn
+                                    setSelectedMessage(msg);
+                                    setShowMessageOptions(true);
+                                }}
+                                delayLongPress={200}
+                                activeOpacity={0.7}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                             >
-                                {msg.repliedToId && (
-                                    <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
-                                        <Text className="text-xs text-gray-500">
-                                            Trả lời{' '}
-                                            {messageUsers[messages.find((m) => m.id === msg.repliedToId)?.senderId || '']?.name}
-                                        </Text>
-                                        <Text className="text-sm text-gray-700" numberOfLines={1}>
-                                            {messages.find((m) => m.id === msg.repliedToId)?.content}
-                                        </Text>
-                                    </View>
-                                )}
                                 <View
-                                    className={`rounded-2xl px-4 py-2 ${
-                                        msg.senderId === user?.id
-                                            ? 'bg-blue-500 rounded-br-none'
-                                            : 'bg-gray-100 rounded-bl-none'
-                                    }`}
+                                    className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
                                 >
-                                    {msg.type === MessageType.TEXT ? (
-                                        <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
-                                            {msg.content}
-                                        </Text>
-                                    ) : (
-                                        msg.type === MessageType.FILE && (
-                                            <View className="flex-row items-center">
-                                                {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
-                                                <FileMessageContent
-                                                    messageId={msg.id}
-                                                    fileName={msg.content}
-                                                    isSender={msg.senderId === user?.id}
-                                                    getAttachment={getAttachmentByMessageId}
-                                                    onImagePress={setFullScreenImage}
-                                                />
-                                            </View>
-                                        )
+                                    {msg.senderId !== user?.id && (
+                                        <Image
+                                            source={{
+                                                uri: messageUsers[msg.senderId]?.avatarURL || 'https://placehold.co/40x40/0068FF/FFFFFF/png?text=G'
+                                            }}
+                                            className="w-8 h-8 rounded-full mr-2"
+                                            resizeMode="cover"
+                                        />
                                     )}
+                                    <View 
+                                        className={`max-w-[70%] flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                                    >
+                                        {(msg.repliedToId || msg.repliedTold) && (
+                                            <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
+                                                <Text className="text-xs text-gray-500">
+                                                    Trả lời tin nhắn
+                                                </Text>
+                                                <Text className="text-sm text-gray-700" numberOfLines={1}>
+                                                    {repliedToMessage?.content || 'Tin nhắn đã bị xoá'}
+                                                </Text>
+                                            </View>
+                                        )}  
+                                        <View 
+                                            className={`rounded-xl ${
+                                                msg.senderId === user?.id
+                                                    ? 'bg-blue-500 rounded-br-none'
+                                                    : 'bg-gray-100 rounded-bl-none'
+                                            }`}
+                                            style={
+                                                {
+                                                    paddingLeft: 10,
+                                                    paddingRight: 12,
+                                                    paddingVertical: 8
+                                                }
+                                            }
+                                        >
+                                            {msg.type === MessageType.TEXT ? (
+                                                <Text className={msg.senderId === user?.id ? 'text-white' : 'text-gray-900'}>
+                                                    {msg.content}
+                                                </Text>
+                                            ) : (
+                                                msg.type === MessageType.FILE ? (
+                                                    <View className="flex-row items-center">
+                                                        {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
+                                                        <FileMessageContent
+                                                            messageId={msg.id}
+                                                            fileName={msg.content}
+                                                            isSender={msg.senderId === user?.id}
+                                                            getAttachment={getAttachmentByMessageId}
+                                                            onImagePress={setFullScreenImage}
+                                                        />
+                                                    </View>
+                                                ) : (
+                                                    msg.type === MessageType.CALL &&  (
+                                                        <Text className="text-gray-500">
+                                                             {msg.content === 'start' ? '📞 Cuộc gọi đang bắt đầu' : '📴 Cuộc gọi đã kết thúc'}
+                                                        </Text>
+                                                    )
+                                                )
+                                            )}                                      
+                                        </View>
+                                        <MessageReaction
+                                            messageId={msg.id}
+                                            isVisible={activeReactionId === msg.id}
+                                            onReact={handleReaction}
+                                            onToggle={() => handleReactionToggle(msg.id)}
+                                            isSender={msg.senderId === user?.id}
+                                        />
+                                    </View>
                                 </View>
 
-                                <Text className="text-xs text-gray-500 mt-1">
-                                    {new Date(msg.sentAt).toLocaleTimeString('vi-VN', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
-                                </Text>
-
-                                <MessageReaction
-                                    messageId={msg.id}
-                                    isVisible={activeReactionId === msg.id}
-                                    onReact={handleReaction}
-                                    onToggle={() => handleReactionToggle(msg.id)}
-                                    isSender={msg.senderId === user?.id}
-                                />
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
+                            </TouchableOpacity>
+                        )
+                })}
             </ScrollView>
 
             {/* Message Options Modal */}
@@ -744,7 +803,10 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         <View className="divide-y divide-gray-100">
                             <TouchableOpacity
                                 className="flex-row items-center p-4 active:bg-gray-50"
-                                onPress={() => handleReplyMessage(selectedMessage)}
+                                onPress={() => {
+                                    console.log('selectedMessage: ', selectedMessage);
+                                    handleReplyMessage(selectedMessage)
+                                }}
                             >
                                 <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
                                     <Ionicons name="return-up-back" size={20} color="#3B82F6" />
@@ -837,6 +899,15 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
                         <Ionicons name="close" size={16} color="#666" />
                     </TouchableOpacity>
                 </View>
+            )}
+
+            {/* Forward Message Modal */}
+            {showForwardModal && replyingTo && (
+                <ForwardMessageModal
+                    message={replyingTo}
+                    onClose={() => setShowForwardModal(false)}
+                    onForward={handleForward}
+                />
             )}
 
             {/* Input Area */}

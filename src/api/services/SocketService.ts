@@ -52,6 +52,7 @@ class SocketService {
         });
 
         this.socket.on('message:new', (message: Message) => {
+            console.log('New message received: ', message);
             this.messageCallbacks.forEach(callback => callback(message));
         });
 
@@ -184,9 +185,9 @@ class SocketService {
     }
 
     public sendAcceptFriendRequest(requestId: string): void {
-        if (this.socket) {
-            this.socket.emit('friend_request:accept', requestId);
-        }
+      if (this.socket) {
+        this.socket.emit("friend_request:accept", requestId);
+      }
     }
 
     public sendAttachment(
@@ -223,6 +224,11 @@ class SocketService {
     public removeAttachmentErrorListener(callback: (error: { message: string }) => void): void {
         this.attachmentErrorCallbacks = this.attachmentErrorCallbacks.filter(cb => cb !== callback);
     }
+    public sendSeen(messageId: string): void {
+          if (this.socket) {
+              this.socket.emit("message:seen", messageId);
+          }
+      }
 }
 
 export default SocketService;

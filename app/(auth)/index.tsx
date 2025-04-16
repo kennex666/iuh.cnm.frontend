@@ -28,7 +28,7 @@ export default function Login() {
 
     useEffect(() => {
         if (user) {
-            router.push('/(main)');
+            router.replace("/(main)");
         }
     }, [user]);
 
