@@ -1105,7 +1105,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 
 									<TouchableOpacity
 										className="flex-row items-center mb-2"
-										onPress={toggleModelImage}
+										onPress={handleSelectFile}
 									>
 										<Ionicons
 											name="image-outline"
@@ -1113,7 +1113,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 											color="#666"
 										/>
 										<Text className="ml-2  text-gray-800">
-											Hình ảnh
+											Hình ảnh/Video
 										</Text>
 									</TouchableOpacity>
 									<TouchableOpacity
@@ -1129,7 +1129,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 											File
 										</Text>
 									</TouchableOpacity>
-									<TouchableOpacity
+									{/* <TouchableOpacity
 										className="flex-row items-center mb-2"
 										onPress={toggleModelGift}
 									>
@@ -1140,8 +1140,8 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 										/>
 										<Text className="ml-2 text-gray-800">
 											Quà tặng
-										</Text>
-									</TouchableOpacity>
+										</Text> */}
+									{/* </TouchableOpacity> */}
 								</View>
 							</Animated.View>
 						</View>

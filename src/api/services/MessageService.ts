@@ -30,6 +30,10 @@ interface MessageService {
         success: boolean;
         messages: Message[];
     }>;
+    rejectCall: (conversationId: string) => Promise<{
+        success: boolean;
+        messages: Message[];
+    }>;
 }
 
 export const MessageService: MessageService = {
@@ -71,7 +75,7 @@ export const MessageService: MessageService = {
 					senderId: msg.senderId,
 					content: msg.content,
 					type: msg.type,
-					repliedToId: msg.repliedToId,
+					repliedToId: msg.repliedToId || msg.repliedTold,
 					sentAt: msg.sentAt,
 					readBy: msg.readBy || [],
 				}));
@@ -125,6 +129,50 @@ export const MessageService: MessageService = {
 			}
 
 			const url = `${ApiEndpoints.API_WEBRTC}/create-call/${conversationId}`;
+
+			const response = await axios.get(url, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
+
+			return {
+				success: false,
+				messages: [],
+				isNewer: false,
+				statusMessage:
+					response.data.message || "Failed to fetch messages",
+			};
+		} catch (error: any) {
+			console.error("Get messages error:", error);
+			console.error("Error response:", error.response?.data);
+			console.error("Error status:", error.response?.status);
+			console.error("Error headers:", error.response?.headers);
+			return {
+				success: false,
+				messages: [],
+				isNewer: false,
+				statusMessage:
+					error.response?.data?.message ||
+					error.message ||
+					"Failed to get messages",
+			};
+		}
+	},
+
+	async rejectCall(conversationId: string) {
+		try {
+			const token = await AuthStorage.getAccessToken();
+			if (!token) {
+				return {
+					success: false,
+					messages: [],
+					isNewer: false,
+					statusMessage: "No token found",
+				};
+			}
+
+			const url = `${ApiEndpoints.API_WEBRTC}/end-call/${conversationId}`;
 
 			const response = await axios.get(url, {
 				headers: {

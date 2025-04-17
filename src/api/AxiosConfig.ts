@@ -7,7 +7,7 @@ const getApiUrl = () => {
     if (Platform.OS === 'web') {
         return `${URL_BE}/api`;
     } else if (Platform.OS === 'android') {
-        return `http://${process.env.EXPO_PUBLIC_API_URL}:8087/api`;
+        return `http://10.0.2.2:8087/api`;
     } else {
         return `http://${process.env.EXPO_PUBLIC_API_URL}:8087/api`;
     }

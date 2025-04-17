@@ -8,6 +8,7 @@ import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import { Message, MessageType } from '@/src/models/Message';
 import { Link, useFocusEffect } from 'expo-router';
+import { MessageService } from '@/src/api/services/MessageService';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -24,6 +25,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const socketService = useRef(SocketService.getInstance()).current;
     const [isComingCall, setIsComingCall] = useState(false);
     const [linkCall, setLinkCall] = useState<string | null>(null);
+    const [dataCall, setDataCall] = useState<any>(null);
 
     // Fetch conversations
     useFocusEffect(
@@ -106,13 +108,15 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                 console.log("Incoming call message: ", message);
                 if (message.content == 'start'){
                     setLinkCall(
-                    `{{HOST}}/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
+                    `https://601d1a1e408f6c86223929f5e67de511.loophole.site/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
                 );
                     setIsComingCall(true);
+                    setDataCall(message);
                 }
                 else {
                     setLinkCall("");
                     setIsComingCall(false);
+                    setDataCall(null);
                 }
             }
             conversations.forEach((conversation) => {
@@ -212,38 +216,43 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 		<View className="flex-1 border-r border-gray-200">
 			{/* Full screen call */}
 			{isComingCall && linkCall && (
-				<View className="absolute top-0 left-0 right-0 bottom-0 bg-black/70 z-50 items-center justify-center flex">
-					<Text className="text-white text-xl mb-2">
-						📞 Bạn có cuộc gọi đến
-					</Text>
-					<Text className="text-white text-sm mb-6">
-						Chọn để tham gia hoặc từ chối
-					</Text>
+				<View className="absolute inset-0 bg-black/70 z-50">
+					<View className="flex-1 items-center justify-center">
+						<Text className="text-white text-xl mb-2">
+							📞 Bạn có cuộc gọi đến
+						</Text>
+						<Text className="text-white text-sm mb-6">
+							Chọn để tham gia hoặc từ chối
+						</Text>
 
-					<View className="flex-row space-x-6">
-						<TouchableOpacity
-							className="bg-green-500 rounded-full w-16 h-16 items-center justify-center"
-							onPress={() => {
-								Linking.openURL(linkCall);
-								setIsComingCall(false);
-							}}
-						>
-							<Ionicons name="call" size={28} color="white" />
-						</TouchableOpacity>
+						<View className="flex-row space-x-6">
+							<TouchableOpacity
+								className="bg-green-500 rounded-full w-16 h-16 items-center justify-center"
+								onPress={() => {
+									Linking.openURL(linkCall);
+									setIsComingCall(false);
+								}}
+							>
+								<Ionicons name="call" size={28} color="white" />
+							</TouchableOpacity>
 
-						<TouchableOpacity
-							className="bg-red-600 rounded-full w-16 h-16 items-center justify-center"
-							onPress={() => {
-								setIsComingCall(false); // hoặc emit 'reject-call' gì đó
-							}}
-						>
-							<Ionicons
-								name="call"
-								size={28}
-								color="white"
-								style={{ transform: [{ rotate: "135deg" }] }}
-							/>
-						</TouchableOpacity>
+							<TouchableOpacity
+								className="bg-red-600 rounded-full w-16 h-16 items-center justify-center"
+								onPress={() => {
+									setIsComingCall(false);
+                                    MessageService.rejectCall(dataCall.conversationId)
+								}}
+							>
+								<Ionicons
+									name="call"
+									size={28}
+									color="white"
+									style={{
+										transform: [{ rotate: "135deg" }],
+									}}
+								/>
+							</TouchableOpacity>
+						</View>
 					</View>
 				</View>
 			)}
