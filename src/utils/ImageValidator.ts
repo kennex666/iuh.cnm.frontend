@@ -1,10 +1,9 @@
 import {ImageSourcePropType} from "react-native";
 import axios from "axios";
 
-const validateImageURL = async (
-    uri: string | null | undefined,
-    fallbackImage: any
-): Promise<ImageSourcePropType> => {
+type URI = string | null | undefined;
+
+const validateImageURL = async (uri: URI, fallbackImage: any): Promise<ImageSourcePropType> => {
     try {
         if (!uri || !uri.startsWith("http")) return fallbackImage;
 
