@@ -2,34 +2,56 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {User} from '@/src/models/User';
 import {StorageKeys} from "@/src/constants/StorageKeyConstant";
 
+const USER_STORAGE_KEY = StorageKeys.USER;
 
-const USER_STORAGE_KEY = StorageKeys.USER
+let userCache: Partial<User> | null = null;
 
 export const UserStorage = {
+    async saveUser(user: User): Promise<boolean> {
+        if (!user || typeof user !== 'object') {
+            console.warn('Invalid user object provided to saveUser');
+            return false;
+        }
 
-    async saveUser(user: User): Promise<void> {
         try {
-            await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-        } catch (error) {
-            console.error('Error saving user to storage:', error);
+            const userString = JSON.stringify(user);
+            await AsyncStorage.setItem(USER_STORAGE_KEY, userString);
+            userCache = user;
+            return true;
+        } catch (error: any) {
+            console.error('Error saving user to storage:', error?.message || error);
+            return false;
         }
     },
 
-    async getUser(): Promise<Partial<User> | null> {
+    async getUser(bypassCache: boolean = false): Promise<Partial<User> | null> {
+        if (userCache && !bypassCache) return userCache;
+
         try {
             const userJson = await AsyncStorage.getItem(USER_STORAGE_KEY);
-            return userJson ? JSON.parse(userJson) : null;
-        } catch (error) {
-            console.error('Error getting user from storage:', error);
+            if (!userJson) return null;
+
+            const userData = JSON.parse(userJson) as Partial<User>;
+            userCache = userData;
+            return userData;
+        } catch (error: any) {
+            console.error('Error getting user from storage:', error?.message || error);
             return null;
         }
     },
 
-    async removeUser(): Promise<void> {
+    async removeUser(): Promise<boolean> {
         try {
             await AsyncStorage.removeItem(USER_STORAGE_KEY);
-        } catch (error) {
-            console.error('Error removing user from storage:', error);
+            userCache = null;
+            return true;
+        } catch (error: any) {
+            console.error('Error removing user from storage:', error?.message || error);
+            return false;
         }
+    },
+
+    clearCache(): void {
+        userCache = null;
     }
 };
