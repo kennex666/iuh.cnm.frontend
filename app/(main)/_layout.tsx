@@ -67,31 +67,27 @@ export default function AppLayout() {
 		<View className="flex-1 flex-row bg-white">
 			{isDesktop && (
 				<View
-					className="w-16 bg-white items-center border-r border-gray-200"
+					className="w-20 bg-gradient-to-b from-blue-50 to-white items-center border-r border-blue-100"
 					style={{ paddingTop: insets.top + 16 }}
 				>
 					<View className="flex-1 flex-col items-center justify-between">
 						<View>
 							<TouchableOpacity
-								className="relative mb-4"
+								className="relative mb-6"
 								onPress={() => {
 									setProfileModalVisible(true);
-									console.log(
-										"Profile modal visible",
-										avatar
-									);
 								}}
 							>
 								<Image
 									source={avatar}
 									resizeMode="cover"
-									className="w-10 h-10 rounded-full"
-									style={{ width: 40, height: 40 }}
+									className="w-12 h-12 rounded-full border-2 border-blue-100"
+									style={{ width: 48, height: 48 }}
 								/>
-								<View className="absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
+								<View className="absolute -right-0.5 -bottom-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white" />
 							</TouchableOpacity>
 
-							<View className="w-4/5 h-px bg-gray-200 mb-4" />
+							<View className="w-4/5 h-px bg-blue-100 mb-6" />
 
 							{routes.map((route) => {
 								const active = isActive(route.name);
@@ -99,17 +95,15 @@ export default function AppLayout() {
 									<Link
 										key={route.name}
 										href={getHref(route.name)}
-										className={`w-12 h-12 justify-center items-center mb-2 rounded-xl ${
-											active ? "bg-blue-50" : ""
+										className={`w-14 h-14 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${
+											active ? "bg-blue-500 shadow-sm" : "hover:bg-blue-50"
 										}`}
 									>
 										<View className="w-full h-full justify-center items-center">
 											<FontAwesome
 												name={route.icon}
-												size={24}
-												color={
-													active ? "#0068FF" : "#666"
-												}
+												size={22}
+												color={active ? "#FFFFFF" : "#3B82F6"}
 											/>
 										</View>
 									</Link>
@@ -118,23 +112,20 @@ export default function AppLayout() {
 						</View>
 						<View className="flex flex-col items-center justify-center py-4 relative">
 							<TouchableOpacity
-								className="p-2 rounded-lg"
+								className="p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors duration-200"
 								onPress={async () => {
 									try {
 										await logout();
 										router.replace("/(auth)");
 									} catch (error) {
-										console.error(
-											"Error during logout:",
-											error
-										);
+										console.error("Error during logout:", error);
 									}
 								}}
 							>
 								<FontAwesome
 									name="sign-out"
-									size={24}
-									color="#FF0000"
+									size={20}
+									color="#EF4444"
 								/>
 							</TouchableOpacity>
 						</View>
@@ -146,69 +137,64 @@ export default function AppLayout() {
 				<Stack screenOptions={{ headerShown: false }} />
 			</View>
 
-			{!isDesktop &&
-				isTabBarVisible && (
-						<View
-							className="absolute bottom-0 left-0 right-0 flex-row bg-white border-t border-gray-200"
-							style={{
-								paddingBottom: insets.bottom,
-								height: 54 + insets.bottom,
-								zIndex: 100,
-								elevation: 8,
-							}}
-						>
-							{routes.map((route) => {
-								const active = isActive(route.name);
-								return (
-									<Link
-										key={route.name}
-										href={getHref(route.name)}
-										className="flex-1 h-full justify-center items-center"
-										asChild
-									>
-										<TouchableOpacity>
-											<View className="items-center">
-												<FontAwesome
-													name={route.icon}
-													size={24}
-													color={
-														active
-															? "#0068FF"
-															: "#666"
-													}
-												/>
-												<Text
-													className={`text-xs mt-1 ${
-														active
-															? "text-blue-500"
-															: "text-gray-500"
-													}`}
-												>
-													{route.title}
-												</Text>
-											</View>
-										</TouchableOpacity>
-									</Link>
-								);
-							})}
-							<TouchableOpacity
+			{!isDesktop && isTabBarVisible && (
+				<View
+					className="absolute bottom-0 left-0 right-0 flex-row bg-white border-t border-blue-100"
+					style={{
+						paddingBottom: insets.bottom,
+						height: 60 + insets.bottom,
+						zIndex: 100,
+						elevation: 8,
+					}}
+				>
+					{routes.map((route) => {
+						const active = isActive(route.name);
+						return (
+							<Link
+								key={route.name}
+								href={getHref(route.name)}
 								className="flex-1 h-full justify-center items-center"
-								onPress={() => setProfileModalVisible(true)}
+								asChild
 							>
-								<View className="items-center">
-									<Image
-										source={avatar}
-										resizeMode="cover"
-										className="w-10 h-10 rounded-full"
-										style={{ width: 24, height: 24 }}
-									/>
-									<Text className="text-xs mt-1 text-gray-500">
-										Tài khoản
-									</Text>
-								</View>
-							</TouchableOpacity>
+								<TouchableOpacity>
+									<View className="items-center">
+										<View className={`p-2 rounded-lg ${active ? "bg-blue-50" : ""}`}>
+											<FontAwesome
+												name={route.icon}
+												size={22}
+												color={active ? "#3B82F6" : "#6B7280"}
+											/>
+										</View>
+										<Text
+											className={`text-xs mt-1 font-medium ${
+												active ? "text-blue-500" : "text-gray-500"
+											}`}
+										>
+											{route.title}
+										</Text>
+									</View>
+								</TouchableOpacity>
+							</Link>
+						);
+					})}
+					<TouchableOpacity
+						className="flex-1 h-full justify-center items-center"
+						onPress={() => setProfileModalVisible(true)}
+					>
+						<View className="items-center">
+							<Image
+								source={avatar}
+								resizeMode="cover"
+								className="w-8 h-8 rounded-full border-2 border-blue-100"
+								style={{ width: 32, height: 32 }}
+							/>
+							<Text className="text-xs mt-1 font-medium text-gray-500">
+								Tài khoản
+							</Text>
 						</View>
-				)}
+					</TouchableOpacity>
+				</View>
+			)}
 
 			<ProfileModal
 				visible={profileModalVisible}
