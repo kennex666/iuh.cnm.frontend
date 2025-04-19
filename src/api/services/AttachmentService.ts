@@ -2,8 +2,16 @@ import axios from 'axios';
 import {Attachment} from '@/src/models/Attachment';
 import {ApiEndpoints} from "@/src/constants/ApiConstant";
 
-export class AttachmentService {
-    static async getAttachmentByMessageId(messageId: string) {
+interface AttachmentService {
+    getAttachmentByMessageId: (messageId: string) => Promise<{
+        success: boolean;
+        data?: Attachment[];
+        statusMessage: string;
+    }>;
+}
+
+export const AttachmentService: AttachmentService = {
+    async getAttachmentByMessageId(messageId: string) {
         try {
             const response = await axios.get(`${ApiEndpoints.API_ATTACHMENTS}/message/${messageId}`);
 
