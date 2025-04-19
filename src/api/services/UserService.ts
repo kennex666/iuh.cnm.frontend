@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {User} from '@/src/models/User';
-import {AuthStorage} from '@/src/services/AuthStorage';
+import {AuthStorage} from '@/src/storage/AuthStorage';
 import {ApiEndpoints} from '@/src/constants/ApiConstant';
 import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 

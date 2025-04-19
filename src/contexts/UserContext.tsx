@@ -1,11 +1,11 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
-import {UserStorage} from '@/src/services/UserStorage';
+import {UserStorage} from '@/src/storage/UserStorage';
 import {UserService} from '@/src/api/services/UserService';
 import {AuthContextType, AuthLogin} from "@/src/models/auth/AuthContextType";
 import {AuthProviderProp} from "@/src/models/auth/AuthProviderProp";
 import {AuthService} from '@/src/api/services/AuthService';
-import {AuthStorage} from '@/src/services/AuthStorage';
+import {AuthStorage} from '@/src/storage/AuthStorage';
 import {useRouter} from 'expo-router';
 import SocketService from '@/src/api/services/SocketService';
 
