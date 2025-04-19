@@ -4,7 +4,7 @@ import {Dimensions, Image, ImageSourcePropType, Text, TouchableOpacity, View} fr
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useEffect, useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import {useAuth} from "@/src/contexts/UserContext";
+import {useUser} from "@/src/contexts/UserContext";
 import {validateAvatar} from "@/src/utils/ImageValidator";
 import { TabBarProvider, useTabBar } from "@/src/contexts/TabBarContext";
 
@@ -21,7 +21,7 @@ const routes: Route[] = [
 ];
 
 export default function AppLayout() {
-    const {user, isLoading, logout} = useAuth();
+    const {user, isLoading, logout} = useUser();
     const [profileModalVisible, setProfileModalVisible] = useState(false);
     const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
     const router = useRouter();

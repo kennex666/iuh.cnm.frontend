@@ -10,10 +10,10 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {AuthService} from '@/src/api/services/AuthService';
-import {useAuth} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/UserContext';
 
 export default function Verify2FA() {
-    const {login, user} = useAuth();
+    const {login, user} = useUser();
     const [verificationCode, setVerificationCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);

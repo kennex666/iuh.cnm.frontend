@@ -3,7 +3,7 @@ import {Alert, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, Vi
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
-import { useAuth } from '@/src/contexts/UserContext';
+import { useUser } from '@/src/contexts/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import { Message, MessageType } from '@/src/models/Message';
@@ -19,7 +19,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useAuth();
+    const { user } = useUser();
     const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
     const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
     const socketService = useRef(SocketService.getInstance()).current;

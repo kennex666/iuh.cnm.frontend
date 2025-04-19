@@ -9,12 +9,11 @@ import {
     View
 } from "react-native";
 import Toast from '@/src/components/ui/Toast';
-import {useUser} from "@/src/hooks/UseUser";
 import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
 import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
-import {useAuth} from "@/src/contexts/UserContext";
+import {useUser} from "@/src/contexts/UserContext";
 import {validateAvatar, validateCover} from "@/src/utils/ImageValidator";
 
 type ProfileModalProps = {
@@ -24,7 +23,7 @@ type ProfileModalProps = {
 
 export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const router = useRouter();
-    const {user, update} = useAuth();
+    const {user, update} = useUser();
     const {user: fetchedUser} = useUser();
     const [editMode, setEditMode] = useState(false);
     const [avatarUri, setAvatarUri] = useState<string | null>("");

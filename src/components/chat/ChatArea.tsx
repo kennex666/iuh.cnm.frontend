@@ -20,7 +20,7 @@ import MessageReaction from './MessageReaction';
 import {Shadows} from '@/src/styles/Shadow';
 import {Message, MessageType} from '@/src/models/Message';
 import {MessageService} from '@/src/api/services/MessageService';
-import {useAuth} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/UserContext';
 import {UserService} from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import ForwardMessageModal from './ForwardMessageModal';
@@ -39,7 +39,7 @@ export interface ChatAreaProps {
 }
 
 export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
-    const {user} = useAuth();
+    const {user} = useUser();
     const [messages, setMessages] = useState<Message[]>([]);
     const [messagesReplied, setMessagesReplied] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);

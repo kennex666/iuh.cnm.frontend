@@ -4,7 +4,7 @@ import {Ionicons} from '@expo/vector-icons';
 import Toast from '@/src/components/ui/Toast';
 import Button from '@/src/components/ui/Button';
 import {AuthService} from '@/src/api/services/AuthService';
-import {useAuth} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/UserContext';
 import {router} from "expo-router";
 
 
@@ -25,7 +25,7 @@ export default function DeviceAccessModal({visible, onClose}: DeviceAccessModalP
     const [loading, setLoading] = useState(false);
     const [showConfirmLogout, setShowConfirmLogout] = useState(false);
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-    const {logout} = useAuth(); // Assuming you have a logout function in your auth context
+    const {logout} = useUser(); // Assuming you have a logout function in your auth context
     const [toast, setToast] = useState({
         visible: false,
         message: '',

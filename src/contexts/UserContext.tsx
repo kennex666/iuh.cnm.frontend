@@ -1,102 +1,142 @@
-import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
-import {isUserComplete, User} from '@/src/models/User';
-import {UserStorage} from '@/src/storage/UserStorage';
-import {UserService} from '@/src/api/services/UserService';
-import {AuthService} from '@/src/api/services/AuthService';
-import {AuthStorage} from '@/src/storage/AuthStorage';
-import {useRouter} from 'expo-router';
+import React, { createContext, ReactNode, useContext, useEffect, useState, useCallback } from 'react';
+import { isUserComplete, User } from '@/src/models/User';
+import { Profile } from '@/src/models/Profile';
+import { UserStorage } from '@/src/storage/UserStorage';
+import { UserService } from '@/src/api/services/UserService';
+import { AuthService } from '@/src/api/services/AuthService';
+import { AuthStorage } from '@/src/storage/AuthStorage';
+import { useRouter } from 'expo-router';
 import SocketService from '@/src/api/services/SocketService';
 
-interface AuthLogin {
+interface LoginCredentials {
     phone: string;
     password: string;
     otp?: string | null;
 }
 
-interface AuthContextType {
-    user: Partial<User> | null;
-    isLoading: boolean;
-    login: ({phone, password, otp}: AuthLogin)
-        => Promise<{ success: boolean; message?: string; errorCode?: number | string }>;
-    logout: ()
-        => Promise<void>;
-    update: (updatedUser: Partial<User>)
-        => Promise<{ success: boolean; message?: string }>;
+interface ApiResponse {
+    success: boolean;
+    message?: string;
+    errorCode?: number | string;
 }
 
-interface AuthProviderProp {
+interface UserContextType {
+    user: Partial<User> | null;
+    profile: Profile | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+
+    login: (credentials: LoginCredentials) => Promise<ApiResponse>;
+    logout: (redirect?: boolean) => Promise<void>;
+    update: (updatedUser: Partial<User>) => Promise<ApiResponse>;
+    refreshUserData: () => Promise<boolean>;
+}
+
+interface UserProviderProps {
     children: ReactNode;
 }
 
-const AuthContext = createContext<AuthContextType>({
+// Tạo context với giá trị mặc định
+const UserContext = createContext<UserContextType>({
     user: null,
+    profile: null,
+    isAuthenticated: false,
     isLoading: true,
-    login: async () => ({success: false}),
+    login: async () => ({ success: false }),
     logout: async () => {},
-    update: async () => ({success: false}),
+    update: async () => ({ success: false }),
+    refreshUserData: async () => false,
 });
 
-export const useAuth = () => useContext(AuthContext);
+export const useUser = () => useContext(UserContext);
 
-export const AuthProvider = ({children}: AuthProviderProp) => {
+export const UserProvider = ({ children }: UserProviderProps) => {
     const router = useRouter();
     const [user, setUser] = useState<Partial<User> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const socketService = SocketService.getInstance();
 
-    const loadUser = async () => {
+    const computeProfile = useCallback((userData: Partial<User> | null): Profile | null => {
+        if (!userData) return null;
+
+        const { password, createdAt, updatedAt, ...profileData } = userData as User;
+        return profileData as Profile;
+    }, []);
+
+    const profile = computeProfile(user);
+
+    const isAuthenticated = !!user;
+
+    const loadUserData = useCallback(async (): Promise<boolean> => {
         try {
             const token = await AuthStorage.getAccessToken();
 
-            if (token) {
-                const result = await UserService.me();
-
-                if (result.success && result.user) {
-                    console.log('Using fresh user data from server');
-                    setUser(result.user);
-                    await UserStorage.saveUser(result.user);
-                    socketService.connect(token);
-                } else {
-                    console.warn('Failed to fetch fresh user data:', result.message);
-                    const storedUser = await UserStorage.getUser();
-                    if (storedUser) {
-                        console.log('Using cached user data from storage');
-                        setUser(storedUser);
-                        socketService.connect(token);
-                    } else {
-                        console.warn('No valid user data available, logging out');
-                        await logout();
-                        router.replace("/(auth)");
-                    }
-                }
-            } else {
-                console.log('No access token found, logging out');
-                await logout();
-                router.replace("/(auth)");
+            if (!token) {
+                console.log('No access token found, user is not authenticated');
+                return false;
             }
-        } catch (error) {
-            console.error('Error loading user:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
-    useEffect(() => {
-        loadUser().catch((error) => {
-            console.error('Error in useEffect:', error);
-            setIsLoading(false);
-        });
+            const result = await UserService.me();
+
+            if (result.success && result.user) {
+                console.log('Using fresh user data from server');
+                setUser(result.user);
+                await UserStorage.saveUser(result.user);
+                socketService.connect(token);
+                return true;
+            }
+
+            console.warn('Failed to fetch fresh user data:', result.message);
+            const storedUser = await UserStorage.getUser();
+
+            if (storedUser) {
+                console.log('Using cached user data from storage');
+                setUser(storedUser);
+                socketService.connect(token);
+                return true;
+            }
+
+            console.warn('No valid user data available');
+            return false;
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            return false;
+        }
     }, []);
 
-    const login = async ({phone, password, otp = null}: AuthLogin) => {
+    useEffect(() => {
+        const initializeUser = async () => {
+            try {
+                const userLoaded = await loadUserData();
+
+                if (!userLoaded) {
+                    await logout(true);
+                }
+            } catch (error) {
+                console.error('Error initializing user:', error);
+                await logout(true);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        initializeUser().then(() => {
+            console.log('User initialization complete');
+        });
+
+        return () => {};
+    }, [loadUserData]);
+
+    const login = async ({ phone, password, otp = null }: LoginCredentials): Promise<ApiResponse> => {
         try {
-            const result = await AuthService.login({phone, password, otp});
+            const result = await AuthService.login({ phone, password, otp });
 
             if (result.success && result.user && result.accessToken && result.refreshToken) {
                 setUser(result.user);
                 await UserStorage.saveUser(result.user as User);
                 await AuthStorage.saveTokens(result.accessToken, result.refreshToken);
                 socketService.connect(result.accessToken);
+
                 return {
                     success: true,
                     message: 'Đăng nhập thành công!',
@@ -108,7 +148,7 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
                 message: result.message || 'Đăng nhập thất bại!',
                 errorCode: result?.errorCode || 0
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Login error:', error);
             return {
                 success: false,
@@ -118,32 +158,40 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
         }
     };
 
-    const logout = async () => {
+    const logout = async (redirect: boolean = true): Promise<void> => {
         try {
             await UserStorage.removeUser();
             await AuthStorage.removeTokens();
             setUser(null);
             socketService.disconnect();
+
+            if (redirect) {
+                router.replace("/(auth)");
+            }
         } catch (error) {
             console.error('Logout error:', error);
         }
     };
 
-    const update = async (updatedUser: Partial<User>) => {
+    const update = async (updatedUser: Partial<User>): Promise<ApiResponse> => {
         try {
-            if (!user) return {
-                success: false,
-                message: 'Không có thông tin người dùng!'
-            };
+            if (!user) {
+                return {
+                    success: false,
+                    message: 'Không có thông tin người dùng!'
+                };
+            }
 
             const result = await UserService.update(updatedUser);
 
-            if (!result.success) return {
-                success: false,
-                message: result.message || 'Cập nhật thông tin thất bại!'
-            };
+            if (!result.success) {
+                return {
+                    success: false,
+                    message: result.message || 'Cập nhật thông tin thất bại!'
+                };
+            }
 
-            const updatedUserResponse = result.user || {...user, ...updatedUser};
+            const updatedUserResponse = result.user || { ...user, ...updatedUser };
 
             if (isUserComplete(updatedUserResponse)) {
                 setUser(updatedUserResponse);
@@ -170,9 +218,29 @@ export const AuthProvider = ({children}: AuthProviderProp) => {
         }
     };
 
+    const refreshUserData = async (): Promise<boolean> => {
+        setIsLoading(true);
+        try {
+            return await loadUserData();
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{user, isLoading, login, logout, update}}>
+        <UserContext.Provider
+            value={{
+                user,
+                profile,
+                isAuthenticated,
+                isLoading,
+                login,
+                logout,
+                update,
+                refreshUserData
+            }}
+        >
             {children}
-        </AuthContext.Provider>
+        </UserContext.Provider>
     );
 };

@@ -2,7 +2,7 @@ import axios from "axios";
 import { Message, MessageType } from "@/src/models/Message";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
 import { AuthStorage } from "@/src/storage/AuthStorage";
-import { useAuth } from "@/src/contexts/UserContext";
+import { useUser } from "@/src/contexts/UserContext";
 import { Alert } from "react-native";
 
 interface MessageService {
