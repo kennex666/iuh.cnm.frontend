@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {AuthStorage} from '@/src/services/AuthStorage';
+import {AuthStorage} from '@/src/storage/AuthStorage';
 import {Platform} from 'react-native';
 import { URL_BE } from '../constants/ApiConstant';
 

@@ -1,14 +1,14 @@
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {useAuth} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 import {router} from 'expo-router';
 import ChangePasswordModal from './ChangePasswordModal';
 import TwoFactorAuthModal from './TwoFactorAuthModal';
 import DeviceAccessModal from './DeviceAccessModal';
 
 export default function SettingsDesktop() {
-    const {logout} = useAuth();
+    const {logout} = useUser();
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [showTwoFactorAuth, setShowTwoFactorAuth] = useState(false);
     const [showDeviceAccess, setShowDeviceAccess] = useState(false);

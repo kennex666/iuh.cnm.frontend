@@ -4,8 +4,8 @@ import { Dimensions, Image, ImageSourcePropType, Text, TouchableOpacity, View } 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useEffect, useState } from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import { useAuth } from "@/src/contexts/UserContext";
 import { validateAvatar } from "@/src/utils/ImageValidator";
+import {useUser} from "@/src/contexts/user/UserContext";
 import { TabBarProvider, useTabBar } from "@/src/contexts/TabBarContext";
 
 type Route = {
@@ -21,15 +21,16 @@ const routes: Route[] = [
 ];
 
 export default function AppLayout() {
-	const { user, isLoading, logout } = useAuth();
-	const [profileModalVisible, setProfileModalVisible] = useState(false);
-	const [avatar, setAvatar] = useState<ImageSourcePropType>({ uri: "" });
-	const router = useRouter();
-	const { width } = Dimensions.get("window");
-	const isDesktop = width > 768;
-	const insets = useSafeAreaInsets();
-	const pathname = usePathname();
-	const { isVisible: isTabBarVisible } = useTabBar();
+    const {user, isLoading, logout} = useUser();
+    const [profileModalVisible, setProfileModalVisible] = useState(false);
+    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
+    const router = useRouter();
+    const {width} = Dimensions.get("window");
+    const isDesktop = width > 768;
+    const insets = useSafeAreaInsets();
+    const pathname = usePathname();
+    const { isVisible: isTabBarVisible } = useTabBar();
+
 
 	// Check if the current route is active
 	const isActive = (routeName: string) => {

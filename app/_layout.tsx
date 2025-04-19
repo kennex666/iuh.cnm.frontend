@@ -1,7 +1,7 @@
 import {SplashScreen, Stack} from 'expo-router';
 import {useEffect} from 'react';
 import {useFonts} from 'expo-font';
-import {AuthProvider} from '@/src/contexts/UserContext';
+import {UserProvider} from '@/src/contexts/user/UserContext';
 import {setupAxios} from "@/src/api/AxiosConfig";
 import "../global.css";
 import { TabBarProvider } from '@/src/contexts/TabBarContext';
@@ -28,13 +28,13 @@ export default function RootLayout() {
     if (!loaded) return null;
 
     return (
-        <AuthProvider>
+        <UserProvider>
 			<TabBarProvider>
                 <Stack screenOptions={{headerShown: false}}>
                     <Stack.Screen name="(auth)"/>
                     <Stack.Screen name="(main)"/>
                 </Stack>
             </TabBarProvider>
-        </AuthProvider>
+        </UserProvider>
     );
 }

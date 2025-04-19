@@ -27,7 +27,7 @@ export default function ProfileUserEdit({
         setShowDatePicker(false);
         if (selectedDate && event.type !== 'dismissed') {
             console.log('Date selected:', selectedDate.toISOString());
-            onChangeUser({...editUser, dob: selectedDate.getTime()});
+            onChangeUser({...editUser, dob: selectedDate.getTime().toString()});
         }
     };
 
@@ -81,7 +81,7 @@ export default function ProfileUserEdit({
                             <input
                                 type="date"
                                 value={editUser?.dob ? new Date(editUser.dob).toISOString().split('T')[0] : ''}
-                                onChange={(e) => onChangeUser({...editUser, dob: new Date(e.target.value).getTime()})}
+                                onChange={(e) => onChangeUser({...editUser, dob: formatDate(new Date(e.target.value).getTime())})}
                                 className="w-full bg-transparent outline-none text-base"
                                 max={new Date().toISOString().split('T')[0]}
                             />

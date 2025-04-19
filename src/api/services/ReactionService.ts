@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { AuthStorage } from "@/src/services/AuthStorage";
+import { AuthStorage } from "@/src/storage/AuthStorage";
 import { Reaction } from "@/src/models/Reaction";
 
 interface ReactionService {
