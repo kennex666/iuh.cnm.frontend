@@ -24,7 +24,7 @@ export default function ContactsScreen() {
     };
 
     return (
-        <View className="flex-1 bg-white mt-12">
+        <View className="flex-1 bg-white">
             {/* Tab Bar */}
             <View className="border-b border-gray-200 bg-white">
                 <ScrollView 

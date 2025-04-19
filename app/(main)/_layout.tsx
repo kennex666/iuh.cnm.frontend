@@ -1,70 +1,70 @@
-import {Href, Link, Redirect, Stack, usePathname, useRouter} from "expo-router";
-import {FontAwesome} from "@expo/vector-icons";
-import {Dimensions, Image, ImageSourcePropType, Text, TouchableOpacity, View} from "react-native";
-import {useSafeAreaInsets} from "react-native-safe-area-context";
-import {useEffect, useState} from "react";
+import { Href, Link, Redirect, Stack, usePathname, useRouter } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
+import { Dimensions, Image, ImageSourcePropType, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useEffect, useState } from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import {useAuth} from "@/src/contexts/UserContext";
-import {validateAvatar} from "@/src/utils/ImageValidator";
+import { useAuth } from "@/src/contexts/UserContext";
+import { validateAvatar } from "@/src/utils/ImageValidator";
 import { TabBarProvider, useTabBar } from "@/src/contexts/TabBarContext";
 
 type Route = {
-    name: string;
-    title: string;
-    icon: "comments" | "address-book" | "gear" | "user";
+	name: string;
+	title: string;
+	icon: "comments" | "address-book" | "gear" | "user";
 };
 
 const routes: Route[] = [
-    {name: "index", title: "Tin nhắn", icon: "comments"},
-    {name: "contacts", title: "Danh bạ", icon: "address-book"},
-    {name: "settings", title: "Cài đặt", icon: "gear"},
+	{ name: "index", title: "Tin nhắn", icon: "comments" },
+	{ name: "contacts", title: "Danh bạ", icon: "address-book" },
+	{ name: "settings", title: "Cài đặt", icon: "gear" },
 ];
 
 export default function AppLayout() {
-    const {user, isLoading, logout} = useAuth();
-    const [profileModalVisible, setProfileModalVisible] = useState(false);
-    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
-    const router = useRouter();
-    const {width} = Dimensions.get("window");
-    const isDesktop = width > 768;
-    const insets = useSafeAreaInsets();
-    const pathname = usePathname();
-    const { isVisible: isTabBarVisible } = useTabBar();
+	const { user, isLoading, logout } = useAuth();
+	const [profileModalVisible, setProfileModalVisible] = useState(false);
+	const [avatar, setAvatar] = useState<ImageSourcePropType>({ uri: "" });
+	const router = useRouter();
+	const { width } = Dimensions.get("window");
+	const isDesktop = width > 768;
+	const insets = useSafeAreaInsets();
+	const pathname = usePathname();
+	const { isVisible: isTabBarVisible } = useTabBar();
 
-    // Check if the current route is active
-    const isActive = (routeName: string) => {
-        if (routeName === "index") {
-            return pathname === "/" || pathname === "/index";
-        }
-        return pathname === `/${routeName}`;
-    };
+	// Check if the current route is active
+	const isActive = (routeName: string) => {
+		if (routeName === "index") {
+			return pathname === "/" || pathname === "/index";
+		}
+		return pathname === `/${routeName}`;
+	};
 
-    // Get the href for the route
-    const getHref = (routeName: string) => {
-        if (routeName === "index") return "/";
-        return `/(main)/${routeName}` as Href;
-    };
+	// Get the href for the route
+	const getHref = (routeName: string) => {
+		if (routeName === "index") return "/";
+		return `/(main)/${routeName}` as Href;
+	};
 
-    useEffect(() => {
-        validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
-            setAvatar(validatedAvatar);
-        });
-    }, [user?.avatarURL]);
+	useEffect(() => {
+		validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
+			setAvatar(validatedAvatar);
+		});
+	}, [user?.avatarURL]);
 
-    if (isLoading) {
-        return (
-            <View className="flex-1 justify-center items-center">
-                <Text className="text-base text-blue-500">Đang tải...</Text>
-            </View>
-        );
-    }
+	if (isLoading) {
+		return (
+			<View className="flex-1 justify-center items-center">
+				<Text className="text-base text-blue-500">Đang tải...</Text>
+			</View>
+		);
+	}
 
-    if (!user) {
-        return <Redirect href="/"/>;
-    }
+	if (!user) {
+		return <Redirect href="/" />;
+	}
 
-    return (
-		<View className="flex-1 flex-row bg-white">
+	return (
+		<View className="flex-1 flex-row">
 			{isDesktop && (
 				<View
 					className="w-20 bg-gradient-to-b from-blue-50 to-white items-center border-r border-blue-100"
@@ -95,9 +95,8 @@ export default function AppLayout() {
 									<Link
 										key={route.name}
 										href={getHref(route.name)}
-										className={`w-14 h-14 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${
-											active ? "bg-blue-500 shadow-sm" : "hover:bg-blue-50"
-										}`}
+										className={`w-14 h-14 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${active ? "bg-blue-500 shadow-sm" : "hover:bg-blue-50"
+											}`}
 									>
 										<View className="w-full h-full justify-center items-center">
 											<FontAwesome
@@ -133,9 +132,24 @@ export default function AppLayout() {
 				</View>
 			)}
 
-			<View className="flex-1">
-				<Stack screenOptions={{ headerShown: false }} />
-			</View>
+			{!isDesktop && (
+				<View className="flex-1 mt-12">
+					<Stack screenOptions={{ headerShown: false }} />
+				</View>
+			)}
+
+			{isDesktop && (
+				<View className="flex-1 mx-4 my-4">
+					<View className="flex-1 bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+						<Stack screenOptions={{ 
+							headerShown: false,
+							contentStyle: {
+								backgroundColor: 'transparent'
+							}
+						}} />
+					</View>
+				</View>
+			)}
 
 			{!isDesktop && isTabBarVisible && (
 				<View
@@ -166,9 +180,8 @@ export default function AppLayout() {
 											/>
 										</View>
 										<Text
-											className={`text-xs mt-1 font-medium ${
-												active ? "text-blue-500" : "text-gray-500"
-											}`}
+											className={`text-xs mt-1 font-medium ${active ? "text-blue-500" : "text-gray-500"
+												}`}
 										>
 											{route.title}
 										</Text>
