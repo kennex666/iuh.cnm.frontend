@@ -4,7 +4,7 @@ import {Dimensions, Image, ImageSourcePropType, Text, TouchableOpacity, View} fr
 import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {useEffect, useState} from "react";
 import ProfileModal from "@/app/(main)/profileUser";
-import {useUser} from "@/src/contexts/UserContext";
+import {useUser} from "@/src/contexts/user/UserContext";
 import {validateAvatar} from "@/src/utils/ImageValidator";
 import { TabBarProvider, useTabBar } from "@/src/contexts/TabBarContext";
 

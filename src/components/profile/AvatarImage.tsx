@@ -1,7 +1,7 @@
 import {Image, ImageSourcePropType, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {ImageConstants} from "@/src/constants/ImageConstant";
-import {useUser} from "@/src/contexts/UserContext";
+import {useUser} from "@/src/contexts/user/UserContext";
 
 interface AvatarImageProps {
     onPickImage: () => void;

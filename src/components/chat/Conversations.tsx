@@ -3,7 +3,7 @@ import {Alert, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, Vi
 import {Ionicons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
-import { useUser } from '@/src/contexts/UserContext';
+import { useUser } from '@/src/contexts/user/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import { Message, MessageType } from '@/src/models/Message';

@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
-import {useUser} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 import {router} from 'expo-router';
 import ChangePasswordModal from './ChangePasswordModal';
 import TwoFactorAuthModal from './TwoFactorAuthModal';

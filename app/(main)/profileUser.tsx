@@ -13,7 +13,7 @@ import ProfileUserInfo from "./profileUserInfo";
 import ProfileUserEdit from "./profileUserEdit";
 import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
-import {useUser} from "@/src/contexts/UserContext";
+import {useUser} from "@/src/contexts/user/UserContext";
 import {validateAvatar, validateCover} from "@/src/utils/ImageValidator";
 
 type ProfileModalProps = {

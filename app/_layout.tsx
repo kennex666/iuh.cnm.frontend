@@ -1,7 +1,7 @@
 import {SplashScreen, Stack} from 'expo-router';
 import {useEffect} from 'react';
 import {useFonts} from 'expo-font';
-import {UserProvider} from '@/src/contexts/UserContext';
+import {UserProvider} from '@/src/contexts/user/UserContext';
 import {setupAxios} from "@/src/api/AxiosConfig";
 import "../global.css";
 import { TabBarProvider } from '@/src/contexts/TabBarContext';

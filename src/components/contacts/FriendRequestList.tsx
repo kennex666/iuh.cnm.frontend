@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import FriendRequest from '@/src/models/FriendRequest';
-import { useUser } from '@/src/contexts/UserContext';
+import { useUser } from '@/src/contexts/user/UserContext';
 import SocketService from '@/src/api/services/SocketService';
 
 export default function FriendRequestList() {

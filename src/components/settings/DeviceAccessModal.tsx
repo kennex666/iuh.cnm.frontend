@@ -4,7 +4,7 @@ import {Ionicons} from '@expo/vector-icons';
 import Toast from '@/src/components/ui/Toast';
 import Button from '@/src/components/ui/Button';
 import {AuthService} from '@/src/api/services/AuthService';
-import {useUser} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 import {router} from "expo-router";
 
 

@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import FriendRequest from '@/src/models/FriendRequest';
 import { AuthStorage } from '@/src/storage/AuthStorage';
-import { useUser } from '@/src/contexts/UserContext';
+import { useUser } from '@/src/contexts/user/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import { User } from '@/src/models/User';
 

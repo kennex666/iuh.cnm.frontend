@@ -20,7 +20,7 @@ import MessageReaction from './MessageReaction';
 import {Shadows} from '@/src/styles/Shadow';
 import {Message, MessageType} from '@/src/models/Message';
 import {MessageService} from '@/src/api/services/MessageService';
-import {useUser} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 import {UserService} from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import ForwardMessageModal from './ForwardMessageModal';

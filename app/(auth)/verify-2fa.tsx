@@ -10,7 +10,7 @@ import FormInput from '@/src/components/ui/FormInput';
 import Button from '@/src/components/ui/Button';
 import TextLink from '@/src/components/ui/TextLink';
 import {AuthService} from '@/src/api/services/AuthService';
-import {useUser} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 
 export default function Verify2FA() {
     const {login, user} = useUser();
