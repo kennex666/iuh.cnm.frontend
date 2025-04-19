@@ -1,19 +1,39 @@
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import {isUserComplete, User} from '@/src/models/User';
 import {UserStorage} from '@/src/storage/UserStorage';
 import {UserService} from '@/src/api/services/UserService';
-import {AuthContextType, AuthLogin} from "@/src/models/auth/AuthContextType";
-import {AuthProviderProp} from "@/src/models/auth/AuthProviderProp";
 import {AuthService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/storage/AuthStorage';
 import {useRouter} from 'expo-router';
 import SocketService from '@/src/api/services/SocketService';
 
+export interface AuthLogin {
+    phone: string;
+    password: string;
+    otp?: string | null;
+}
+
+export interface AuthContextType {
+    user: Partial<User> | null;
+    isLoading: boolean;
+    login: ({phone, password, otp}: AuthLogin)
+        => Promise<{ success: boolean; message?: string; errorCode?: number | string }>;
+    logout: ()
+        => Promise<void>;
+    update: (updatedUser: Partial<User>)
+        => Promise<{ success: boolean; message?: string }>;
+}
+
+export interface AuthProviderProp {
+    children: ReactNode;
+}
+
 const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
     login: async () => ({success: false}),
-    logout: async () => {},
+    logout: async () => {
+    },
     update: async () => ({success: false}),
 });
 
