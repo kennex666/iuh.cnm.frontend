@@ -3,36 +3,6 @@ import {Attachment} from '@/src/models/Attachment';
 import {ApiEndpoints} from "@/src/constants/ApiConstant";
 
 export class AttachmentService {
-    static async uploadAttachment(conversationId: string, formData: FormData) {
-        try {
-            const response = await axios.post(`/attachments/${conversationId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    data: response.data.data as Attachment,
-                    statusMessage: response.data.message,
-                };
-            } else {
-                return {
-                    success: false,
-                    statusMessage: response.data.message || 'Upload failed',
-                };
-            }
-        } catch (error) {
-            console.error('Error uploading attachment:', error);
-
-            return {
-                success: false,
-                statusMessage: 'Không thể tải file lên. Vui lòng thử lại sau.',
-            };
-        }
-    }
-
     static async getAttachmentByMessageId(messageId: string) {
         try {
             const response = await axios.get(`${ApiEndpoints.API_ATTACHMENTS}/message/${messageId}`);
@@ -54,31 +24,6 @@ export class AttachmentService {
             return {
                 success: false,
                 statusMessage: 'Không thể lấy thông tin file. Vui lòng thử lại sau.',
-            };
-        }
-    }
-
-    static async deleteAttachment(attachmentId: string) {
-        try {
-            const response = await axios.delete(`/attachments/${attachmentId}`);
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    data: response.data.data,
-                    statusMessage: response.data.message,
-                };
-            } else {
-                return {
-                    success: false,
-                    statusMessage: response.data.message || 'Failed to delete attachment',
-                };
-            }
-        } catch (error) {
-            console.error('Error deleting attachment:', error);
-            return {
-                success: false,
-                statusMessage: 'Không thể xóa file. Vui lòng thử lại sau.',
             };
         }
     }
