@@ -2,7 +2,7 @@ import {useAuth} from '@/src/contexts/UserContext';
 import {Profile} from '@/src/models/Profile';
 import {User} from "@/src/models/User";
 
-export function UseUser() {
+export function useUser() {
     const {user} = useAuth();
 
     const isAuthenticated = !!user;

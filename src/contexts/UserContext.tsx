@@ -7,13 +7,13 @@ import {AuthStorage} from '@/src/storage/AuthStorage';
 import {useRouter} from 'expo-router';
 import SocketService from '@/src/api/services/SocketService';
 
-export interface AuthLogin {
+interface AuthLogin {
     phone: string;
     password: string;
     otp?: string | null;
 }
 
-export interface AuthContextType {
+interface AuthContextType {
     user: Partial<User> | null;
     isLoading: boolean;
     login: ({phone, password, otp}: AuthLogin)
@@ -24,7 +24,7 @@ export interface AuthContextType {
         => Promise<{ success: boolean; message?: string }>;
 }
 
-export interface AuthProviderProp {
+interface AuthProviderProp {
     children: ReactNode;
 }
 
@@ -32,8 +32,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
     login: async () => ({success: false}),
-    logout: async () => {
-    },
+    logout: async () => {},
     update: async () => ({success: false}),
 });
 
