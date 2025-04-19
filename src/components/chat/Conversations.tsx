@@ -213,7 +213,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     }
 
     return (
-		<View className="flex-1 border-r border-gray-200">
+		<View className="flex-1 border-r border-gray-200 px-4">
 			{/* Full screen call */}
 			{isComingCall && linkCall && (
 				<View className="absolute inset-0 bg-black/70 z-50">
@@ -257,12 +257,12 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 				</View>
 			)}
 			{/* Search Bar */}
-			<View className="p-4 border-b border-gray-200">
-				<View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
+			<View className="py-4">
+				<View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2 h-12">
 					<Ionicons name="search-outline" size={20} color="#666" />
 					<TextInput
-						className="flex-1 ml-2 text-base"
-						placeholder="Tìm kiếm"
+						className="flex-1 ml-2 text-lg"
+						placeholder="Tìm kiếm cuộc trò chuyện..."
 						placeholderTextColor="#666"
 					/>
 				</View>
@@ -273,7 +273,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 				{conversations.map((conversation) => (
 					<TouchableOpacity
 						key={conversation.id}
-						className={`flex-row items-center p-4 ${
+						className={`flex-row items-center p-4 rounded-xl ${
 							selectedChat?.id === conversation.id
 								? "bg-blue-50"
 								: ""
@@ -308,7 +308,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 						</View>
 						<View className="flex-1 ml-3">
 							<View className="flex-row justify-between items-center">
-								<Text className="font-semibold text-gray-900">
+								<Text className="font-semibold text-gray-900 text-base">
 									{getConversationName(conversation)}
 								</Text>
 								{conversation.lastMessage?.sentAt && (

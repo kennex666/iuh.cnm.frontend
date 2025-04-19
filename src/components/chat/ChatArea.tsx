@@ -586,7 +586,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     return (
 		<View className="flex-1 flex-col">
 			{/* Chat Header */}
-			<View className="h-14 px-4 border-b border-gray-200 flex-row items-center justify-between">
+			<View className="h-20 px-4 border-b border-gray-200 flex-row items-center justify-between">
 				<View className="flex-row items-center flex-1">
 					{onBackPress && (
 						<TouchableOpacity
@@ -606,7 +606,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 								selectedChat.avatar ||
 								"https://placehold.co/40x40/0068FF/FFFFFF/png?text=G",
 						}}
-						className="w-10 h-10 rounded-full"
+						className="w-11 h-11 rounded-full"
 						resizeMode="cover"
 						onError={() => {
 							setOtherParticipant((prev) =>
@@ -623,7 +623,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
 					/>
 					<View className="ml-3" style={{ maxWidth: "45%" }}>
 						<Text
-							className="font-semibold text-gray-900 text-base"
+							className="font-semibold text-gray-900 text-lg"
 							numberOfLines={1}
 							ellipsizeMode="tail"
 						>
