@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -8,8 +8,11 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CreateGroup from './CreateGroup';
 
 export default function GroupList() {
+    const [isCreateGroupVisible, setIsCreateGroupVisible] = useState(false);
+
     // Mock data for UI demonstration
     const groups = [
         { 
@@ -52,6 +55,7 @@ export default function GroupList() {
             {/* Create Group Button */}
             <TouchableOpacity 
                 className="flex-row items-center px-4 py-3 border-b border-gray-100 bg-blue-50"
+                onPress={() => setIsCreateGroupVisible(true)}
             >
                 <View className="w-12 h-12 rounded-full bg-blue-500 items-center justify-center">
                     <Ionicons name="add" size={24} color="white" />
@@ -84,6 +88,12 @@ export default function GroupList() {
                     </TouchableOpacity>
                 ))}
             </ScrollView>
+
+            {/* Create Group Modal */}
+            <CreateGroup 
+                visible={isCreateGroupVisible}
+                onClose={() => setIsCreateGroupVisible(false)}
+            />
         </View>
     );
 } 
