@@ -37,14 +37,14 @@ export default function MessagesScreen() {
 
     if (isDesktop) {
         return (
-            <View className="flex-1 bg-white flex-row">
+            <View className="flex-1 flex-row">
                 {/* Left Column - Conversations List (25%) */}
-                <View className="w-1/4">
+                <View className="w-[25%] bg-white rounded-2xl shadow-sm overflow-hidden">
                     <Conversations selectedChat={selectedChat} onSelectChat={setSelectedChat}/>
                 </View>
 
                 {/* Middle Column - Chat Area (50%) */}
-                <View className="w-1/2">
+                <View className="w-[48%] mx-4 bg-white rounded-2xl shadow-sm overflow-hidden">
                     <ChatArea
                         selectedChat={selectedChat}
                         onInfoPress={handleInfoPress}
@@ -52,8 +52,10 @@ export default function MessagesScreen() {
                 </View>
 
                 {/* Right Column - Info (25%) */}
-                <View className="w-1/4">
-                    <Info selectedChat={selectedChat}/>
+                <View className="w-[25%]">
+                    <View className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                        <Info selectedChat={selectedChat}/>
+                    </View>
                 </View>
             </View>
         );

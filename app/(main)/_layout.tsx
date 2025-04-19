@@ -140,7 +140,7 @@ export default function AppLayout() {
 
 			{isDesktop && (
 				<View className="flex-1 mx-4 my-4">
-					<View className="flex-1 bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+					<View className="flex-1 bg-white">
 						<Stack screenOptions={{ 
 							headerShown: false,
 							contentStyle: {
