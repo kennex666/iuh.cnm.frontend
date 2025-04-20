@@ -13,7 +13,7 @@ interface QrScannerProps {
     lockScanTime?: number;
 }
 
-export default function QrScanner({
+export default function QRScanner({
                                       onScan,
                                       onPermissionDenied,
                                       showDefaultAlert = true,

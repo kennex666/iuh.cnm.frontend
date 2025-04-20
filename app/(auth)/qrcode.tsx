@@ -5,7 +5,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import {Ionicons} from "@expo/vector-icons";
 import {Shadows} from "@/src/styles/Shadow";
 import QRCodeDisplay from "@/src/components/ui/QRCodeDisplay";
-import QrScanner from "@/src/components/ui/QrScanner";
+import QRScanner from "@/src/components/ui/QRScanner";
 
 export default function QrCode() {
     const [showScanner, setShowScanner] = useState(false);
@@ -109,7 +109,7 @@ export default function QrCode() {
                 </View>
             ) : (
                 // Màn hình quét mã QR
-                <QrScanner/>
+                <QRScanner/>
             )}
         </View>
     );
