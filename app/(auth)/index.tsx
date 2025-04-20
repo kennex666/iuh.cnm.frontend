@@ -171,6 +171,7 @@ export default function Login() {
                                         secureTextEntry
                                         showTogglePassword
                                         editable={!loading}
+                                        onEnterPress={!loading ? handleLogin : undefined}
                                     />
 
                                     <TouchableOpacity

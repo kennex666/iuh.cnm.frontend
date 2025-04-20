@@ -11,7 +11,7 @@ interface TextLinkProps {
     textClassName?: string;
     linkClassName?: string;
     align?: 'left' | 'center' | 'right';
-    linkProps?: Omit<LinkProps, 'href'>; // Thêm props tùy chọn để truyền cho Link
+    linkProps?: Omit<LinkProps, 'href'>;
 }
 
 const TextLink = ({
