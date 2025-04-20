@@ -1,80 +1,209 @@
-import React, {useEffect, useRef} from 'react';
-
+import React, {useEffect, useRef, useState} from 'react';
 import {Alert, Linking, StyleSheet, Text, View} from 'react-native';
+import {BarcodeScanningResult, CameraView, useCameraPermissions} from "expo-camera";
 
-// import { BarCodeScanner } from 'expo-barcode-scanner';
-import {CameraView, useCameraPermissions} from "expo-camera";
+interface QrScannerProps {
+    onScan?: (data: string) => void;
+    onPermissionDenied?: () => void;
+    showDefaultAlert?: boolean;
+    frameSize?: number;
+    frameColor?: string;
+    frameThickness?: number;
+    overlayMessage?: string;
+    lockScanTime?: number;
+}
 
-
-export default function QrScanner() {
+export default function QrScanner({
+                                      onScan,
+                                      onPermissionDenied,
+                                      showDefaultAlert = true,
+                                      frameSize = 250,
+                                      frameColor = '#fff',
+                                      frameThickness = 4,
+                                      overlayMessage = "Di chuyển camera đến mã QR",
+                                      lockScanTime = 1000
+                                  }: QrScannerProps) {
     const [permission, requestPermission] = useCameraPermissions();
     const qrLock = useRef(false);
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
+        setIsMounted(true);
+
         if (!permission || permission.status !== 'granted') {
-            requestPermission();
+            (async () => {
+                const cameraPermission = await requestPermission();
+                if (!cameraPermission.granted && onPermissionDenied) {
+                    onPermissionDenied();
+                }
+            })();
         }
+
+        return () => setIsMounted(false);
     }, [permission]);
 
+    const handleBarcodeScanned = (result: BarcodeScanningResult) => {
+        const {data} = result;
+
+        if (!data || qrLock.current) return;
+
+        qrLock.current = true;
+
+        if (onScan) {
+            onScan(data);
+        }
+
+        if (showDefaultAlert) {
+            setTimeout(() => {
+                Alert.alert("QR Code", data, [
+                    {text: "OK", onPress: () => (qrLock.current = false)},
+                    {
+                        text: "Open",
+                        onPress: () => {
+                            Linking.openURL(data).catch(err => console.error("Error opening URL:", err));
+                            qrLock.current = false;
+                        },
+                    },
+                ]);
+            }, 500);
+        } else {
+            setTimeout(() => {
+                qrLock.current = false;
+            }, lockScanTime);
+        }
+    };
+
     if (!permission) {
-        return <Text>Đang kiểm tra quyền camera...</Text>;
+        return (
+            <View style={styles.permissionContainer}>
+                <Text style={styles.permissionText}>Đang kiểm tra quyền camera...</Text>
+            </View>
+        );
     }
 
     if (permission.status !== 'granted') {
-        return <Text>Không có quyền truy cập camera.</Text>;
+        return (
+            <View style={styles.permissionContainer}>
+                <Text style={styles.permissionText}>Vui lòng cấp quyền truy cập camera.</Text>
+                <Text
+                    style={styles.permissionButton}
+                    onPress={requestPermission}
+                >
+                    Cấp quyền
+                </Text>
+            </View>
+        );
     }
+
+    if (!isMounted) {
+        return (
+            <View style={styles.permissionContainer}>
+                <Text style={styles.permissionText}>Đang kết nối camera...</Text>
+            </View>
+        );
+    }
+
+    const CORNER_SIZE = frameSize / 8;
 
     return (
         <View style={styles.container}>
             <CameraView
                 style={StyleSheet.absoluteFillObject}
                 facing="back"
-                onBarcodeScanned={({data}: any) => {
-                    if (data && !qrLock.current) {
-                        qrLock.current = true;
-                        setTimeout(() => {
-                            Alert.alert("QR Code", data, [
-                                {text: "OK", onPress: () => (qrLock.current = false)},
-                                {
-                                    text: "Open",
-                                    onPress: () => {
-                                        Linking.openURL(data).catch(err => console.error("Error opening URL:", err));
-                                        qrLock.current = false;
-                                    },
-                                },
-                            ]);
-                        }, 500);
-                    }
+                onBarcodeScanned={handleBarcodeScanned}
+                barcodeScannerSettings={{
+                    barcodeTypes: ["qr"]
                 }}
             />
 
-            {/* Text hướng dẫn */}
             <View style={styles.overlay}>
-                <Text style={styles.text}>Di chuyển camera đến mã QR</Text>
+                <Text style={styles.text}>{overlayMessage}</Text>
             </View>
 
-            {/* 4 Góc QR frame */}
-            <View style={styles.frame}>
-                {/* Top-left */}
-                <View style={[styles.corner, styles.topLeft]}/>
-                {/* Top-right */}
-                <View style={[styles.corner, styles.topRight]}/>
-                {/* Bottom-left */}
-                <View style={[styles.corner, styles.bottomLeft]}/>
-                {/* Bottom-right */}
-                <View style={[styles.corner, styles.bottomRight]}/>
+            <View style={[
+                styles.frame,
+                {
+                    width: frameSize,
+                    height: frameSize,
+                    marginLeft: -frameSize / 2,
+                    marginTop: -frameSize / 2
+                }
+            ]}>
+                <View style={[
+                    styles.corner,
+                    {
+                        width: CORNER_SIZE,
+                        height: CORNER_SIZE,
+                        borderColor: frameColor,
+                        borderTopWidth: frameThickness,
+                        borderLeftWidth: frameThickness
+                    },
+                    styles.topLeft
+                ]}/>
+                <View style={[
+                    styles.corner,
+                    {
+                        width: CORNER_SIZE,
+                        height: CORNER_SIZE,
+                        borderColor: frameColor,
+                        borderTopWidth: frameThickness,
+                        borderRightWidth: frameThickness
+                    },
+                    styles.topRight
+                ]}/>
+                <View style={[
+                    styles.corner,
+                    {
+                        width: CORNER_SIZE,
+                        height: CORNER_SIZE,
+                        borderColor: frameColor,
+                        borderBottomWidth: frameThickness,
+                        borderLeftWidth: frameThickness
+                    },
+                    styles.bottomLeft
+                ]}/>
+                <View style={[
+                    styles.corner,
+                    {
+                        width: CORNER_SIZE,
+                        height: CORNER_SIZE,
+                        borderColor: frameColor,
+                        borderBottomWidth: frameThickness,
+                        borderRightWidth: frameThickness
+                    },
+                    styles.bottomRight
+                ]}/>
             </View>
         </View>
     );
 }
 
-const FRAME_SIZE = 250;
-const CORNER_SIZE = 30;
-const CORNER_THICKNESS = 4;
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: 'black',
+    },
+    permissionContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        backgroundColor: '#f9f9f9',
+    },
+    permissionText: {
+        fontSize: 16,
+        color: '#333',
+        textAlign: 'center',
+        marginBottom: 16,
+    },
+    permissionButton: {
+        fontSize: 16,
+        color: '#fff',
+        backgroundColor: '#2196F3',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 6,
+        overflow: 'hidden',
     },
     overlay: {
         position: 'absolute',
@@ -91,41 +220,26 @@ const styles = StyleSheet.create({
     },
     frame: {
         position: 'absolute',
-        width: FRAME_SIZE,
-        height: FRAME_SIZE,
         top: '50%',
         left: '50%',
-        marginLeft: -FRAME_SIZE / 2,
-        marginTop: -FRAME_SIZE / 2,
     },
     corner: {
-        width: CORNER_SIZE,
-        height: CORNER_SIZE,
-        borderColor: '#fff',
         position: 'absolute',
     },
     topLeft: {
         top: 0,
         left: 0,
-        borderTopWidth: CORNER_THICKNESS,
-        borderLeftWidth: CORNER_THICKNESS,
     },
     topRight: {
         top: 0,
         right: 0,
-        borderTopWidth: CORNER_THICKNESS,
-        borderRightWidth: CORNER_THICKNESS,
     },
     bottomLeft: {
         bottom: 0,
         left: 0,
-        borderBottomWidth: CORNER_THICKNESS,
-        borderLeftWidth: CORNER_THICKNESS,
     },
     bottomRight: {
         bottom: 0,
         right: 0,
-        borderBottomWidth: CORNER_THICKNESS,
-        borderRightWidth: CORNER_THICKNESS,
     },
 });
