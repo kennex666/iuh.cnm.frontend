@@ -67,7 +67,6 @@ export const MessageService: MessageService = {
 						"Hãy làm quen với người dùng này",
 				};
 			}
-			console.log("response of get messages: ", response.data);
 			if (response.data.success) {
 				const messages = response.data.data.map((msg: Message) => ({
 					id: msg.id,
@@ -79,8 +78,6 @@ export const MessageService: MessageService = {
 					sentAt: msg.sentAt,
 					readBy: msg.readBy || [],
 				}));
-
-				console.log("messages of conversation: ", messages);
 
 				return {
 					success: true,

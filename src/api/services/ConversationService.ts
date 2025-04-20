@@ -61,9 +61,6 @@ export const ConversationService: ConversationService = {
                 },
             });
 
-            console.log("Response Status:", response.status);
-            console.log("Response Data:", response.data);
-
             if (response.data.success) {
                 if (!response.data.data) {
                     console.warn("No conversations data found in response");
@@ -73,7 +70,7 @@ export const ConversationService: ConversationService = {
                         message: "No conversations data found",
                     };
                 }
-                console.log("Response Success:", response.data);
+                
                 const conversations = response.data.data.map((apiConv: any) => ({
                     id: apiConv.id,
                     isGroup: apiConv.isGroup || false,
