@@ -31,6 +31,7 @@ import {AttachmentService} from '@/src/api/services/AttachmentService';
 import {Attachment} from '@/src/models/Attachment';
 import axios from 'axios';
 import FileMessageContent from './FileMessageContent';
+import ChatHeader from '../chat-area/ChatHeader';
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -41,7 +42,6 @@ export interface ChatAreaProps {
 export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatAreaProps) {
     const {user} = useUser();
     const [messages, setMessages] = useState<Message[]>([]);
-    const [messagesReplied, setMessagesReplied] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isNewer, setIsNewer] = useState(false);
@@ -586,93 +586,7 @@ export default function ChatArea({selectedChat, onBackPress, onInfoPress}: ChatA
     return (
 		<View className="flex-1 flex-col">
 			{/* Chat Header */}
-			<View className="h-20 px-4 border-b border-gray-200 flex-row items-center justify-between">
-				<View className="flex-row items-center flex-1">
-					{onBackPress && (
-						<TouchableOpacity
-							onPress={onBackPress}
-							className="mr-3"
-						>
-							<Ionicons
-								name="arrow-back"
-								size={24}
-								color="#666"
-							/>
-						</TouchableOpacity>
-					)}
-					<Image
-						source={{
-							uri:
-								selectedChat.avatar ||
-								"https://placehold.co/40x40/0068FF/FFFFFF/png?text=G",
-						}}
-						className="w-11 h-11 rounded-full"
-						resizeMode="cover"
-						onError={() => {
-							setOtherParticipant((prev) =>
-								prev
-									? {
-											...prev,
-											avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-												prev.name
-											)}&background=0068FF&color=fff`,
-									  }
-									: null
-							);
-						}}
-					/>
-					<View className="ml-3" style={{ maxWidth: "45%" }}>
-						<Text
-							className="font-semibold text-gray-900 text-lg"
-							numberOfLines={1}
-							ellipsizeMode="tail"
-						>
-							{selectedChat.name ||
-								selectedChat.participants.join(", ")}
-						</Text>
-						{selectedChat.isGroup && (
-							<Text className="text-sm text-gray-500">
-								{selectedChat.participants.length} thành viên
-							</Text>
-						)}
-						{!selectedChat.isGroup &&
-							selectedChat.participants.length > 0 && (
-								<Text className="text-sm text-green-500">
-									Đang hoạt động
-								</Text>
-							)}
-					</View>
-				</View>
-				<View className="flex-row items-center">
-					<TouchableOpacity
-						className="p-2 mr-1"
-						onPress={() => {
-							MessageService.makeACall(selectedChat.id);
-						}}
-					>
-						<Ionicons name="call-outline" size={22} color="#666" />
-					</TouchableOpacity>
-					<TouchableOpacity
-						onPress={() => {
-							MessageService.makeACall(selectedChat.id);
-						}}
-						className="p-2 mr-1"
-					>
-						<Ionicons
-							name="videocam-outline"
-							size={22}
-							color="#666"
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity className="p-2" onPress={onInfoPress}>
-						<Ionicons
-							name="information-circle-outline"
-							size={24}
-							color="#666"
-						/>
-					</TouchableOpacity>
-				</View>
-			</View>
+			<ChatHeader selectedChat={selectedChat} onBackPress={onBackPress} onInfoPress={onInfoPress} />
 
 			{/* Messages Area */}
 			<ScrollView
