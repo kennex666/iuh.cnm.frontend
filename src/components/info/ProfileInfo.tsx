@@ -17,7 +17,7 @@ export default function ProfileInfo({
     isOnline 
 }: ProfileInfoProps) {
     return (
-        <View className="items-center pt-8 pb-6">
+        <View className="items-center pt-8 pb-6 border-b-4 border-gray-200">
             <View className="mb-4 relative">
                 <View className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-100 to-blue-200 items-center justify-center">
                     <Image

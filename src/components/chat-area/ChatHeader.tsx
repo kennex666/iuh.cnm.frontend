@@ -18,7 +18,7 @@ export default function ChatHeader({
 }: ChatHeaderProps) {
   {
     return (
-      <View className="h-20 px-4 border-b border-gray-200 flex-row items-center justify-between">
+      <View className="h-16 px-4 border-b border-gray-200 flex-row items-center justify-between">
         <View className="flex-row items-center flex-1">
           {onBackPress && (
             <TouchableOpacity onPress={onBackPress} className="mr-3">
