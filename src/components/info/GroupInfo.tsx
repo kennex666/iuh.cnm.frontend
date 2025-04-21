@@ -116,16 +116,15 @@ const MemberMenu = ({ visible, onClose, isAdmin = false }: MemberMenuProps) => {
   return (
     <View
       style={{
-        width: 200,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
-        backgroundColor: 'white',
+        width: 240,
         zIndex: 1000,
-
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#E5E7EB', 
+        marginTop: 2
       }}>
       {!isAdmin && (
-        <View className="flex-1 bg-white">
+        <View className="flex-1">
           <TouchableOpacity
             className="flex-row items-center px-4 py-3 active:bg-gray-50"
             onPress={() => {
@@ -196,7 +195,7 @@ export default function GroupInfo({ group }: GroupInfoProps) {
         {/* Admins Section */}
         <Text className="text-sm text-gray-500 mb-2">Quản trị viên</Text>
         {MOCK_MEMBERS.filter(member => member.role === 'admin').map((member) => (
-          <View key={member.id} className="flex-row items-center justify-between py-2">
+          <View key={member.id} className="flex-row items-start justify-between py-2">
             <View className="flex-row items-center">
               <View className="flex-row items-center">
                 <Image
@@ -267,7 +266,7 @@ export default function GroupInfo({ group }: GroupInfoProps) {
   };
 
   return (
-    <View className="flex-1 px-4 pt-6 pb-3 border-b-4 border-gray-200">
+    <View className="flex-1 px-4 pt-6 pb-4 border-b-4 border-gray-200">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-base font-medium text-blue-950">
           Thành viên nhóm ({MOCK_MEMBERS.length})

@@ -631,8 +631,11 @@ export default function ChatArea({
           return (
             <View className={`flex-row items-end mb-4 ${ msg.senderId === user?.id ? "justify-end" : "justify-start"}`}>
               <View className={`relative max-w-[70%] flex flex-row ${ msg.senderId === user?.id ? "items-end" : "items-start" }`}>
-                {(msg.repliedToId || msg.repliedTold) && (
-                  <View className="bg-gray-50 rounded-lg px-3 py-2 mb-1 border-l-2 border-blue-500">
+
+              <Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2" resizeMode="cover" />
+              <View className="flex-col items-end">
+              {(msg.repliedToId || msg.repliedTold) && (
+                  <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500">
                     <Text className="text-xs text-gray-500">
                       Trả lời tin nhắn
                     </Text>
@@ -641,61 +644,61 @@ export default function ChatArea({
                     </Text>
                   </View>
                 )}
-				<Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2" resizeMode="cover" />
-				<View className="flex-row items-center relative">
-					<TouchableOpacity
-					key={msg.id}
-					onLongPress={() => handleLongPressMessage(msg)}
-					onPress={() => {
-						// Nếu đã chọn tin nhắn, bỏ chọn
-						setSelectedMessage(msg);
-						setShowMessageOptions(true);
-					}}
-					delayLongPress={200}
-					activeOpacity={0.7}
-					>
-					<View className={`rounded-2xl p-2 ${ msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
-						{msg.type === MessageType.TEXT ? (
-						<Text className={ msg.senderId === user?.id ? "text-white" : "text-gray-900" }>
-							{msg.content}
-						</Text>
-						) : msg.type === MessageType.FILE ? (
-						<View className="flex-row items-center">
-							{/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
-							<FileMessageContent
-							messageId={msg.id}
-							fileName={msg.content}
-							isSender={msg.senderId === user?.id}
-							getAttachment={getAttachmentByMessageId}
-							onImagePress={setFullScreenImage}
-							/>
-						</View>
-						) : (
-						msg.type === MessageType.CALL && (
-							<Text
-							className={
-								msg.senderId === user?.id
-								? "text-white"
-								: "text-gray-900"
-							}
-							>
-							{msg.content === "start"
-								? "📞 Cuộc gọi đang bắt đầu"
-								: "📴 Cuộc gọi đã kết thúc"}
-							</Text>
-						)
-						)}
-					</View>
-					</TouchableOpacity>
-					<MessageReaction
-					messageId={msg.id}
-					isVisible={activeReactionId === msg.id}
-					onReact={handleReaction}
-					onToggle={() => handleReactionToggle(msg.id)}
-					isSender={msg.senderId === user?.id}
-					/>
-				</View>
+              <View className="flex-row items-center relative">
+                <TouchableOpacity
+                key={msg.id}
+                onLongPress={() => handleLongPressMessage(msg)}
+                onPress={() => {
+                  // Nếu đã chọn tin nhắn, bỏ chọn
+                  setSelectedMessage(msg);
+                  setShowMessageOptions(true);
+                }}
+                delayLongPress={200}
+                activeOpacity={0.7}
+                >
+                <View className={`rounded-2xl p-2 ${ msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
+                  {msg.type === MessageType.TEXT ? (
+                  <Text className={ msg.senderId === user?.id ? "text-white" : "text-gray-900" }>
+                    {msg.content}
+                  </Text>
+                  ) : msg.type === MessageType.FILE ? (
+                  <View className="flex-row items-center">
+                    {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
+                    <FileMessageContent
+                    messageId={msg.id}
+                    fileName={msg.content}
+                    isSender={msg.senderId === user?.id}
+                    getAttachment={getAttachmentByMessageId}
+                    onImagePress={setFullScreenImage}
+                    />
+                  </View>
+                  ) : (
+                  msg.type === MessageType.CALL && (
+                    <Text
+                    className={
+                      msg.senderId === user?.id
+                      ? "text-white"
+                      : "text-gray-900"
+                    }
+                    >
+                    {msg.content === "start"
+                      ? "📞 Cuộc gọi đang bắt đầu"
+                      : "📴 Cuộc gọi đã kết thúc"}
+                    </Text>
+                  )
+                  )}
+                </View>
+                </TouchableOpacity>
+                <MessageReaction
+                  messageId={msg.id}
+                  isVisible={activeReactionId === msg.id}
+                  onReact={handleReaction}
+                  onToggle={() => handleReactionToggle(msg.id)}
+                  isSender={msg.senderId === user?.id}
+                />
               </View>
+              </View>
+                </View>
             </View>
           );
         })}

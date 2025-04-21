@@ -66,7 +66,7 @@ export default function ActionsInfo({ isGroup, onSearchPress }: ActionsInfoProps
                     <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center mb-1.5 shadow-sm active:bg-blue-100">
                         <Ionicons name="people-outline" size={18} color="#3B82F6" />
                     </View>
-                    <Text className="text-xs text-blue-900">Thêm thành viên</Text>
+                    <Text className="text-xs text-blue-900">Thêm s viên</Text>
                 </TouchableOpacity>
             ) : (
                 <TouchableOpacity className="items-center">
