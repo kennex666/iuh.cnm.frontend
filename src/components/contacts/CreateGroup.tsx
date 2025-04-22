@@ -8,6 +8,7 @@ import {
     ScrollView,
     Modal,
     Dimensions,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
@@ -49,26 +50,45 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
     };
 
     const pickImage = async () => {
-        // Yêu cầu quyền truy cập thư viện ảnh
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        Alert.alert(
+            'Chọn ảnh',
+            'Bạn có muốn chọn ảnh từ thư viện không?',
+            [
+                {
+                    text: 'Không',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Có',
+                    onPress: async () => {
+                        try {
+                            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (!permissionResult.granted) {
-            alert('Bạn cần cấp quyền truy cập thư viện ảnh để sử dụng tính năng này!');
-            return;
-        }
+                            if (!permissionResult.granted) {
+                                alert('Bạn cần cấp quyền truy cập thư viện ảnh để sử dụng tính năng này!');
+                                return;
+                            }
 
-        // Mở thư viện ảnh
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images, // Chỉ chọn ảnh
-            allowsEditing: true, // Cho phép chỉnh sửa ảnh
-            aspect: [1, 1], // Tỉ lệ khung hình (1:1)
-            quality: 1, // Chất lượng ảnh (1 = cao nhất)
-        });
+                            const result = await ImagePicker.launchImageLibraryAsync({
+                                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                allowsEditing: true,
+                                aspect: [1, 1],
+                                quality: 1,
+                            });
 
-        if (!result.canceled) {
-            console.log('Selected Image:', result.assets[0].uri);
-            setGroupAvatar(result.assets[0].uri); // Lưu URI ảnh vào state
-        }
+                            if (!result.canceled) {
+                                console.log('Selected Image:', result.assets[0].uri);
+                                setGroupAvatar(result.assets[0].uri);
+                            }
+                        } catch (error) {
+                            console.error('Error picking image:', error);
+                            alert('Đã xảy ra lỗi khi chọn ảnh. Vui lòng thử lại.');
+                        }
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
     };
 
     useEffect(() => {
