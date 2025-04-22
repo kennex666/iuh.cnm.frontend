@@ -18,6 +18,7 @@ import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from '@/src/models/Conversation';
 import Toast from '../ui/Toast';
 import { UserProvider, useUser } from '@/src/contexts/user/UserContext';
+import * as ImagePicker from 'expo-image-picker';
 
 interface CreateGroupProps {
     visible: boolean;
@@ -31,6 +32,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
     const [contacts, setContacts] = useState([] as User[]);
     const [friendRequests, setFriendRequests] = useState([] as FriendRequest[]);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+    const [groupAvatar, setGroupAvatar] = useState('');
     const [toast, setToast] = useState({
             visible: false,
             message: '',
@@ -44,6 +46,29 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 ? prev.filter(id => id !== contactId)
                 : [...prev, contactId]
         );
+    };
+
+    const pickImage = async () => {
+        // Yêu cầu quyền truy cập thư viện ảnh
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (!permissionResult.granted) {
+            alert('Bạn cần cấp quyền truy cập thư viện ảnh để sử dụng tính năng này!');
+            return;
+        }
+
+        // Mở thư viện ảnh
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images, // Chỉ chọn ảnh
+            allowsEditing: true, // Cho phép chỉnh sửa ảnh
+            aspect: [1, 1], // Tỉ lệ khung hình (1:1)
+            quality: 1, // Chất lượng ảnh (1 = cao nhất)
+        });
+
+        if (!result.canceled) {
+            console.log('Selected Image:', result.assets[0].uri);
+            setGroupAvatar(result.assets[0].uri); // Lưu URI ảnh vào state
+        }
     };
 
     useEffect(() => {
@@ -118,7 +143,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 id: '',
                 isGroup: true,
                 name: groupName,
-                avatarUrl: 'https://placehold.co/400',
+                avatarUrl: groupAvatar ? groupAvatar : 'https://placehold.co/400',
                 avatarGroup: '',
                 type: 'group',
                 participantIds: [user?.id, ...selectedContacts],
@@ -183,9 +208,17 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                     <View className="px-4 py-4 border-b border-gray-200">
                         <View className="flex-row items-center">
                             {/* Avatar Selection */}
-                            <TouchableOpacity className="relative">
+                            <TouchableOpacity className="relative" onPress={pickImage}>
                                 <View className="w-14 h-14 rounded-full bg-gray-100 items-center justify-center">
-                                    <Ionicons name="camera" size={24} color="#666" />
+                                    {groupAvatar ? (
+                                        <Image
+                                            source={{ uri: groupAvatar }}
+                                            resizeMode="cover"
+                                            className="w-14 h-14 rounded-full"
+                                        />
+                                    ) : (
+                                        <Ionicons name="camera" size={24} color="#666" />
+                                    )}
                                 </View>
                             </TouchableOpacity>
                             {/* Group Name Input */}
@@ -247,4 +280,4 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
             />
         </Modal>
     );
-} 
+}

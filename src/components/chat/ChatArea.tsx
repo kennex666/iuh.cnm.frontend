@@ -636,7 +636,7 @@ export default function ChatArea({
               {(msg.repliedToId || msg.repliedTold) && (
                   <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500">
                     <Text className="text-xs text-gray-500">
-                      Trả lời {messageUsers[repliedToMessage?.senderId]?.name}
+                      Trả lời {messageUsers[repliedToMessage?.senderId ?? ""]?.name}
                     </Text>
                     <Text className="text-sm text-gray-700" numberOfLines={1}>
                       {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
@@ -645,7 +645,6 @@ export default function ChatArea({
                 )}
               <View className="flex-row items-center relative">
                 <TouchableOpacity
-                key={msg.id}
                 onLongPress={() => handleLongPressMessage(msg)}
                 onPress={() => {
                   // Nếu đã chọn tin nhắn, bỏ chọn
