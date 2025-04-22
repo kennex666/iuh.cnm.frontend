@@ -72,7 +72,7 @@ const Toast = ({
     };
 
     return (
-        <Animated.View style={[styles.container, {opacity}, getToastStyle()]}>
+        <Animated.View style={[styles.container, {opacity}, getToastStyle(), {zIndex: 9999}]}>
             {showIcon && (
                 <Ionicons
                     name={getIconName()}

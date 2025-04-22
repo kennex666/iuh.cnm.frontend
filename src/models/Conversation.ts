@@ -1,7 +1,7 @@
 import {Message} from '@/src/models/Message';
 
 export interface Conversation {
-    id: string;
+    id?: string;
     isGroup: boolean;
     name: string;
     avatar: string;

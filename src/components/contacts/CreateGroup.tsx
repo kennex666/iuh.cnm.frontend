@@ -14,6 +14,9 @@ import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import { User } from '@/src/models/User';
 import FriendRequest from '@/src/models/FriendRequest';
+import { ConversationService } from '@/src/api/services/ConversationService';
+import {Conversation} from '@/src/models/Conversation';
+import Toast from '../ui/Toast';
 
 interface CreateGroupProps {
     visible: boolean;
@@ -27,6 +30,11 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
     const [contacts, setContacts] = useState([] as User[]);
     const [friendRequests, setFriendRequests] = useState([] as FriendRequest[]);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+    const [toast, setToast] = useState({
+            visible: false,
+            message: '',
+            type: 'success' as 'success' | 'error'
+    });
 
     const toggleContact = (contactId: string) => {
         setSelectedContacts(prev => 
@@ -74,6 +82,46 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
         }
     }, [friendRequests]);
 
+    const handleCreateGroup = async () => {
+        if (groupName.trim() === '' || selectedContacts.length === 0) {
+            setToast({
+                visible: true,
+                message: 'Vui lòng nhập tên nhóm và chọn ít nhất 2 thành viên',
+                type: 'error'
+            });
+            return;
+        }
+        try {
+            if( selectedContacts.length < 2) {
+                setToast({
+                    visible: true,
+                    message: 'Chọn ít nhất 2 thành viên',
+                    type: 'error'
+                });
+                return;
+            }
+            const newConversation: Conversation = {
+                name: groupName,
+                participants: selectedContacts,
+                isGroup: true,
+                avatar: '', 
+                adminIds: [], 
+                settings: {}, 
+                createdAt: new Date().toISOString(), 
+                updatedAt: new Date().toISOString(), 
+            };
+            const response = await ConversationService.createConversation(newConversation);
+            if (response.success) {
+                console.log('Group created successfully:', response.conversation);
+                onClose(); // Close the modal after creating the group
+            } else {
+                console.error('Error creating group:', response.message);
+            }
+        } catch (error) {
+            console.error('Error creating group:', error);
+        }
+    };
+
     return (
         <Modal
             visible={visible}
@@ -91,6 +139,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                         <TouchableOpacity 
                             className={`px-4 py-2 rounded-full ${selectedContacts.length > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
                             disabled={selectedContacts.length === 0}
+                            onPress={() => handleCreateGroup()}
                         >
                             <Text className="text-white font-medium">Tạo</Text>
                         </TouchableOpacity>
@@ -156,6 +205,12 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                     </ScrollView>
                 </View>
             </View>
+            <Toast
+                visible={toast.visible}
+                message={toast.message}
+                type={toast.type}
+                onHide={() => setToast(prev => ({...prev, visible: false}))}
+            />
         </Modal>
     );
 } 
