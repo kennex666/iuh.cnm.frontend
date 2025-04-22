@@ -55,7 +55,6 @@ export const ConversationService: ConversationService = {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log("Response: 1212121", response);
 
             if (response.data.success) {
                 if (!response.data.data) {
@@ -88,6 +87,7 @@ export const ConversationService: ConversationService = {
                     createdAt: apiConv.createdAt || new Date(),
                     updatedAt: apiConv.updatedAt || new Date(),
                 }));
+                
                 return { 
                     success: true, 
                     conversations, 
@@ -198,6 +198,7 @@ export const ConversationService: ConversationService = {
                 },
             });
 
+            console.log("ada", response);
             if (response.data.success) {
                 const apiConv = response.data.data;
                 const newConversation: Conversation = {

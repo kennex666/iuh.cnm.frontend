@@ -17,6 +17,7 @@ import FriendRequest from '@/src/models/FriendRequest';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from '@/src/models/Conversation';
 import Toast from '../ui/Toast';
+import { UserProvider, useUser } from '@/src/contexts/user/UserContext';
 
 interface CreateGroupProps {
     visible: boolean;
@@ -34,7 +35,8 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
             visible: false,
             message: '',
             type: 'success' as 'success' | 'error'
-    });
+    }); // Assuming you have a way to get the current user's ID
+    const { user } = useUser(); // Assuming you have a way to get the current user's ID
 
     const toggleContact = (contactId: string) => {
         setSelectedContacts(prev => 
@@ -50,6 +52,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
             try {
                 // Simulate fetching contacts
                 const response = await FriendRequestService.getAllAcceptedFriendRequests("");
+                console.log('Fetched friend requests 12122:', response);
                 setFriendRequests(response.friendRequests || []); 
             } catch (error) {
                 setFriendRequests([]);
@@ -63,20 +66,31 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
     useEffect(() => {
         const fetchContacts = async () => {
             try {
-                const contactsList = [] as User[];
+                const ids = [];
                 for (const request of friendRequests) {
-                    const response = await UserService.getUserById(request.senderId);
+                    if (request.senderId !== user?.id) {
+                        ids.push(request.senderId);
+                    } else {
+                        ids.push(request.receiverId);
+                    }
+                }
+    
+                const uniqueIds = Array.from(new Set(ids)); // Loại bỏ trùng lặp
+                const contactsList = [] as User[];
+                for (const id of uniqueIds) {
+                    const response = await UserService.getUserById(id);
                     if (response.success) {
                         contactsList.push(response.user as User);
                     }
                 }
+                console.log('Fetched contacts:', contactsList);
                 setContacts(contactsList);
             } catch (error) {
                 setContacts([]);
                 console.error('Error fetching contacts:', error);
             }
         };
-
+    
         if (Array.isArray(friendRequests) && friendRequests.length > 0) {
             fetchContacts();
         }
@@ -101,15 +115,33 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 return;
             }
             const newConversation: Conversation = {
-                name: groupName,
-                participants: selectedContacts,
+                id: '',
                 isGroup: true,
-                avatar: '', 
-                adminIds: [], 
-                settings: {}, 
-                createdAt: new Date().toISOString(), 
-                updatedAt: new Date().toISOString(), 
+                name: groupName,
+                avatarUrl: 'https://placehold.co/400',
+                avatarGroup: '',
+                type: 'group',
+                participantIds: [user?.id, ...selectedContacts],
+                participantInfo: [user?.id, ...selectedContacts].map(id => ({
+                    id,
+                    name: contacts.find(contact => contact.id === id)?.name || '',
+                    avatar: contacts.find(contact => contact.id === id)?.avatarURL || '',
+                    nickname: '',
+                    role: id === user?.id ? 'admin' : 'member',
+                })),
+                url: '',
+                pinMessages: [],
+                settings: {
+                    isReviewNewParticipant: false,
+                    isAllowReadNewMessage: true,
+                    isAllowMessaging: true,
+                    pendingList: [],
+                },
+                lastMessage: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
             };
+            console.log('Creating group with data 1212121:', newConversation);
             const response = await ConversationService.createConversation(newConversation);
             if (response.success) {
                 console.log('Group created successfully:', response.conversation);
@@ -183,9 +215,9 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
 
                     {/* Contacts List */}
                     <ScrollView className="flex-1">
-                        {contacts.map(contact => (
+                        {contacts.map((contact, index) => (
                             <TouchableOpacity
-                                key={contact.id}
+                                key={`${contact.id}-${index}`} 
                                 className="flex-row items-center px-4 py-3 border-b border-gray-100"
                                 onPress={() => toggleContact(contact.id)}
                             >
