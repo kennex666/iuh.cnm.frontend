@@ -5,6 +5,7 @@ import { Conversation } from "@/src/models/Conversation";
 import { Dimensions } from "react-native";
 import AddMemberModal from "./AddMemberModal";// Update the path to the correct location of AddMemberModal
 import { useUser } from "@/src/contexts/user/UserContext";
+import { ConversationService } from "@/src/api/services/ConversationService";
 
 interface GroupInfoProps {
   group: Conversation;
@@ -23,84 +24,157 @@ interface MemberMenuProps {
   onClose: () => void;
   isAdmin?: boolean;
   isModerator?: boolean;
+  memberId: string;
+  onRemoveMember?: (memberId: string) => void;
+  onAddAdmin?: (memberId: string) => void;
+  onAddMod?: (memberId: string) => void;
+  onRemoveAdmin?: (memberId: string) => void;
 }
 
 const isDesktop = Dimensions.get('window').width > 768;
-const MemberMenu = ({ visible, onClose, isAdmin = false, isModerator = false }: MemberMenuProps) => {
-  if (!visible) return null;
 
-  return (
-    <View
-      style={{
-        width: 240,
-        zIndex: 1000,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#E5E7EB', 
-        marginTop: 2
-      }}>
-      {!isAdmin && !isModerator && (
-        <View className="flex-1">
-          <TouchableOpacity
-            className="flex-row items-center px-4 py-3 active:bg-gray-50"
-            onPress={() => {
-              // Handle add admin
-              onClose();
-            }}
-          >
-            <Ionicons name="shield-outline" size={18} color="#3B82F6" />
-            <Text className="ml-2 text-[14px] text-gray-700">
-              Thêm làm trưởng nhóm
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-row items-center px-4 py-3 active:bg-gray-50"
-            onPress={() => {
-              // Handle add sub-admin
-              onClose();
-            }}
-          >
-            <Ionicons name="shield-half-outline" size={18} color="#3B82F6" />
-            <Text className="ml-2 text-[14px] text-gray-700">
-              Thêm làm phó nhóm
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {isAdmin ? (
-        <TouchableOpacity
-          className="flex-row items-center px-4 py-3 active:bg-gray-50"
-          onPress={() => {
-            // Handle remove admin
-            onClose();
-          }}
-        >
-          <Ionicons name="trash-outline" size={18} color="#EF4444" />
-          <Text className="ml-2 text-[14px] text-red-500">
-            Xóa tư cách quản trị viên
-          </Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          className="flex-row items-center px-4 py-3 active:bg-gray-50"
-          onPress={() => {
-            // Handle remove member
-            onClose();
-          }}
-        >
-          <Ionicons name="exit-outline" size={18} color="#EF4444" />
-          <Text className="ml-2 text-[14px] text-red-500">
-            Xóa khỏi nhóm
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
 
 export default function GroupInfo({ group }: GroupInfoProps) {
   const [showDetail, setShowDetail] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<String | null>(null);
+  
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      const response = await ConversationService.removeParticipants(group.id, [memberId]);
+      if (response.success) {
+        // Handle success (e.g., show success message, update UI)
+        console.log('Member removed successfully');
+      } else {
+        // Handle error
+        console.error('Failed to remove member:', response.message);
+      }
+    } catch (error) {
+      console.error('Error removing member:', error);
+    }
+  };
+
+  const handleAddAdmin = async (memberId: string) => {
+    try {
+      const response = await ConversationService.transferAdmin(group.id, memberId);
+      if (response.success) {
+        console.log('Admin role transferred successfully');
+      } else {
+        console.error('Failed to transfer admin role:', response.message);
+      }
+    } catch (error) {
+      console.error('Error transferring admin role:', error);
+    }
+  };
+
+  const handleAddMod = async (memberId: string) => {
+    try {
+      const response = await ConversationService.grantModRole(group.id, memberId);
+      if (response.success) {
+        console.log('Mod role granted successfully');
+      } else {
+        console.error('Failed to grant mod role:', response.message);
+      }
+    } catch (error) {
+      console.error('Error granting mod role:', error);
+    }
+  };
+
+  const handleRemoveAdmin = async (memberId: string) => {
+    try {
+      const response = await ConversationService.removeParticipants(group.id, [memberId]);
+      if (response.success) {
+        console.log('Admin role removed successfully');
+      } else {
+        console.error('Failed to remove admin role:', response.message);
+      }
+    } catch (error) {
+      console.error('Error removing admin role:', error);
+    }
+  };
+
+  const MemberMenu = ({ 
+    visible, 
+    onClose, 
+    isAdmin = false, 
+    isModerator = false,
+    memberId,
+    onRemoveMember,
+    onAddAdmin,
+    onAddMod,
+    onRemoveAdmin
+  }: MemberMenuProps) => {
+    if (!visible) return null;
+
+    return (
+      <View
+        style={{
+          width: 240,
+          zIndex: 1000,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: '#E5E7EB', 
+          marginTop: 2
+        }}>
+        {!isAdmin && !isModerator && (
+          <View className="flex-1">
+            <TouchableOpacity
+              className="flex-row items-center px-4 py-3 active:bg-gray-50"
+              onPress={() => {
+                onAddAdmin?.(memberId);
+                onClose();
+              }}
+            >
+              <Ionicons name="shield-outline" size={18} color="#3B82F6" />
+              <Text className="ml-2 text-[14px] text-gray-700">
+                Thêm làm trưởng nhóm
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-row items-center px-4 py-3 active:bg-gray-50"
+              onPress={() => {
+                onAddMod?.(memberId);
+                onClose();
+              }}
+            >
+              <Ionicons name="shield-half-outline" size={18} color="#3B82F6" />
+              <Text className="ml-2 text-[14px] text-gray-700">
+                Thêm làm phó nhóm
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {isAdmin ? (
+          <TouchableOpacity
+            className="flex-row items-center px-4 py-3 active:bg-gray-50"
+            onPress={() => {
+              onRemoveAdmin?.(memberId);
+              onClose();
+            }}
+          >
+            <Ionicons name="trash-outline" size={18} color="#EF4444" />
+            <Text className="ml-2 text-[14px] text-red-500">
+              Xóa tư cách quản trị viên
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            className="flex-row items-center px-4 py-3 active:bg-gray-50"
+            onPress={() => {
+              onRemoveMember?.(memberId);
+              onClose();
+            }}
+          >
+            <Ionicons name="exit-outline" size={18} color="#EF4444" />
+            <Text className="ml-2 text-[14px] text-red-500">
+              Xóa khỏi nhóm
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
+
 
   const ShowDetail = () => {
     const [openMenuForMember, setOpenMenuForMember] = useState<string | null>(null);
@@ -168,11 +242,13 @@ export default function GroupInfo({ group }: GroupInfoProps) {
               {
                 (member.id !== user?.id && (MOCK_MEMBERS.find(p => p.id === user?.id)?.role === 'admin')) && (
                   <MemberMenu
-                  visible={openMenuForMember === member.id}
-                  onClose={() => setOpenMenuForMember(null)}
-                  isAdmin={true}
-                  isModerator={false}
-                />
+                    visible={openMenuForMember === member.id}
+                    onClose={() => setOpenMenuForMember(null)}
+                    isAdmin={true}
+                    isModerator={false}
+                    memberId={member.id}
+                    onRemoveAdmin={handleRemoveAdmin}
+                  />
                 )
               }
             </View>
@@ -215,6 +291,10 @@ export default function GroupInfo({ group }: GroupInfoProps) {
                     onClose={() => setOpenMenuForMember(null)}
                     isAdmin={false}
                     isModerator={MOCK_MEMBERS.find(p => p.id === user?.id)?.role === 'mod'}
+                    memberId={member.id}
+                    onRemoveMember={handleRemoveMember}
+                    onAddAdmin={handleAddAdmin}
+                    onAddMod={handleAddMod}
                   />
                 )
               }
