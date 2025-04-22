@@ -54,7 +54,7 @@ export default function ChatHeader({
             onPress={() => {
               MessageService.makeACall(selectedChat.id);
             }}
-          >
+          > 
             <Ionicons name="call-outline" size={22} color="#666" />
           </TouchableOpacity>
           <TouchableOpacity
