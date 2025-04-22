@@ -55,6 +55,8 @@ export default function GroupInfo({ group }: GroupInfoProps) {
 
   const handleAddAdmin = async (memberId: string) => {
     try {
+      console.log('Adding admin:', memberId);
+      console.log('Group ID:', group.id);
       const response = await ConversationService.transferAdmin(group.id, memberId);
       if (response.success) {
         console.log('Admin role transferred successfully');
@@ -126,7 +128,7 @@ export default function GroupInfo({ group }: GroupInfoProps) {
             >
               <Ionicons name="shield-outline" size={18} color="#3B82F6" />
               <Text className="ml-2 text-[14px] text-gray-700">
-                Thêm làm trưởng nhóm
+                 Chuyển quyền quản trị viên
               </Text>
             </TouchableOpacity>
             <TouchableOpacity

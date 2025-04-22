@@ -538,7 +538,7 @@ export const ConversationService: ConversationService = {
 
             const response = await axios.put(
                 `${ApiEndpoints.API_CONVERSATION}/transfer-admin/${conversationId}`,
-                { newAdminId },
+                { toUserId: newAdminId },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -608,7 +608,7 @@ export const ConversationService: ConversationService = {
 
             const response = await axios.put(
                 `${ApiEndpoints.API_CONVERSATION}/grant-mod-role/${conversationId}`,
-                { userId },
+                { toUserId: userId },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
