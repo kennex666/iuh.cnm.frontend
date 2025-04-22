@@ -629,14 +629,14 @@ export default function ChatArea({
               : null;
           return (
             <View className={`flex-row items-end mb-4 ${ msg.senderId === user?.id ? "justify-end" : "justify-start"}`}>
-              <View className={`relative max-w-[70%] flex flex-row ${ msg.senderId === user?.id ? "items-end" : "items-start" }`}>
-
-              <Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2" resizeMode="cover" />
-              <View className="flex-col items-end">
+              <View className={`relative max-w-[70%] mt-2 flex flex-row ${ msg.senderId === user?.id ? "items-end" : "items-start" }`}>
+              
+              <Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2 mt-3" resizeMode="cover" />
+              <View className={`flex-col mt-2  ${ msg.senderId === user?.id ? "items-end" : "items-start" }`}>
               {(msg.repliedToId || msg.repliedTold) && (
                   <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500">
                     <Text className="text-xs text-gray-500">
-                      Trả lời tin nhắn
+                      Trả lời {messageUsers[repliedToMessage?.senderId]?.name}
                     </Text>
                     <Text className="text-sm text-gray-700" numberOfLines={1}>
                       {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
@@ -655,7 +655,12 @@ export default function ChatArea({
                 delayLongPress={200}
                 activeOpacity={0.7}
                 >
-                <View className={`rounded-2xl p-2 ${ msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
+                <View className={`rounded-md mt-1 py-1 px-3 ${ msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
+                {msg.senderId !== user?.id && (
+                <Text className="text-gray-500 text-xs">
+                  {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
+                </Text>
+              )}
                   {msg.type === MessageType.TEXT ? (
                   <Text className={ msg.senderId === user?.id ? "text-white" : "text-gray-900" }>
                     {msg.content}
