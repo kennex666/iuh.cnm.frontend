@@ -28,6 +28,11 @@ interface ConversationService {
         success: boolean;
         message: string;
     }>;
+    addParticipants: (conversationId: string, participantIds: string[]) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
 }
 
 export const ConversationService: ConversationService = {
@@ -346,5 +351,78 @@ export const ConversationService: ConversationService = {
                 message: "Failed to delete conversation",
             };
         }
-    }
+    },
+
+    // Add more methods as needed
+    async addParticipants(conversationId: string, participantIds: string[]): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+    
+            console.log("Adding participants:", participantIds);
+            console.log("Conversation ID:", conversationId);
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/add-participants/${conversationId}`,
+                { participantIds },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+    
+            if (response.data.success) {
+                const updatedConversation: Conversation = {
+                    id: response.data.data.id,
+                    isGroup: response.data.data.isGroup,
+                    name: response.data.data.name,
+                    avatarUrl: response.data.data.avatarUrl || '',
+                    avatarGroup: response.data.data.avatarGroup || '',
+                    type: response.data.data.isGroup ? 'group' : '1vs1',
+                    participantIds: response.data.data.participantIds || [],
+                    participantInfo: response.data.data.participantInfo || [],
+                    url: response.data.data.url || '',
+                    pinMessages: response.data.data.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
+                        pendingList: response.data.data.settings?.pendingList || [],
+                    },
+                    lastMessage: response.data.data.lastMessage || null,
+                    createdAt: response.data.data.createdAt,
+                    updatedAt: response.data.data.updatedAt,
+                };
+    
+                return {
+                    success: true,
+                    conversation: updatedConversation,
+                    message: response.data.message || "Successfully added participants",
+                };
+            }
+    
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: response.data.message || "Failed to add participants",
+            };
+        } catch (error) {
+            console.error("Add participants error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to add participants",
+            };
+        }
+    },
 };

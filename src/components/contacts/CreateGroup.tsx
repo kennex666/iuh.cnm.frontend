@@ -149,6 +149,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
             } else {
                 console.error('Error creating group:', response.message);
             }
+            onClose(); 
         } catch (error) {
             console.error('Error creating group:', error);
         }

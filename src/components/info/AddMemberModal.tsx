@@ -2,20 +2,18 @@ import React, { useState } from 'react';
 import { Modal, ScrollView, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useWindowDimensions } from 'react-native';
+import { User } from '@/src/models/User';
+import { ConversationService } from '@/src/api/services/ConversationService';
+import { Conversation } from '@/src/models/Conversation';
 
 interface AddMemberModalProps {
     visible: boolean;
     onClose: () => void;
-    MOCK_USERS: {
-        id: string;
-        name: string;
-        avatar: string;
-        isOnline: boolean;
-        mutualFriends: number;
-    }[];
+    selectChat: Conversation | null;
+    MOCK_USERS: User[];
 }
 
-export default function AddMemberModal ({ visible, onClose, MOCK_USERS }: AddMemberModalProps) {
+export default function AddMemberModal ({ visible, onClose, selectChat ,MOCK_USERS }: AddMemberModalProps) {
     const isDesktop = useWindowDimensions().width >= 768;
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -31,6 +29,29 @@ export default function AddMemberModal ({ visible, onClose, MOCK_USERS }: AddMem
     const filteredUsers = MOCK_USERS.filter(user =>
       user.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const handleAddMembers = async () => {
+      // Handle adding members logic here
+      console.log('Selected users:', selectedUsers);
+      console.log('Selected chat:', selectChat);
+      try {
+        if (!selectChat?.id) {
+          console.error('Conversation ID is undefined');
+          return;
+        }
+        const response = await ConversationService.addParticipants(selectChat.id, selectedUsers);
+        if (!response.success) {
+          console.error('Failed to add members:', response.message);
+          return;
+        }
+
+        console.log('Members added successfully!');
+      }
+      catch (error) {
+        console.error('Error adding members:', error);
+      }
+      onClose(); // Close the modal after adding members
+    }
   
     return (
       <Modal
@@ -68,6 +89,7 @@ export default function AddMemberModal ({ visible, onClose, MOCK_USERS }: AddMem
                 <TouchableOpacity
                   className={`py-1 px-3 rounded-lg ${selectedUsers.length > 0 ? 'bg-blue-500' : 'bg-gray-200'}`}
                   disabled={selectedUsers.length === 0}
+                  onPress={handleAddMembers}
                 >
                   <Text className={selectedUsers.length > 0 ? 'text-white' : 'text-gray-500'}>
                     Thêm ({selectedUsers.length})
@@ -99,7 +121,7 @@ export default function AddMemberModal ({ visible, onClose, MOCK_USERS }: AddMem
                   >
                     <View className="relative">
                       <Image
-                        source={{ uri: user.avatar }}
+                        source={{ uri: user.avatarURL || 'https://placehold.co/400' }}
                         className="w-12 h-12 rounded-full"
                       />
                       {user.isOnline && (
@@ -108,9 +130,6 @@ export default function AddMemberModal ({ visible, onClose, MOCK_USERS }: AddMem
                     </View>
                     <View className="flex-1 ml-3">
                       <Text className="text-[15px] font-medium text-gray-900">{user.name}</Text>
-                      <Text className="text-sm text-gray-500">
-                        {user.mutualFriends} bạn chung
-                      </Text>
                     </View>
                     <View className={`w-6 h-6 rounded-full border-2 items-center justify-center
                       ${selectedUsers.includes(user.id)

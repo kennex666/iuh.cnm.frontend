@@ -106,7 +106,7 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
                     isOnline={!selectedChat.isGroup}
                 />
                 <ActionsInfo
-                    isGroup={selectedChat.isGroup}
+                    selectChat={selectedChat}
                     onSearchPress={handleSearchPress}
                 />
                 {selectedChat.isGroup && (
