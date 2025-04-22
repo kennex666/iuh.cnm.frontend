@@ -33,6 +33,31 @@ interface ConversationService {
         conversation: Conversation;
         message: string;
     }>;
+    removeParticipants: (conversationId: string, participantIds: string[]) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
+    transferAdmin: (conversationId: string, newAdminId: string) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
+    grantModRole: (conversationId: string, userId: string) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
+    updateAllowMessaging: (conversationId: string) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
+    pinMessage: (conversationId: string, messageId: string) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
 }
 
 export const ConversationService: ConversationService = {
@@ -422,6 +447,356 @@ export const ConversationService: ConversationService = {
                 success: false,
                 conversation: {} as Conversation,
                 message: "Failed to add participants",
+            };
+        }
+    },
+
+    async removeParticipants(conversationId: string, participantIds: string[]): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/remove-participants/${conversationId}`,
+                { participantIds },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const updatedConversation: Conversation = {
+                    id: response.data.data.id,
+                    isGroup: response.data.data.isGroup,
+                    name: response.data.data.name,
+                    avatarUrl: response.data.data.avatarUrl || '',
+                    avatarGroup: response.data.data.avatarGroup || '',
+                    type: response.data.data.isGroup ? 'group' : '1vs1',
+                    participantIds: response.data.data.participantIds || [],
+                    participantInfo: response.data.data.participantInfo || [],
+                    url: response.data.data.url || '',
+                    pinMessages: response.data.data.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
+                        pendingList: response.data.data.settings?.pendingList || [],
+                    },
+                    lastMessage: response.data.data.lastMessage || null,
+                    createdAt: response.data.data.createdAt,
+                    updatedAt: response.data.data.updatedAt,
+                };
+
+                return {
+                    success: true,
+                    conversation: updatedConversation,
+                    message: response.data.message || "Successfully removed participants",
+                };
+            }
+
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: response.data.message || "Failed to remove participants",
+            };
+        } catch (error) {
+            console.error("Remove participants error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to remove participants",
+            };
+        }
+    },
+
+    async transferAdmin(conversationId: string, newAdminId: string): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/transfer-admin/${conversationId}`,
+                { newAdminId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const updatedConversation: Conversation = {
+                    id: response.data.data.id,
+                    isGroup: response.data.data.isGroup,
+                    name: response.data.data.name,
+                    avatarUrl: response.data.data.avatarUrl || '',
+                    avatarGroup: response.data.data.avatarGroup || '',
+                    type: response.data.data.isGroup ? 'group' : '1vs1',
+                    participantIds: response.data.data.participantIds || [],
+                    participantInfo: response.data.data.participantInfo || [],
+                    url: response.data.data.url || '',
+                    pinMessages: response.data.data.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
+                        pendingList: response.data.data.settings?.pendingList || [],
+                    },
+                    lastMessage: response.data.data.lastMessage || null,
+                    createdAt: response.data.data.createdAt,
+                    updatedAt: response.data.data.updatedAt,
+                };
+
+                return {
+                    success: true,
+                    conversation: updatedConversation,
+                    message: response.data.message || "Successfully transferred admin role",
+                };
+            }
+
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: response.data.message || "Failed to transfer admin role",
+            };
+        } catch (error) {
+            console.error("Transfer admin error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to transfer admin role",
+            };
+        }
+    },
+
+    async grantModRole(conversationId: string, userId: string): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/grant-mod-role/${conversationId}`,
+                { userId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const updatedConversation: Conversation = {
+                    id: response.data.data.id,
+                    isGroup: response.data.data.isGroup,
+                    name: response.data.data.name,
+                    avatarUrl: response.data.data.avatarUrl || '',
+                    avatarGroup: response.data.data.avatarGroup || '',
+                    type: response.data.data.isGroup ? 'group' : '1vs1',
+                    participantIds: response.data.data.participantIds || [],
+                    participantInfo: response.data.data.participantInfo || [],
+                    url: response.data.data.url || '',
+                    pinMessages: response.data.data.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
+                        pendingList: response.data.data.settings?.pendingList || [],
+                    },
+                    lastMessage: response.data.data.lastMessage || null,
+                    createdAt: response.data.data.createdAt,
+                    updatedAt: response.data.data.updatedAt,
+                };
+
+                return {
+                    success: true,
+                    conversation: updatedConversation,
+                    message: response.data.message || "Successfully granted mod role",
+                };
+            }
+
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: response.data.message || "Failed to grant mod role",
+            };
+        } catch (error) {
+            console.error("Grant mod role error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to grant mod role",
+            };
+        }
+    },
+
+    async updateAllowMessaging(conversationId: string): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/update-allow-messaging/${conversationId}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const updatedConversation: Conversation = {
+                    id: response.data.data.id,
+                    isGroup: response.data.data.isGroup,
+                    name: response.data.data.name,
+                    avatarUrl: response.data.data.avatarUrl || '',
+                    avatarGroup: response.data.data.avatarGroup || '',
+                    type: response.data.data.isGroup ? 'group' : '1vs1',
+                    participantIds: response.data.data.participantIds || [],
+                    participantInfo: response.data.data.participantInfo || [],
+                    url: response.data.data.url || '',
+                    pinMessages: response.data.data.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
+                        pendingList: response.data.data.settings?.pendingList || [],
+                    },
+                    lastMessage: response.data.data.lastMessage || null,
+                    createdAt: response.data.data.createdAt,
+                    updatedAt: response.data.data.updatedAt,
+                };
+
+                return {
+                    success: true,
+                    conversation: updatedConversation,
+                    message: response.data.message || "Successfully updated allow messaging",
+                };
+            }
+
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: response.data.message || "Failed to update allow messaging",
+            };
+        } catch (error) {
+            console.error("Update allow messaging error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to update allow messaging",
+            };
+        }
+    },
+
+    async pinMessage(conversationId: string, messageId: string): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/pin-message/${conversationId}`,
+                { messageId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const updatedConversation: Conversation = {
+                    id: response.data.data.id,
+                    isGroup: response.data.data.isGroup,
+                    name: response.data.data.name,
+                    avatarUrl: response.data.data.avatarUrl || '',
+                    avatarGroup: response.data.data.avatarGroup || '',
+                    type: response.data.data.isGroup ? 'group' : '1vs1',
+                    participantIds: response.data.data.participantIds || [],
+                    participantInfo: response.data.data.participantInfo || [],
+                    url: response.data.data.url || '',
+                    pinMessages: response.data.data.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
+                        pendingList: response.data.data.settings?.pendingList || [],
+                    },
+                    lastMessage: response.data.data.lastMessage || null,
+                    createdAt: response.data.data.createdAt,
+                    updatedAt: response.data.data.updatedAt,
+                };
+
+                return {
+                    success: true,
+                    conversation: updatedConversation,
+                    message: response.data.message || "Successfully pinned message",
+                };
+            }
+
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: response.data.message || "Failed to pin message",
+            };
+        } catch (error) {
+            console.error("Pin message error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to pin message",
             };
         }
     },
