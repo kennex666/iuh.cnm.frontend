@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { Conversation } from '@/src/models/Conversation';
 import Search from './Search';
 import HeaderInfo from '../info/HeaderInfo';
@@ -9,6 +9,7 @@ import MediaInfo from '../info/MediaInfo';
 import FilesInfo from '../info/FilesInfo';
 import { Ionicons } from '@expo/vector-icons';
 import GroupInfo from '../info/GroupInfo';
+import { ConversationService } from '@/src/api/services/ConversationService';
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -59,6 +60,24 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
+    };
+
+    const handleDisbandGroup = async () => {
+        console.log('Disband group:', selectedChat?.id);
+        try {
+            if(!selectedChat?.id) {
+                console.error('Conversation ID is undefined');
+                return;
+            }
+            const response = await ConversationService.deleteConversation(selectedChat?.id);
+            if(response.success) {
+                console.log('Group disbanded successfully');
+            } else {
+                console.error('Error disbanding group:', response.message);
+            }
+        } catch (error) {
+            console.error('Error disbanding group:', error);
+        }
     };
 
     // Helper function để lấy icon cho từng loại file
@@ -120,6 +139,14 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
                 <FilesInfo
                     files={MOCK_FILES}
                 />
+                {selectedChat.isGroup && (
+                    <View className="mb-2 pt-2 border-t border-gray-200">
+                        <TouchableOpacity className="flex-row items-center px-4 py-2 ounded-xl" onPress={handleDisbandGroup}>
+                            <Ionicons name="trash-outline" size={18} color="red" className="mr-2" />
+                            <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </ScrollView>
 
             <Search
