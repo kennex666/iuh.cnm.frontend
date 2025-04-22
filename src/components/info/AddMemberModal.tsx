@@ -3,8 +3,6 @@ import { Modal, ScrollView, Text, TextInput, TouchableOpacity, View, Image } fro
 import { Ionicons } from '@expo/vector-icons';
 import { useWindowDimensions } from 'react-native';
 
-const isDesktop = useWindowDimensions().width >= 768;
-
 interface AddMemberModalProps {
     visible: boolean;
     onClose: () => void;
@@ -18,6 +16,7 @@ interface AddMemberModalProps {
 }
 
 export default function AddMemberModal ({ visible, onClose, MOCK_USERS }: AddMemberModalProps) {
+    const isDesktop = useWindowDimensions().width >= 768;
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   

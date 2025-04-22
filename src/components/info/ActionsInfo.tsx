@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AddMemberModal from './AddMemberModal';
@@ -42,7 +42,7 @@ interface ActionsInfoProps {
 }
 
 export default function ActionsInfo({ isGroup, onSearchPress }: ActionsInfoProps) {
-    const [addMemberVisible, setAddMemberVisible] = React.useState(false);
+    const [addMemberVisible, setAddMemberVisible] = useState(false);
     return (
         <View className={`flex-row justify-around items-center pt-6 pb-4 border-b-4 border-gray-200`}>
             {/* Actions chung */}
