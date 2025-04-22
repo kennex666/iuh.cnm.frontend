@@ -8,6 +8,7 @@ import { User } from '@/src/models/User';
 import { UserService } from '@/src/api/services/UserService';
 import { useUser } from '@/src/contexts/user/UserContext';
 import { Conversation } from '@/src/models/Conversation';
+import { ConversationService } from '@/src/api/services/ConversationService';
 
 interface ActionsInfoProps {
     selectChat: Conversation | null;
@@ -16,56 +17,6 @@ interface ActionsInfoProps {
 
 export default function ActionsInfo({ selectChat, onSearchPress }: ActionsInfoProps) {
     const [addMemberVisible, setAddMemberVisible] = useState(false);
-    const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
-    const {user} = useUser(); 
-    const [contacts, setContacts] = useState<User[]>([]);
-    useEffect(() => {
-            // Fetch contacts from API or database here
-            const fetchFriendRequests = async () => {
-                try {
-                    // Simulate fetching contacts
-                    const response = await FriendRequestService.getAllAcceptedFriendRequests("");
-                    console.log('Fetched friend requests 12122:', response);
-                    setFriendRequests(response.friendRequests || []); 
-                } catch (error) {
-                    setFriendRequests([]);
-                    console.error('Error fetching friend requests:', error);
-                }
-            };
-    
-            fetchFriendRequests();
-    }, []);
-    
-    useEffect(() => {
-        const fetchContacts = async () => {
-            try {
-                const ids = [];
-                for (const request of friendRequests) {
-                    if (request.senderId !== user?.id) {
-                        ids.push(request.senderId);
-                    } else {
-                        ids.push(request.receiverId);
-                    }
-                }
-        
-                    const uniqueIds = Array.from(new Set(ids)); 
-                    const contactsList = [] as User[];
-                    for (const id of uniqueIds) {
-                        const response = await UserService.getUserById(id);
-                        if (response.success && !selectChat?.participantIds.includes(id)) {
-                            contactsList.push(response.user as User);
-                        }
-                    }
-                    setContacts(contactsList);
-                } catch (error) {
-                    setContacts([]);
-                    console.error('Error fetching contacts:', error);
-                }
-            };
-            if (Array.isArray(friendRequests) && friendRequests.length > 0) {
-                fetchContacts();
-            }
-    }, [friendRequests]);
     
     return (
         <View className={`flex-row justify-around items-center pt-6 pb-4 border-b-4 border-gray-200`}>
@@ -102,8 +53,7 @@ export default function ActionsInfo({ selectChat, onSearchPress }: ActionsInfoPr
             )}
             {addMemberVisible && ( <AddMemberModal visible={addMemberVisible}
         onClose={() => setAddMemberVisible(false)}
-        selectChat={selectChat}
-        MOCK_USERS={contacts}/> )}
+        selectChat={selectChat}/> )}
         </View>
     );
 } 

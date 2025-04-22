@@ -1,22 +1,82 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useWindowDimensions } from 'react-native';
 import { User } from '@/src/models/User';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import { Conversation } from '@/src/models/Conversation';
+import { useUser } from '@/src/contexts/user/UserContext';
+import { FriendRequestService } from '@/src/api/services/FriendRequestService';
+import { UserService } from '@/src/api/services/UserService';
+import FriendRequest from '@/src/models/FriendRequest';
 
 interface AddMemberModalProps {
     visible: boolean;
     onClose: () => void;
     selectChat: Conversation | null;
-    MOCK_USERS: User[];
 }
 
-export default function AddMemberModal ({ visible, onClose, selectChat ,MOCK_USERS }: AddMemberModalProps) {
+export default function AddMemberModal ({ visible, onClose, selectChat}: AddMemberModalProps) {
     const isDesktop = useWindowDimensions().width >= 768;
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+    const {user} = useUser(); 
+    const [MOCK_USERS, setContacts] = useState<User[]>([]);
+    useEffect(() => {
+            // Fetch contacts from API or database here
+            const fetchFriendRequests = async () => {
+                try {
+                    // Simulate fetching contacts
+                    const response = await FriendRequestService.getAllAcceptedFriendRequests("");
+                    console.log('Fetched friend requests 12122:', response);
+                    setFriendRequests(response.friendRequests || []); 
+                } catch (error) {
+                    setFriendRequests([]);
+                    console.error('Error fetching friend requests:', error);
+                }
+            };
+    
+            fetchFriendRequests();
+    }, []);
+    
+    useEffect(() => {
+        const fetchContacts = async () => {
+            try {
+                const ids = [];
+                for (const request of friendRequests) {
+                    if (request.senderId !== user?.id) {
+                        ids.push(request.senderId);
+                    } else {
+                        ids.push(request.receiverId);
+                    }
+                }
+        
+                    const uniqueIds = Array.from(new Set(ids)); 
+                    const contactsList = [] as User[];
+                    if(!selectChat?.id) {
+                        console.error('Conversation ID is undefined');
+                        return;
+                    } 
+                    const inforConversation = await ConversationService.getConversationById(selectChat.id);
+                    console.log('Infor conversation:', inforConversation);
+                    console.log('Unique IDs:', uniqueIds);
+                    for (const id of uniqueIds) {
+                        const response = await UserService.getUserById(id);
+                        if (response.success && !inforConversation.conversation.participantIds.includes(id)) {
+                            contactsList.push(response.user as User);
+                        }
+                    }
+                    setContacts(contactsList);
+                } catch (error) {
+                    setContacts([]);
+                    console.error('Error fetching contacts:', error);
+                }
+            };
+            if (Array.isArray(friendRequests) && friendRequests.length > 0) {
+                fetchContacts();
+            }
+    }, [friendRequests]);
   
     const toggleUserSelection = (userId: string) => {
       setSelectedUsers(prev =>

@@ -137,9 +137,9 @@ export const ConversationService: ConversationService = {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
+            console.log("Response data1212121   :", response.data);
             if (response.data.success) {
-                const apiConv = response.data.data;
+                const apiConv = response.data.data._doc;
                 const conversation: Conversation = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
