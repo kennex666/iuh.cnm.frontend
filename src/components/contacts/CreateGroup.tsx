@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -10,6 +10,10 @@ import {
     Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { FriendRequestService } from '@/src/api/services/FriendRequestService';
+import { UserService } from '@/src/api/services/UserService';
+import { User } from '@/src/models/User';
+import FriendRequest from '@/src/models/FriendRequest';
 
 interface CreateGroupProps {
     visible: boolean;
@@ -17,24 +21,11 @@ interface CreateGroupProps {
 }
 
 export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
+    const windowWidth = Dimensions.get('window').width; 
     const [groupName, setGroupName] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const windowWidth = Dimensions.get('window').width;
-
-    // Mock data for contacts
-    const contacts = [
-        { id: '1', name: 'Nguyễn Văn A', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '2', name: 'Trần Thị B', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '3', name: 'Lê Văn C', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '4', name: 'Phạm Thị D', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '5', name: 'Nguyễn Thị E', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '6', name: 'Nguyễn Thị F', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '7', name: 'Nguyễn Thị G', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '8', name: 'Nguyễn Thị H', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '9', name: 'Nguyễn Thị I', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-        { id: '10', name: 'Nguyễn Thị J', avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png' },
-    ];
-
+    const [contacts, setContacts] = useState([] as User[]);
+    const [friendRequests, setFriendRequests] = useState([] as FriendRequest[]);
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
     const toggleContact = (contactId: string) => {
@@ -44,6 +35,44 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 : [...prev, contactId]
         );
     };
+
+    useEffect(() => {
+        // Fetch contacts from API or database here
+        const fetchFriendRequests = async () => {
+            try {
+                // Simulate fetching contacts
+                const response = await FriendRequestService.getAllAcceptedFriendRequests("");
+                setFriendRequests(response.friendRequests || []); 
+            } catch (error) {
+                setFriendRequests([]);
+                console.error('Error fetching friend requests:', error);
+            }
+        };
+
+        fetchFriendRequests();
+    }, []);
+
+    useEffect(() => {
+        const fetchContacts = async () => {
+            try {
+                const contactsList = [] as User[];
+                for (const request of friendRequests) {
+                    const response = await UserService.getUserById(request.senderId);
+                    if (response.success) {
+                        contactsList.push(response.user as User);
+                    }
+                }
+                setContacts(contactsList);
+            } catch (error) {
+                setContacts([]);
+                console.error('Error fetching contacts:', error);
+            }
+        };
+
+        if (Array.isArray(friendRequests) && friendRequests.length > 0) {
+            fetchContacts();
+        }
+    }, [friendRequests]);
 
     return (
         <Modal
@@ -112,7 +141,8 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                                 onPress={() => toggleContact(contact.id)}
                             >
                                 <Image
-                                    source={{ uri: contact.avatarUrl }}
+                                    source={{ uri: contact.avatarURL || 'https://placehold.co/400' }}
+                                    resizeMode="cover"
                                     className="w-12 h-12 rounded-full"
                                 />
                                 <Text className="flex-1 ml-3 text-base">{contact.name}</Text>
