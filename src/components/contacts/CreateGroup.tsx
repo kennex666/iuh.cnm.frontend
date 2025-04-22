@@ -129,7 +129,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                     nickname: '',
                     role: id === user?.id ? 'admin' : 'member',
                 })),
-                url: '',
+                url: `${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`,
                 pinMessages: [],
                 settings: {
                     isReviewNewParticipant: false,
@@ -141,7 +141,8 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
             };
-            console.log('Creating group with data 1212121:', newConversation);
+
+            console.log('Creating group with data:', newConversation);
             const response = await ConversationService.createConversation(newConversation);
             if (response.success) {
                 console.log('Group created successfully:', response.conversation);
@@ -172,7 +173,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                         <TouchableOpacity 
                             className={`px-4 py-2 rounded-full ${selectedContacts.length > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
                             disabled={selectedContacts.length === 0}
-                            onPress={() => handleCreateGroup()}
+                            onPress={handleCreateGroup}
                         >
                             <Text className="text-white font-medium">Tạo</Text>
                         </TouchableOpacity>
