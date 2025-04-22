@@ -324,7 +324,6 @@ export default function ChatArea({
   useEffect(() => {
     if (selectedChat) {
       fetchMessages();
-      // Join new conversation
       socketService.joinConversation(selectedChat.id);
     }
 
@@ -381,7 +380,7 @@ export default function ChatArea({
       if (!selectedChat || !user) return;
 
       // Find the other participant's ID
-      const otherUserId = selectedChat.participants.find(
+      const otherUserId = selectedChat.participantIds.find(
         (id) => id !== user.id
       );
       if (!otherUserId) return;

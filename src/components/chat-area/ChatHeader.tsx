@@ -2,9 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { Component } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { MessageService } from "@/src/api/services/MessageService";
+import { Conversation } from "@/src/models/Conversation";
 
 interface ChatHeaderProps {
-  selectedChat: any; // Replace with the actual type of selectedChat
+  selectedChat: Conversation; // Replace with the actual type of selectedChat
   onBackPress?: () => void;
   onInfoPress?: () => void;
   information?: any; // Replace with the actual type of information
@@ -26,7 +27,7 @@ export default function ChatHeader({
             </TouchableOpacity>
           )}
           <Image
-            source={{ uri: selectedChat?.avatar?.trim() || "https://placehold.co/400" }}
+            source={{ uri: selectedChat?.avatarUrl?.trim() || "https://placehold.co/400" }}
             className="w-12 h-12 rounded-full"
           />
           <View className="ml-3" style={{ maxWidth: "45%" }}>
@@ -39,10 +40,10 @@ export default function ChatHeader({
             </Text>
             {selectedChat.isGroup && (
               <Text className="text-sm text-gray-500">
-                {selectedChat.participants.length} thành viên
+                {selectedChat.participantIds.length} thành viên
               </Text>
             )}
-            {!selectedChat.isGroup && selectedChat.participants.length > 0 && (
+            {!selectedChat.isGroup && selectedChat.participantIds.length > 0 && (
               <Text className="text-sm text-green-500">Đang hoạt động</Text>
             )}
           </View>

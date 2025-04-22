@@ -50,16 +50,12 @@ export const ConversationService: ConversationService = {
 
             const url = ApiEndpoints.API_CONVERSATION;
             
-            console.log("Request URL:", url);
-            console.log("Request Headers:", {
-                Authorization: `Bearer ${token}`,
-            });
-            
             const response = await axios.get(url, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
+            console.log("Response: 1212121", response);
 
             if (response.data.success) {
                 if (!response.data.data) {
@@ -75,13 +71,22 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup || false,
                     name: apiConv.name || '',
-                    avatar: apiConv.avatar || '',
-                    participants: apiConv.participants || [],
-                    adminIds: apiConv.adminIds || [],
-                    settings: apiConv.settings || {},
+                    avatarUrl: apiConv.avatarUrl || '',
+                    avatarGroup: apiConv.avatarGroup || '',
+                    type: apiConv.type || '1vs1',
+                    participantIds: apiConv.participantIds || [],
+                    participantInfo: apiConv.participantInfo || [],
+                    url: apiConv.url || '',
+                    pinMessages: apiConv.pinMessages || [],
+                    settings: apiConv.settings || {
+                        isReviewNewParticipant: false,
+                        isAllowReadNewMessage: true,
+                        isAllowMessaging: true,
+                        pendingList: [],
+                    },
                     lastMessage: apiConv.lastMessage || null,
                     createdAt: apiConv.createdAt || new Date(),
-                    updatedAt: apiConv.updatedAt || new Date()
+                    updatedAt: apiConv.updatedAt || new Date(),
                 }));
                 return { 
                     success: true, 
@@ -134,13 +139,21 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
                     name: apiConv.name,
-                    avatar: apiConv.avatar || '',
-                    participants: apiConv.participants || [],
-                    adminIds: apiConv.adminIds,
-                    settings: apiConv.settings,
-                    lastMessage: apiConv.lastMessage,
+                    avatarUrl: apiConv.avatar || '',
+                    type: apiConv.isGroup ? 'group' : '1vs1',
+                    participantIds: apiConv.participantIds || [],
+                    participantInfo: apiConv.participantInfo || [],
+                    url: apiConv.url || '',
+                    pinMessages: apiConv.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
+                        pendingList: apiConv.settings?.pendingList || []
+                    },
+                    lastMessage: apiConv.lastMessage || null,
                     createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt,
+                    updatedAt: apiConv.updatedAt
                 };
 
                 return { 
@@ -191,13 +204,22 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
                     name: apiConv.name,
-                    avatar: apiConv.avatar || '',
-                    participants: apiConv.participants || [],
-                    adminIds: apiConv.adminIds,
-                    settings: apiConv.settings,
-                    lastMessage: apiConv.lastMessage,
+                    avatarUrl: apiConv.avatarUrl || '',
+                    avatarGroup: apiConv.avatarGroup || '',
+                    type: apiConv.isGroup ? 'group' : '1vs1',
+                    participantIds: apiConv.participantIds || [],
+                    participantInfo: apiConv.participantInfo || [],
+                    url: apiConv.url || '',
+                    pinMessages: apiConv.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
+                        pendingList: apiConv.settings?.pendingList || []
+                    },
+                    lastMessage: apiConv.lastMessage || null,
                     createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt,
+                    updatedAt: apiConv.updatedAt
                 };
 
                 return { 
@@ -248,13 +270,22 @@ export const ConversationService: ConversationService = {
                     id: apiConv.id,
                     isGroup: apiConv.isGroup,
                     name: apiConv.name,
-                    avatar: apiConv.avatar || '',
-                    participants: apiConv.participants || [],
-                    adminIds: apiConv.adminIds,
-                    settings: apiConv.settings,
-                    lastMessage: apiConv.lastMessage,
+                    avatarUrl: apiConv.avatarUrl || '',
+                    avatarGroup: apiConv.avatarGroup || '',
+                    type: apiConv.isGroup ? 'group' : '1vs1',
+                    participantIds: apiConv.participantIds || [],
+                    participantInfo: apiConv.participantInfo || [],
+                    url: apiConv.url || '',
+                    pinMessages: apiConv.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
+                        pendingList: apiConv.settings?.pendingList || []
+                    },
+                    lastMessage: apiConv.lastMessage || null,
                     createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt,
+                    updatedAt: apiConv.updatedAt
                 };
 
                 return { 

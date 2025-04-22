@@ -40,7 +40,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                         // Fetch avatars for all participants
                         const uniqueParticipantIds = new Set<string>();
                         response.conversations.forEach((conv) => {
-                            conv.participants.forEach((id) =>
+                            conv.participantIds.forEach((id) =>
                                 uniqueParticipantIds.add(id)
                             );
                         });
@@ -184,7 +184,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         
         if (conversation.isGroup) {
             // Lấy tên của 2 người đầu tiên trong nhóm
-            const otherParticipants = conversation.participants
+            const otherParticipants = conversation.participantIds
                 .filter(id => id !== user?.id)
                 .slice(0, 2);
             const names = otherParticipants.map(id => participantNames[id] || 'Unknown');
@@ -192,7 +192,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         }
         
         // Trong chat riêng tư, lấy tên của người còn lại
-        const otherParticipantId = conversation.participants.find(id => id !== user?.id);
+        const otherParticipantId = conversation.participantIds.find(id => id !== user?.id);
         return otherParticipantId ? participantNames[otherParticipantId] || 'Unknown' : 'Unknown';
     };
 
@@ -280,6 +280,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 						}`}
 						onPress={() => {
 							onSelectChat(conversation);
+                            console.log("Selected chat: ", conversation);
 						}}
 					>
 						<View className="relative">
@@ -287,13 +288,13 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 								source={{
 									uri:
 										!conversation.isGroup &&
-										conversation.participants.length < 3
+										conversation.participantIds.length < 3
 											? participantAvatars[
-													conversation.participants.find(
+													conversation.participantIds.find(
 														(id) => id !== user?.id
 													) || ""
-											  ] || conversation.avatar
-											: conversation.avatar,
+											  ] || conversation.avatarUrl
+											: conversation.avatarUrl,
 									headers: {
 										Accept: "image/*",
 									},
@@ -302,7 +303,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 								className="w-12 h-12 rounded-full"
 							/>
 							{!conversation.isGroup &&
-								conversation.participants.length > 0 && (
+								conversation.participantIds.length > 0 && (
 									<View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
 								)}
 						</View>

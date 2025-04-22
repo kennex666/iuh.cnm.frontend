@@ -99,10 +99,10 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
             />
             <ScrollView className="flex-1">
                 <ProfileInfo
-                    avatar={selectedChat.avatar}
+                    avatar={selectedChat.avatarUrl}
                     name={selectedChat.name}
                     isGroup={selectedChat.isGroup}
-                    memberCount={selectedChat.participants?.length}
+                    memberCount={selectedChat.participantIds?.length}
                     isOnline={!selectedChat.isGroup}
                 />
                 <ActionsInfo
