@@ -58,6 +58,11 @@ interface ConversationService {
         conversation: Conversation;
         message: string;
     }>;
+    joinGroupByUrl: (url: string) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
 }
 
 export const ConversationService: ConversationService = {
@@ -800,4 +805,75 @@ export const ConversationService: ConversationService = {
             };
         }
     },
+
+    async joinGroupByUrl(url: string): Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }> {
+        try {
+            const token = await AuthStorage.getAccessToken();
+            if (!token) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: "No token found",
+                };
+            }
+
+            const response = await axios.put(
+                `${ApiEndpoints.API_CONVERSATION}/join-group-by-url`,
+                { url },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                const apiConv = response.data.data;
+                const newConversation: Conversation = {
+                    id: apiConv.id,
+                    isGroup: apiConv.isGroup,
+                    name: apiConv.name,
+                    avatarUrl: apiConv.avatarUrl || '',
+                    avatarGroup: apiConv.avatarGroup || '',
+                    type: apiConv.isGroup ? 'group' : '1vs1',
+                    participantIds: apiConv.participantIds || [],
+                    participantInfo: apiConv.participantInfo || [],
+                    url: apiConv.url || '',
+                    pinMessages: apiConv.pinMessages || [],
+                    settings: {
+                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
+                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
+                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
+                        pendingList: apiConv.settings?.pendingList || [],
+                    },
+                    lastMessage: apiConv.lastMessage || null,
+                    createdAt: apiConv.createdAt,
+                    updatedAt: apiConv.updatedAt
+                };
+
+                return { 
+                    success: true, 
+                    conversation: newConversation, 
+                    message: response.data.message || "Successfully joined group" 
+                };
+            }
+
+            return { 
+                success: false, 
+                conversation: {} as Conversation, 
+                message: response.data.message || "Failed to join group" 
+            };
+        } catch (error) {
+            console.error("Join group by URL error:", error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: "Failed to join group",
+            };
+        }
+    }
 };

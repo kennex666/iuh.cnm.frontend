@@ -14,9 +14,10 @@ import QRScanner from '../ui/QRScanner';
 interface ConversationsProps {
     selectedChat: Conversation | null;
     onSelectChat: (chat: Conversation) => void;
+    newSelectedChat?: Conversation | null;
 }
 
-export default function Conversations({selectedChat, onSelectChat}: ConversationsProps) {
+export default function Conversations({selectedChat, onSelectChat, newSelectedChat}: ConversationsProps) {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -79,7 +80,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     useFocusEffect(
         useCallback(() => {
             fetchConversations();
-        }, [user?.id])
+        }, [user?.id, showQRScanner])
     );
 
     // load conversations when socket add participant
@@ -394,7 +395,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
                                     <Ionicons name="close" size={24} color="black" />
                                 </TouchableOpacity>
                             </View>
-                            <QRScanner />
+                            <QRScanner setShowQRScanner={setShowQRScanner}/>
                         </View>
                     </Modal>
                 )

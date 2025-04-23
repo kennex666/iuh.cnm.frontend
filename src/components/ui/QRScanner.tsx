@@ -1,6 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Alert, Linking, StyleSheet, Text, View} from 'react-native';
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from "expo-camera";
+import { navigate } from 'expo-router/build/global-state/routing';
+import { router } from 'expo-router';
+import { ConversationService } from '@/src/api/services/ConversationService';
 
 interface QrScannerProps {
     onScan?: (data: string) => void;
@@ -11,6 +14,9 @@ interface QrScannerProps {
     frameThickness?: number;
     overlayMessage?: string;
     lockScanTime?: number;
+    conversationId?: string;
+    participantId?: string;
+    setShowQRScanner?: (show: boolean) => void;
 }
 
 export default function QRScanner({
@@ -21,7 +27,8 @@ export default function QRScanner({
                                       frameColor = '#fff',
                                       frameThickness = 4,
                                       overlayMessage = "Di chuyển camera đến mã QR",
-                                      lockScanTime = 1000
+                                      lockScanTime = 1000,
+                                      setShowQRScanner
                                   }: QrScannerProps) {
     const [permission, requestPermission] = useCameraPermissions();
     const qrLock = useRef(false);
@@ -56,12 +63,31 @@ export default function QRScanner({
         if (showDefaultAlert) {
             setTimeout(() => {
                 Alert.alert("QR Code", data, [
-                    {text: "OK", onPress: () => (qrLock.current = false)},
+                    {text: "Thoát", onPress: () => (qrLock.current = false)},
                     {
-                        text: "Open",
+                        text: "Tham gia nhóm",
                         onPress: () => {
-                            Linking.openURL(data).catch(err => console.error("Error opening URL:", err));
-                            qrLock.current = false;
+                            Alert.alert("Đang yêu cầu", "Chuyển đến màn hình nhóm", [
+                                {
+                                    text: "Đồng ý",
+                                    onPress: () => {
+                                        if (data) {
+                                            const conversation = ConversationService.joinGroupByUrl(data);
+                                            setShowQRScanner && setShowQRScanner(false)
+                                            router.replace("/(main)");
+                                        } else {
+                                            Alert.alert("Error", `Không tìm thấy nhóm ${data}`, );
+                                            qrLock.current = false;
+                                        }
+                                        qrLock.current = false;
+                                    },
+                                },
+                                {
+                                    text: "Hủy",
+                                    onPress: () => (qrLock.current = false),
+                                    style: "cancel",
+                                },
+                            ]);
                         },
                     },
                 ]);

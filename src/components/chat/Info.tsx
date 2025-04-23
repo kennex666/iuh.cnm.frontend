@@ -123,7 +123,8 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
     return (
         <View className="flex-1 bg-white">
             <View className="z-10">
-                <HeaderInfo 
+                <HeaderInfo
+                    selectedChat={selectedChat}
                     isGroup={selectedChat.isGroup} 
                     onBackPress={onBackPress}
                 />

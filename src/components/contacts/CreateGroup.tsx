@@ -190,8 +190,10 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 avatarUrl: groupAvatar ? groupAvatar : 'https://placehold.co/400',
                 avatarGroup: '',
                 type: 'group',
-                participantIds: [user?.id, ...selectedContacts],
-                participantInfo: [user?.id, ...selectedContacts].map(id => ({
+                participantIds: [user?.id ?? '', ...selectedContacts].filter(id => id !== ''),
+                participantInfo: [user?.id ?? '', ...selectedContacts]
+                    .filter(id => id !== '')
+                    .map(id => ({
                     id,
                     name: contacts.find(contact => contact.id === id)?.name || '',
                     avatar: contacts.find(contact => contact.id === id)?.avatarURL || '',
