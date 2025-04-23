@@ -259,7 +259,7 @@ export default function GroupInfo({ group }: GroupInfoProps) {
 
         {/* Members Section */}
         <Text className="text-sm text-gray-500 mt-4 mb-2">Thành viên</Text>
-        {MOCK_MEMBERS.filter(member => member.role === 'member').map((member, index) => (
+        {MOCK_MEMBERS.filter(member => (member.role === 'member' && member.id !== user?.id)).map((member, index) => (
           <View key={member.id} className="flex-row py-2">
             <View className="flex-row">
               <Image
@@ -311,7 +311,7 @@ export default function GroupInfo({ group }: GroupInfoProps) {
     <View className="flex-1 px-4 pt-6 pb-4 border-b-4 border-gray-200">
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-base font-medium text-blue-950">
-          Thành viên nhóm ({group.participantInfo.length})
+          Thành viên nhóm ({group.participantInfo.length - 1})
         </Text>
         <TouchableOpacity
           className="py-1 px-3"
