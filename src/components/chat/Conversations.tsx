@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {Alert, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import {Alert, Image, Linking, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {FontAwesome, Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
 import { useUser } from '@/src/contexts/user/UserContext';
@@ -9,6 +9,7 @@ import SocketService from '@/src/api/services/SocketService';
 import { Message, MessageType } from '@/src/models/Message';
 import { Link, useFocusEffect } from 'expo-router';
 import { MessageService } from '@/src/api/services/MessageService';
+import QRScanner from '../ui/QRScanner';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -26,6 +27,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [isComingCall, setIsComingCall] = useState(false);
     const [linkCall, setLinkCall] = useState<string | null>(null);
     const [dataCall, setDataCall] = useState<any>(null);
+    const [showQRScanner, setShowQRScanner] = useState(false);
 
     // Fetch conversations
     const fetchConversations = async () => {
@@ -270,8 +272,8 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 				</View>
 			)}
 			{/* Search Bar */}
-			<View className="py-4">
-				<View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2 h-12">
+			<View className="py-4 justify-between flex-row items-center">
+				<View className="flex-row items-center bg-gray-200 rounded-full px-4 py-2 h-12 flex-1 mr-4">
 					<Ionicons name="search-outline" size={20} color="#666" />
 					<TextInput
 						className="flex-1 ml-2 text-lg"
@@ -279,8 +281,18 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 						placeholderTextColor="#666"
 					/>
 				</View>
+                {
+                    Platform.OS !== "web" && (
+                        <TouchableOpacity className="items-center justify-center w-11 h-11 bg-blue-400 rounded-full"
+                            onPress={() => {
+                                setShowQRScanner(!showQRScanner);
+                            }}
+                        >
+                        <MaterialCommunityIcons name="qrcode-scan" size={18} color="white" />
+                        </TouchableOpacity>
+                    )
+                }
 			</View>
-
 			{/* Conversations List */}
 			<ScrollView className="flex-1">
 				{conversations.map((conversation) => (
@@ -362,6 +374,31 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 					</TouchableOpacity>
 				))}
 			</ScrollView>
+            {
+                showQRScanner && (
+                    <Modal 
+                        animationType="slide"
+                        transparent={true}
+                        visible={showQRScanner}
+                        onRequestClose={() => {
+                            setShowQRScanner(!showQRScanner);
+                        }}
+                    >
+                        <View className="flex-1">
+                            <View>
+                                <TouchableOpacity className="absolute top-12 left-8 z-50 w-12 h-12 bg-white rounded-full items-center justify-center shadow-lg"
+                                    onPress={() => {
+                                        setShowQRScanner(!showQRScanner);
+                                    }}
+                                >
+                                    <Ionicons name="close" size={24} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <QRScanner />
+                        </View>
+                    </Modal>
+                )
+            }
 		</View>
 	);
 }
