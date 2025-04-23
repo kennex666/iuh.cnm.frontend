@@ -755,7 +755,7 @@ const scrollToMessage = (messageId: string) => {
 <ScrollView
   ref={scrollViewRef}
   // className="flex-1 p-4 pt-12"
-  className={`flex-1 p-4 ${pinnedMessages.length > 0 ? "pt-12" : "pt-4"}`}
+  className={`flex-1 p-4 ${pinnedMessages.length > 0 ? "pt-16" : "pt-4"}`}
 >
   {messages.length === 0 && <ChatNewer selectedChat={selectedChat} />}
   
