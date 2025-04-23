@@ -895,7 +895,7 @@ const scrollToMessage = (messageId: string) => {
                       <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
                         {msg.content}
                       </Text>
-                    ) : msg.type === MessageType.FILE ? (
+                     ) : msg.type === MessageType.FILE ? (
                       <View className="flex-row items-center">
                         <FileMessageContent
                           messageId={msg.id}
@@ -912,6 +912,13 @@ const scrollToMessage = (messageId: string) => {
                         </Text>
                       )
                     )}
+                    <MessageReaction
+                      messageId={msg.id}
+                      isVisible={activeReactionId === msg.id}
+                      onReact={handleReaction}
+                      onToggle={() => handleReactionToggle(msg.id)}
+                      isSender={msg.senderId === user?.id}
+                    />
                   </View>
                 </TouchableOpacity>
               )}

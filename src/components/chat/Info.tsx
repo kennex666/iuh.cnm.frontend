@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GroupInfo from '../info/GroupInfo';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import Conversations from './Conversations';
+import QRScanner from '../ui/QRScanner';
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -121,10 +122,13 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
 
     return (
         <View className="flex-1 bg-white">
-            <HeaderInfo 
-                isGroup={selectedChat.isGroup} 
-                onBackPress={onBackPress} 
-            />
+            <View className="z-10">
+                <HeaderInfo
+                    selectedChat={selectedChat}
+                    isGroup={selectedChat.isGroup} 
+                    onBackPress={onBackPress}
+                />
+            </View>
             <ScrollView className="flex-1">
                 <ProfileInfo
                     avatar={loadConversation?.avatarUrl}
