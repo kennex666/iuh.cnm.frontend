@@ -5,6 +5,7 @@ export enum MessageType {
     AUDIO = "audio",
     VIDEO = "video",
     CALL = "call",
+    VOTE = 'vote',
 }
 
 export interface Message {
