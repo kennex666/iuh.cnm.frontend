@@ -699,7 +699,7 @@ const scrollToMessage = (messageId: string) => {
   if (messageIndex === -1) return;
   
   // Get the position from refs or calculate approximate position
-  const yOffset = messageRefs.current[messageId] - 25 || messageIndex * 80;
+  const yOffset = messageRefs.current[messageId] || messageIndex * 80;
   
   // Scroll to the message
   scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
