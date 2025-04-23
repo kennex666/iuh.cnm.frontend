@@ -9,6 +9,7 @@ import {
     Modal,
     Dimensions,
     Alert,
+    Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
@@ -20,6 +21,7 @@ import {Conversation} from '@/src/models/Conversation';
 import Toast from '../ui/Toast';
 import { UserProvider, useUser } from '@/src/contexts/user/UserContext';
 import * as ImagePicker from 'expo-image-picker';
+import SocketService from '@/src/api/services/SocketService';
 
 interface CreateGroupProps {
     visible: boolean;
@@ -50,45 +52,67 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
     };
 
     const pickImage = async () => {
-        Alert.alert(
-            'Chọn ảnh',
-            'Bạn có muốn chọn ảnh từ thư viện không?',
-            [
-                {
-                    text: 'Không',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Có',
-                    onPress: async () => {
-                        try {
-                            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        try {
+            if (Platform.OS === 'web') {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = async (event: any) => {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            setGroupAvatar(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                };
+                input.click();
+            } else {
+                Alert.alert(
+                    'Chọn ảnh',
+                    'Bạn có muốn chọn ảnh từ thư viện không?',
+                    [
+                        {
+                            text: 'Không',
+                            style: 'cancel',
+                        },
+                        {
+                            text: 'Có',
+                            onPress: async () => {
+                                try {
+                                    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-                            if (!permissionResult.granted) {
-                                alert('Bạn cần cấp quyền truy cập thư viện ảnh để sử dụng tính năng này!');
-                                return;
-                            }
+                                    if (!permissionResult.granted) {
+                                        alert('Bạn cần cấp quyền truy cập thư viện ảnh để sử dụng tính năng này!');
+                                        return;
+                                    }
 
-                            const result = await ImagePicker.launchImageLibraryAsync({
-                                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                                allowsEditing: true,
-                                aspect: [1, 1],
-                                quality: 1,
-                            });
+                                    const result = await ImagePicker.launchImageLibraryAsync({
+                                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                        allowsEditing: true,
+                                        aspect: [1, 1],
+                                        quality: 1,
+                                    });
 
-                            if (!result.canceled) {
-                                console.log('Selected Image:', result.assets[0].uri);
-                                setGroupAvatar(result.assets[0].uri);
-                            }
-                        } catch (error) {
-                            console.error('Error picking image:', error);
-                            alert('Đã xảy ra lỗi khi chọn ảnh. Vui lòng thử lại.');
-                        }
-                    },
-                },
-            ],
-            { cancelable: true }
-        );
+                                    if (!result.canceled) {
+                                        console.log('Selected Image:', result.assets[0].uri);
+                                        setGroupAvatar(result.assets[0].uri);
+                                    }
+                                } catch (error) {
+                                    console.error('Error picking image:', error);
+                                    alert('Đã xảy ra lỗi khi chọn ảnh. Vui lòng thử lại.');
+                                }
+                            },
+                        },
+                    ],
+                    { cancelable: true }
+                );
+            }
+        } catch (error) {
+            console.error('Error picking image:', error);
+            alert('Đã xảy ra lỗi khi chọn ảnh. Vui lòng thử lại.');
+        }
     };
 
     useEffect(() => {
@@ -189,6 +213,16 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
 
             console.log('Creating group with data:', newConversation);
             const response = await ConversationService.createConversation(newConversation);
+            const socketService = SocketService.getInstance();
+            if (!response.success) {
+                setToast({
+                    visible: true,
+                    message: "Group creation failed",
+                    type: 'error'
+                });
+                return;
+            }
+            socketService.actionParticipantsAdded({conversationId: response.conversation.id, participantIds: response.conversation.participantIds});
             if (response.success) {
                 console.log('Group created successfully:', response.conversation);
                 onClose(); // Close the modal after creating the group

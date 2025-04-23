@@ -50,7 +50,7 @@ export default function ActionsInfo({ selectChat, setLoadConversation, onSearchP
                 <Text className="text-xs text-blue-900">Tìm kiếm</Text>
             </TouchableOpacity>
 
-            {selectChat?.isGroup ? (
+            {(selectChat?.isGroup) ? (
                 <TouchableOpacity className="items-center"
                     onPress={() => {setAddMemberVisible(true); fetchConversation(selectChat.id);}}>
                     <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center mb-1.5 shadow-sm active:bg-blue-100">

@@ -54,11 +54,11 @@ const MOCK_FILES = [
 export interface InfoProps {
     selectedChat: Conversation | null;
     onBackPress?: () => void;
-}
+}   
 
 export default function Info({ selectedChat, onBackPress }: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
-    const [loadConversation, setLoadConversation] = useState<Conversation | null>(null);
+    const [loadConversation, setLoadConversation] = useState<Conversation | null>(selectedChat);
 
     useEffect(() => {
         if (selectedChat) {
@@ -134,7 +134,7 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
                     isOnline={!selectedChat.isGroup}
                 />
                 <ActionsInfo
-                    selectChat={loadConversation}
+                    selectChat={selectedChat}
                     setLoadConversation={setLoadConversation}
                     onSearchPress={handleSearchPress}
                 />

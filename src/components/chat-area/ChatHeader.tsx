@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { Component } from "react";
+import React, { Component, useEffect, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { MessageService } from "@/src/api/services/MessageService";
 import { Conversation } from "@/src/models/Conversation";
+import SocketService from "@/src/api/services/SocketService";
 
 interface ChatHeaderProps {
   selectedChat: Conversation; // Replace with the actual type of selectedChat
@@ -18,6 +19,24 @@ export default function ChatHeader({
   information,
 }: ChatHeaderProps) {
   {
+    // Listen for add participant event
+    const [groups, setGroups] = useState<Conversation | null>(selectedChat);
+    useEffect(() => {
+      const handleAddParticipant = (updatedConversation: Conversation ) => {
+        console.log("Add participant event received:", updatedConversation);
+        setGroups(updatedConversation.updatedConversation);
+      };
+      const socketService = SocketService.getInstance();
+      socketService.onParticipantsAddedServer(handleAddParticipant);
+      return () => {
+      socketService.removeParticipantsAddedServer(handleAddParticipant);
+      };
+    }, [selectedChat]);
+
+    useEffect(() => {
+      console.log("Group state updated:", groups);
+    }, [groups]);
+
     return (
       <View className="h-16 px-4 border-b border-gray-200 flex-row items-center justify-between">
         <View className="flex-row items-center flex-1">
@@ -27,7 +46,7 @@ export default function ChatHeader({
             </TouchableOpacity>
           )}
           <Image
-            source={{ uri: selectedChat?.avatarUrl?.trim() || "https://placehold.co/400" }}
+            source={{ uri: groups?.avatarUrl?.trim() || "https://placehold.co/400" }}
             className="w-12 h-12 rounded-full"
           />
           <View className="ml-3" style={{ maxWidth: "45%" }}>
@@ -36,15 +55,12 @@ export default function ChatHeader({
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {selectedChat.name || "No name"}
+              {selectedChat?.name || "No name"}
             </Text>
-            {selectedChat.isGroup && (
+            {groups?.isGroup && (
               <Text className="text-sm text-gray-500">
-                {selectedChat.participantIds.length} thành viên
+                {groups?.participantIds.length} thành viên
               </Text>
-            )}
-            {!selectedChat.isGroup && selectedChat.participantIds.length > 0 && (
-              <Text className="text-sm text-green-500">Đang hoạt động</Text>
             )}
           </View>
         </View>
