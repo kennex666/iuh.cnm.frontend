@@ -33,6 +33,7 @@ import axios from "axios";
 import FileMessageContent from "./FileMessageContent";
 import ChatHeader from "../chat-area/ChatHeader";
 import ChatNewer from "../chat-area/ChatNewer";
+import PollMessageContent from "./PollMessageContent";
 
 export interface ChatAreaProps {
   selectedChat: Conversation | null;
@@ -555,6 +556,82 @@ export default function ChatArea({
     setShowMessageOptions(false);
   };
 
+  const [pollQuestion, setPollQuestion] = useState('');
+	const [pollOptions, setPollOptions] = useState(['', '']);
+	const [showPollModal, setShowPollModal] = useState(false);
+	const toggleModelPoll = () => {
+		setShowPollModal(!showPollModal);
+	  };
+	  
+	  const addPollOption = () => {
+		setPollOptions([...pollOptions, '']);
+	  };
+	  
+	  const handlePollOptionChange = (index: number, value: string) => {
+		const newOptions = [...pollOptions];
+		newOptions[index] = value;
+		setPollOptions(newOptions);
+	  };
+	  
+	  const handleCreatePoll = () => {
+
+    console.log("pollQuestion yihii: ", pollQuestion);
+		// Kiểm tra dữ liệu hợp lệ
+		if (!pollQuestion.trim()) {
+		  // Có thể thêm thông báo lỗi
+		  return;
+		}
+
+    console.log("pollOptions: ", pollOptions);
+		
+		// Lọc ra các lựa chọn không trống
+		const filteredOptions = pollOptions.filter(opt => opt.trim());
+
+    console.log("filteredOptions: ", filteredOptions);
+		
+		if (filteredOptions.length < 2) {
+		  // Có thể thêm thông báo lỗi: cần ít nhất 2 lựa chọn
+		  return;
+		}
+	  console.log("filteredOptions: ", filteredOptions);
+		// Tạo đối tượng dữ liệu bình chọn
+		const pollData = {
+		  question: pollQuestion,
+		  options: filteredOptions,
+		  votes: {} // Ban đầu không có ai bình chọn
+		};
+	  
+		// Tạo tin nhắn bình chọn giả lập
+		const newPollMessage: Message = {
+		  id: `poll-${Date.now()}`, // ID giả lập
+		  conversationId: selectedChat.id,
+		  senderId: user.id,
+		  content: JSON.stringify(pollData), // Lưu thông tin bình chọn dưới dạng JSON string
+		  type: MessageType.POLL,
+		  repliedToId: "",
+		  readBy: [],
+		  sentAt: new Date().toISOString(),
+		};
+
+    console.log("newPollMessage: ", newPollMessage);
+	  
+		// Thêm tin nhắn vào state hiện tại (giả lập)
+		setMessages(prevMessages => [...prevMessages, newPollMessage]);
+
+    console.log("messages after: ", messages);
+		
+		// Reset form và đóng modal
+		setPollQuestion('');
+		setPollOptions(['', '']);
+		setShowPollModal(false);
+		
+		// Cuộn xuống để hiển thị tin nhắn mới
+		setTimeout(() => {
+		  scrollViewRef.current?.scrollToEnd({ animated: true });
+		}, 100);
+	  };
+
+
   const confirmDeleteMessage = async () => {
     if (!messageToDelete) return;
 
@@ -656,36 +733,36 @@ export default function ChatArea({
                 activeOpacity={0.7}
                 >
                 <View className={`rounded-2xl p-2 ${ msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
-                  {msg.type === MessageType.TEXT ? (
-                  <Text className={ msg.senderId === user?.id ? "text-white" : "text-gray-900" }>
-                    {msg.content}
-                  </Text>
-                  ) : msg.type === MessageType.FILE ? (
-                  <View className="flex-row items-center">
-                    {/* Wrap this in a useEffect or Promise to get attachment info when component renders */}
-                    <FileMessageContent
-                    messageId={msg.id}
-                    fileName={msg.content}
-                    isSender={msg.senderId === user?.id}
-                    getAttachment={getAttachmentByMessageId}
-                    onImagePress={setFullScreenImage}
-                    />
-                  </View>
-                  ) : (
-                  msg.type === MessageType.CALL && (
-                    <Text
-                    className={
-                      msg.senderId === user?.id
-                      ? "text-white"
-                      : "text-gray-900"
-                    }
-                    >
-                    {msg.content === "start"
-                      ? "📞 Cuộc gọi đang bắt đầu"
-                      : "📴 Cuộc gọi đã kết thúc"}
-                    </Text>
-                  )
-                  )}
+				{msg.type === MessageType.TEXT ? (
+  <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+    {msg.content}
+  </Text>
+) : msg.type === MessageType.FILE ? (
+  <View className="flex-row items-center">
+    <FileMessageContent
+      messageId={msg.id}
+      fileName={msg.content}
+      isSender={msg.senderId === user?.id}
+      getAttachment={getAttachmentByMessageId}
+      onImagePress={setFullScreenImage}
+    />
+  </View>
+) : msg.type === MessageType.POLL ? (
+  <View className="self-center w-[400px] mx-auto">
+    <PollMessageContent 
+      messageId={msg.id}
+      pollData={JSON.parse(msg.content)}
+      userId={user?.id}
+      onVote={handleCreatePoll}
+    />
+  </View>
+) : (
+  msg.type === MessageType.CALL && (
+    <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+      {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
+    </Text>
+  )
+)}
                 </View>
                 </TouchableOpacity>
                 <MessageReaction
@@ -702,6 +779,73 @@ export default function ChatArea({
           );
         })}
       </ScrollView>
+
+	  {showPollModal && (
+      <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
+        <View className="bg-white rounded-2xl p-5 w-[90%] max-w-md">
+          <View className="flex-row justify-between items-center mb-6">
+            <Text className="text-xl font-semibold">Tạo bình chọn</Text>
+            <TouchableOpacity onPress={toggleModelPoll}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Poll Question */}
+          <View className="mb-5">
+            <Text className="text-gray-500 mb-2">Chủ đề bình chọn</Text>
+            <TextInput
+              className="border border-gray-300 rounded-lg p-3 min-h-[45px] text-base"
+              placeholder="Đặt câu hỏi bình chọn"
+              value={pollQuestion}
+              onChangeText={setPollQuestion}
+              multiline
+              maxLength={200}
+            />
+            <Text className="text-right text-gray-500 mt-1">{pollQuestion.length}/200</Text>
+          </View>
+          
+          {/* Poll Options */}
+          <View className="mb-5">
+            <Text className="text-gray-500 mb-2">Các lựa chọn</Text>
+            {pollOptions.map((option, index) => (
+              <TextInput
+                key={`option-${index}`}
+                className="border border-gray-300 rounded-lg p-3 mb-3 min-h-[45px] text-base"
+                placeholder={`Lựa chọn ${index + 1}`}
+                value={option}
+                onChangeText={(text) => handlePollOptionChange(index, text)}
+              />
+            ))}
+            
+            {/* Add option button */}
+            <TouchableOpacity 
+              className="flex-row items-center" 
+              onPress={addPollOption}
+            >
+              <Ionicons name="add-circle-outline" size={24} color="#3B82F6" />
+              <Text className="ml-2 text-blue-500">Thêm lựa chọn</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {/* Footer buttons */}
+          <View className="flex-row justify-end mt-2">
+            <TouchableOpacity 
+              className="px-5 py-2 mr-2 rounded-lg bg-gray-100"
+              onPress={toggleModelPoll}
+            >
+              <Text className="font-medium text-gray-700">Hủy</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              className="px-5 py-2 rounded-lg bg-blue-500"
+              onPress={handleCreatePoll}
+            >
+              <Text className="font-medium text-white">Tạo bình chọn</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    )}
 
       {/* Message Options Modal */}
       {showMessageOptions && selectedMessage && (
@@ -937,6 +1081,18 @@ export default function ChatArea({
               </View>
             )}
           </View>
+
+
+
+
+          <View className="relative">
+  <TouchableOpacity className="p-2" onPress={toggleModelPoll}>
+    <Ionicons name="bar-chart-outline" size={24} color="#666" />
+  </TouchableOpacity>
+</View>
+
+
+
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
               className="min-h-[26px] text-base text-gray-800"
