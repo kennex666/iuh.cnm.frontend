@@ -15,7 +15,7 @@ class SocketService {
     private deleteMessageCallbacks: ((message: Message) => void)[] = [];
     private attachmentSentCallbacks: ((data: { success: boolean, messageId: string }) => void)[] = [];
     private attachmentErrorCallbacks: ((error: { message: string }) => void)[] = [];
-    private participantsCallbacks: ((participants: string[]) => void)[] = [];
+    private participantsCallbacks: ((updatedConversation: Conversation) => void)[] = [];
 
     private constructor() {}
 
@@ -91,9 +91,9 @@ class SocketService {
             this.attachmentErrorCallbacks.forEach(callback => callback(error));
         });
 
-        this.socket.on('conversation:participants_added', ({conversationId, participantIds}: {conversationId: string, participantIds: string[]}) => {
-            console.log('Participants added to conversation:', conversationId, participantIds);
-            this.participantsCallbacks.forEach(callback => callback(participantIds));
+        this.socket.on('conversation:participants_added', (updatedConversation: Conversation) => {
+            console.log('Participants added to conversation:', updatedConversation);
+            this.participantsCallbacks.forEach(callback => callback(updatedConversation));
         });
     }
 
@@ -104,14 +104,14 @@ class SocketService {
         }
     }
 
-    public onParticipantsAddedServer(callback: (data: { conversationId: string, participantIds: string[] }) => void): void {
+    public onParticipantsAddedServer(callback: (updatedConversation: Conversation) => void): void {
         if (this.socket) {
             console.log('Listening for participants added event from server');
             this.socket.on('conversation:participants_added', callback);
         }
     }
 
-    public removeParticipantsAddedServer(callback: (data: { conversationId: string, participantIds: string[] }) => void): void {
+    public removeParticipantsAddedServer(callback: (updatedConversation: Conversation) => void): void {
         if (this.socket) {
             this.socket.off('conversation:participants_added', callback);
         }

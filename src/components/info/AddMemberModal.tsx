@@ -108,6 +108,7 @@ export default function AddMemberModal ({ visible, onClose, selectChat}: AddMemb
 
         const socketService = SocketService.getInstance();
         socketService.actionParticipantsAdded({ conversationId: selectChat.id, participantIds: selectedUsers });
+    
         console.log('Members added successfully!');
       }
       catch (error) {

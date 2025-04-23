@@ -28,60 +28,73 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
     const [dataCall, setDataCall] = useState<any>(null);
 
     // Fetch conversations
+    const fetchConversations = async () => {
+        try {
+            const response = await ConversationService.getConversations();
+            if (response.success) {
+                setConversations(response.conversations);
+
+                // Fetch avatars for all participants
+                const uniqueParticipantIds = new Set<string>();
+                response.conversations.forEach((conv) => {
+                    conv.participantIds.forEach((id) =>
+                        uniqueParticipantIds.add(id)
+                    );
+                });
+
+                const avatars: Record<string, string> = {};
+                for (const participantId of uniqueParticipantIds) {
+                    if (participantId !== user?.id) {
+                        const userResponse = await UserService.getUserById(
+                            participantId
+                        );
+                        if (userResponse.success && userResponse.user) {
+                            avatars[participantId] =
+                                userResponse.user.avatarURL;
+                            participantNames[participantId] =
+                                userResponse.user.name;
+                        }
+                    }
+                }
+                setParticipantAvatars(avatars);
+                setParticipantNames(participantNames);
+            } else {
+                setError(
+                    response.message || "Failed to fetch conversations"
+                );
+            }
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "An unknown error occurred"
+            );
+        } finally {
+            console.log("Conversations fetched");
+            setLoading(false);
+        }
+    };
     useFocusEffect(
         useCallback(() => {
-            console.log("Fetching conversations...");
-            const fetchConversations = async () => {
-                try {
-                    const response = await ConversationService.getConversations();
-                    if (response.success) {
-                        setConversations(response.conversations);
-
-                        // Fetch avatars for all participants
-                        const uniqueParticipantIds = new Set<string>();
-                        response.conversations.forEach((conv) => {
-                            conv.participantIds.forEach((id) =>
-                                uniqueParticipantIds.add(id)
-                            );
-                        });
-
-                        const avatars: Record<string, string> = {};
-                        for (const participantId of uniqueParticipantIds) {
-                            if (participantId !== user?.id) {
-                                const userResponse = await UserService.getUserById(
-                                    participantId
-                                );
-                                if (userResponse.success && userResponse.user) {
-                                    avatars[participantId] =
-                                        userResponse.user.avatarURL;
-                                    participantNames[participantId] =
-                                        userResponse.user.name;
-                                }
-                            }
-                        }
-                        setParticipantAvatars(avatars);
-                        setParticipantNames(participantNames);
-                    } else {
-                        setError(
-                            response.message || "Failed to fetch conversations"
-                        );
-                    }
-                } catch (error) {
-                    setError(
-                        error instanceof Error
-                            ? error.message
-                            : "An unknown error occurred"
-                    );
-                } finally {
-                    console.log("Conversations fetched");
-                    setLoading(false);
-                }
-            };
-
             fetchConversations();
         }, [user?.id])
-    )
+    );
 
+    // load conversations when socket add participant
+    useEffect(() => {
+        const handleAddParticipant = (updatedConversation: Conversation) => {
+            fetchConversations();
+        };
+        console.log("Socket listener added for add participant", conversations);
+        const socketService = SocketService.getInstance();
+        socketService.onParticipantsAddedServer(handleAddParticipant);
+        return () => {
+            socketService.removeParticipantsAddedServer(handleAddParticipant);
+        };
+    }, [socketService]);
+
+
+    // Update readBy field when conversation is selected
     useEffect(() => {
         setConversations((prev) =>
             prev.map((conv) => {
