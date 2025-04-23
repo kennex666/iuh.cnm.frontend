@@ -11,11 +11,8 @@ export default {
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
         ios: {
-            supportsTablet: true,
             infoPlist: {
-                NSAppTransportSecurity: {
-                    NSAllowsArbitraryLoads: true
-                }
+              NSPhotoLibraryUsageDescription: "Ứng dụng cần quyền truy cập thư viện ảnh để chọn ảnh nhóm."
             }
         },
         android: {
@@ -53,6 +50,12 @@ export default {
                     "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
                     "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
                     "recordAudioAndroid": true
+                }
+            ],
+            [
+                "expo-image-picker",
+                {
+                  "photosPermission": "The app accesses your photos to let you share them with your friends."
                 }
             ]
         ],

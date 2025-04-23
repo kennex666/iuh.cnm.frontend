@@ -687,7 +687,7 @@ export default function ChatArea({
         onBackPress={onBackPress}
         onInfoPress={onInfoPress}
       />
-
+  
       {/* Messages Area */}
       <ScrollView
         ref={scrollViewRef}
@@ -705,152 +705,149 @@ export default function ChatArea({
                 )
               : null;
           return (
-            <View className={`flex-row items-end mb-4 ${ msg.senderId === user?.id ? "justify-end" : "justify-start"}`}>
-              <View className={`relative max-w-[70%] flex flex-row ${ msg.senderId === user?.id ? "items-end" : "items-start" }`}>
-
-              <Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2" resizeMode="cover" />
-              <View className="flex-col items-end">
-              {(msg.repliedToId || msg.repliedTold) && (
-                  <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500">
-                    <Text className="text-xs text-gray-500">
-                      Trả lời tin nhắn
-                    </Text>
-                    <Text className="text-sm text-gray-700" numberOfLines={1}>
-                      {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
-                    </Text>
+            <View key={msg.id} className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}>
+              <View className={`relative max-w-[70%] mt-2 flex flex-row ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
+                <Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2 mt-3" resizeMode="cover" />
+                <View className={`flex-col mt-2 ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
+                  {(msg.repliedToId || msg.repliedTold) && (
+                    <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500">
+                      <Text className="text-xs text-gray-500">
+                        Trả lời {messageUsers[repliedToMessage?.senderId ?? ""]?.name}
+                      </Text>
+                      <Text className="text-sm text-gray-700" numberOfLines={1}>
+                        {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
+                      </Text>
+                    </View>
+                  )}
+                  <View className="flex-row items-center relative">
+                    <TouchableOpacity
+                      onLongPress={() => handleLongPressMessage(msg)}
+                      onPress={() => {
+                        setSelectedMessage(msg);
+                        setShowMessageOptions(true);
+                      }}
+                      delayLongPress={200}
+                      activeOpacity={0.7}
+                    >
+                      <View className={`rounded-2xl p-2 ${msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
+                        {msg.senderId !== user?.id && (
+                          <Text className="text-gray-500 text-xs mb-1">
+                            {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
+                          </Text>
+                        )}
+                        {msg.type === MessageType.TEXT ? (
+                          <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+                            {msg.content}
+                          </Text>
+                        ) : msg.type === MessageType.FILE ? (
+                          <View className="flex-row items-center">
+                            <FileMessageContent
+                              messageId={msg.id}
+                              fileName={msg.content}
+                              isSender={msg.senderId === user?.id}
+                              getAttachment={getAttachmentByMessageId}
+                              onImagePress={setFullScreenImage}
+                            />
+                          </View>
+                        ) : msg.type === MessageType.POLL ? (
+                          <View className="self-center w-[400px] mx-auto">
+                            <PollMessageContent 
+                              messageId={msg.id}
+                              pollData={JSON.parse(msg.content)}
+                              userId={user?.id}
+                              onVote={handleCreatePoll}
+                            />
+                          </View>
+                        ) : (
+                          msg.type === MessageType.CALL && (
+                            <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+                              {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
+                            </Text>
+                          )
+                        )}
+                      </View>
+                    </TouchableOpacity>
                   </View>
-                )}
-              <View className="flex-row items-center relative">
-                <TouchableOpacity
-                key={msg.id}
-                onLongPress={() => handleLongPressMessage(msg)}
-                onPress={() => {
-                  // Nếu đã chọn tin nhắn, bỏ chọn
-                  setSelectedMessage(msg);
-                  setShowMessageOptions(true);
-                }}
-                delayLongPress={200}
-                activeOpacity={0.7}
-                >
-                <View className={`rounded-2xl p-2 ${ msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
-				{msg.type === MessageType.TEXT ? (
-  <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-    {msg.content}
-  </Text>
-) : msg.type === MessageType.FILE ? (
-  <View className="flex-row items-center">
-    <FileMessageContent
-      messageId={msg.id}
-      fileName={msg.content}
-      isSender={msg.senderId === user?.id}
-      getAttachment={getAttachmentByMessageId}
-      onImagePress={setFullScreenImage}
-    />
-  </View>
-) : msg.type === MessageType.POLL ? (
-  <View className="self-center w-[400px] mx-auto">
-    <PollMessageContent 
-      messageId={msg.id}
-      pollData={JSON.parse(msg.content)}
-      userId={user?.id}
-      onVote={handleCreatePoll}
-    />
-  </View>
-) : (
-  msg.type === MessageType.CALL && (
-    <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-      {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
-    </Text>
-  )
-)}
                 </View>
-                </TouchableOpacity>
-                <MessageReaction
-                  messageId={msg.id}
-                  isVisible={activeReactionId === msg.id}
-                  onReact={handleReaction}
-                  onToggle={() => handleReactionToggle(msg.id)}
-                  isSender={msg.senderId === user?.id}
-                />
               </View>
-              </View>
-                </View>
             </View>
           );
         })}
       </ScrollView>
-
-	  {showPollModal && (
-      <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
-        <View className="bg-white rounded-2xl p-5 w-[90%] max-w-md">
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-xl font-semibold">Tạo bình chọn</Text>
-            <TouchableOpacity onPress={toggleModelPoll}>
-              <Ionicons name="close" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
-          
-          {/* Poll Question */}
-          <View className="mb-5">
-            <Text className="text-gray-500 mb-2">Chủ đề bình chọn</Text>
-            <TextInput
-              className="border border-gray-300 rounded-lg p-3 min-h-[45px] text-base"
-              placeholder="Đặt câu hỏi bình chọn"
-              value={pollQuestion}
-              onChangeText={setPollQuestion}
-              multiline
-              maxLength={200}
-            />
-            <Text className="text-right text-gray-500 mt-1">{pollQuestion.length}/200</Text>
-          </View>
-          
-          {/* Poll Options */}
-          <View className="mb-5">
-            <Text className="text-gray-500 mb-2">Các lựa chọn</Text>
-            {pollOptions.map((option, index) => (
+  
+      {/* Poll Modal */}
+      {showPollModal && (
+        <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
+          <View className="bg-white rounded-2xl p-5 w-[90%] max-w-md">
+            <View className="flex-row justify-between items-center mb-6">
+              <Text className="text-xl font-semibold">Tạo bình chọn</Text>
+              <TouchableOpacity onPress={toggleModelPoll}>
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Poll Question */}
+            <View className="mb-5">
+              <Text className="text-gray-500 mb-2">Chủ đề bình chọn</Text>
               <TextInput
-                key={`option-${index}`}
-                className="border border-gray-300 rounded-lg p-3 mb-3 min-h-[45px] text-base"
-                placeholder={`Lựa chọn ${index + 1}`}
-                value={option}
-                onChangeText={(text) => handlePollOptionChange(index, text)}
+                className="border border-gray-300 rounded-lg p-3 min-h-[45px] text-base"
+                placeholder="Đặt câu hỏi bình chọn"
+                value={pollQuestion}
+                onChangeText={setPollQuestion}
+                multiline
+                maxLength={200}
               />
-            ))}
+              <Text className="text-right text-gray-500 mt-1">{pollQuestion.length}/200</Text>
+            </View>
             
-            {/* Add option button */}
-            <TouchableOpacity 
-              className="flex-row items-center" 
-              onPress={addPollOption}
-            >
-              <Ionicons name="add-circle-outline" size={24} color="#3B82F6" />
-              <Text className="ml-2 text-blue-500">Thêm lựa chọn</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Footer buttons */}
-          <View className="flex-row justify-end mt-2">
-            <TouchableOpacity 
-              className="px-5 py-2 mr-2 rounded-lg bg-gray-100"
-              onPress={toggleModelPoll}
-            >
-              <Text className="font-medium text-gray-700">Hủy</Text>
-            </TouchableOpacity>
+            {/* Poll Options */}
+            <View className="mb-5">
+              <Text className="text-gray-500 mb-2">Các lựa chọn</Text>
+              {pollOptions.map((option, index) => (
+                <TextInput
+                  key={`option-${index}`}
+                  className="border border-gray-300 rounded-lg p-3 mb-3 min-h-[45px] text-base"
+                  placeholder={`Lựa chọn ${index + 1}`}
+                  value={option}
+                  onChangeText={(text) => handlePollOptionChange(index, text)}
+                />
+              ))}
+              
+              {/* Add option button */}
+              <TouchableOpacity 
+                className="flex-row items-center" 
+                onPress={addPollOption}
+              >
+                <Ionicons name="add-circle-outline" size={24} color="#3B82F6" />
+                <Text className="ml-2 text-blue-500">Thêm lựa chọn</Text>
+              </TouchableOpacity>
+            </View>
             
-            <TouchableOpacity 
-              className="px-5 py-2 rounded-lg bg-blue-500"
-              onPress={handleCreatePoll}
-            >
-              <Text className="font-medium text-white">Tạo bình chọn</Text>
-            </TouchableOpacity>
+            {/* Footer buttons */}
+            <View className="flex-row justify-end mt-2">
+              <TouchableOpacity 
+                className="px-5 py-2 mr-2 rounded-lg bg-gray-100"
+                onPress={toggleModelPoll}
+              >
+                <Text className="font-medium text-gray-700">Hủy</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                className="px-5 py-2 rounded-lg bg-blue-500"
+                onPress={handleCreatePoll}
+              >
+                <Text className="font-medium text-white">Tạo bình chọn</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    )}
-
+      )}
+  
       {/* Message Options Modal */}
       {showMessageOptions && selectedMessage && (
         <View className="absolute inset-0 bg-black/30 items-center justify-center">
           <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
+            {/* Modal content */}
             <View className="p-4 border-b border-gray-100">
               <View className="flex-row items-center">
                 <Image
@@ -885,7 +882,6 @@ export default function ChatArea({
               <TouchableOpacity
                 className="flex-row items-center p-4 active:bg-gray-50"
                 onPress={() => {
-                  console.log("selectedMessage: ", selectedMessage);
                   handleReplyMessage(selectedMessage);
                 }}
               >
@@ -924,10 +920,11 @@ export default function ChatArea({
           </View>
         </View>
       )}
-
+  
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && messageToDelete && (
         <View className="absolute inset-0 bg-black/30 items-center justify-center">
+          {/* Delete modal content */}
           <View className="bg-white rounded-2xl w-[90%] max-w-md overflow-hidden shadow-lg">
             <View className="p-6 items-center">
               <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
@@ -961,7 +958,7 @@ export default function ChatArea({
           </View>
         </View>
       )}
-
+  
       {/* Reply Preview */}
       {replyingTo && (
         <View className="bg-gray-50 px-4 py-3 flex-row items-center border-t border-gray-200">
@@ -984,7 +981,7 @@ export default function ChatArea({
           </TouchableOpacity>
         </View>
       )}
-
+  
       {/* Forward Message Modal */}
       {showForwardModal && replyingTo && (
         <ForwardMessageModal
@@ -993,13 +990,14 @@ export default function ChatArea({
           onForward={handleForward}
         />
       )}
-
+  
       {/* Input Area */}
       <View className="border-t border-gray-200 p-4">
         <View className="flex-row items-center position-relative">
           <TouchableOpacity className="p-2" onPress={toggleModelChecked}>
             <Ionicons name="add-circle-outline" size={24} color="#666" />
           </TouchableOpacity>
+          
           {isModelChecked && (
             <View className="absolute bottom-full left-0 bg-white z-50">
               <Animated.View
@@ -1029,13 +1027,13 @@ export default function ChatArea({
                   style={Shadows.md}
                 >
                   <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
-
+  
                   <TouchableOpacity
                     className="flex-row items-center mb-2"
                     onPress={handleSelectFile}
                   >
                     <Ionicons name="image-outline" size={24} color="#666" />
-                    <Text className="ml-2  text-gray-800">Hình ảnh/Video</Text>
+                    <Text className="ml-2 text-gray-800">Hình ảnh/Video</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     className="flex-row items-center mb-2"
@@ -1048,23 +1046,11 @@ export default function ChatArea({
                     />
                     <Text className="ml-2 text-gray-800">File</Text>
                   </TouchableOpacity>
-                  {/* <TouchableOpacity
-										className="flex-row items-center mb-2"
-										onPress={toggleModelGift}
-									>
-										<Ionicons
-											name="gift-outline"
-											size={24}
-											color="#666"
-										/>
-										<Text className="ml-2 text-gray-800">
-											Quà tặng
-										</Text> */}
-                  {/* </TouchableOpacity> */}
                 </View>
               </Animated.View>
             </View>
           )}
+          
           <View className="relative">
             <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
               <Ionicons name="gift-outline" size={24} color="#666" />
@@ -1081,18 +1067,13 @@ export default function ChatArea({
               </View>
             )}
           </View>
-
-
-
-
+  
           <View className="relative">
-  <TouchableOpacity className="p-2" onPress={toggleModelPoll}>
-    <Ionicons name="bar-chart-outline" size={24} color="#666" />
-  </TouchableOpacity>
-</View>
-
-
-
+            <TouchableOpacity className="p-2" onPress={toggleModelPoll}>
+              <Ionicons name="bar-chart-outline" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+  
           <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
             <TextInput
               className="min-h-[26px] text-base text-gray-800"
@@ -1121,6 +1102,7 @@ export default function ChatArea({
               }}
             />
           </View>
+          
           <View className="relative">
             <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
               <Ionicons name="happy-outline" size={24} color="#666" />
@@ -1137,6 +1119,7 @@ export default function ChatArea({
               </View>
             )}
           </View>
+          
           <TouchableOpacity
             className={`p-3 rounded-full ${
               newMessage.trim() ? "bg-blue-500" : "bg-gray-200"
@@ -1158,6 +1141,8 @@ export default function ChatArea({
           </TouchableOpacity>
         </View>
       </View>
+      
+      {/* Full Screen Image Viewer */}
       {fullScreenImage && (
         <View className="absolute inset-0 bg-black z-50 flex-1 justify-center items-center">
           <Image
@@ -1173,6 +1158,8 @@ export default function ChatArea({
           </TouchableOpacity>
         </View>
       )}
+      
+      {/* Upload Modal */}
       {showUploadModal && (
         <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
           <View className="bg-white rounded-2xl p-5 w-[85%] max-w-md">
@@ -1195,7 +1182,7 @@ export default function ChatArea({
                 {uploadStatusMessage}
               </Text>
             </View>
-
+  
             {/* Progress Bar */}
             <View className="bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
               <View
@@ -1203,15 +1190,13 @@ export default function ChatArea({
                 style={{ width: `${uploadProgress}%` }}
               />
             </View>
-
+  
             {/* Cancel button - only show during active upload */}
             {uploadProgress < 100 && (
               <TouchableOpacity
                 className="mt-2 py-3 px-4 rounded-lg bg-gray-100 items-center"
                 onPress={() => {
-                  // Add cancellation logic here if possible
                   setShowUploadModal(false);
-                  // setError('Upload cancelled');
                 }}
               >
                 <Text className="text-gray-700 font-medium">Cancel</Text>
@@ -1222,4 +1207,5 @@ export default function ChatArea({
       )}
     </View>
   );
+
 }

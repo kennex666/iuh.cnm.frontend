@@ -23,7 +23,7 @@ export default function GroupList() {
             try {
                 const response = await ConversationService.getConversations();
                 for(const group of response.conversations) {
-                    if(group.isGroup || group.participants.length > 2) {
+                    if(group.isGroup || group.participantIds.length > 2) {
                         setGroups(prevGroups => [...prevGroups, group]);
                     }
                 }
@@ -67,7 +67,7 @@ export default function GroupList() {
                         className="flex-row items-center px-4 py-3 border-b border-gray-100"
                     >
                         <Image
-                            source={{ uri: group.avatar || 'https://placehold.co/400' }}
+                            source={{ uri: group.avatarUrl || 'https://placehold.co/400' }}
                             resizeMode="cover"
                             className="w-12 h-12 rounded-full"
                         />
@@ -76,7 +76,7 @@ export default function GroupList() {
                                 {group.name || 'No Name'}
                             </Text>
                             <Text className="text-sm text-gray-500">
-                                {group.participants.length} thành viên • 
+                                {group.participantIds.length} thành viên • 
                             </Text>
                         </View>
                         <TouchableOpacity className="p-2">
