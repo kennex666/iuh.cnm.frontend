@@ -699,7 +699,7 @@ const scrollToMessage = (messageId: string) => {
   if (messageIndex === -1) return;
   
   // Get the position from refs or calculate approximate position
-  const yOffset = messageRefs.current[messageId] || messageIndex * 80;
+  const yOffset = messageRefs.current[messageId] - 25 || messageIndex * 80;
   
   // Scroll to the message
   scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
@@ -754,10 +754,8 @@ const scrollToMessage = (messageId: string) => {
       {/* Messages Area */}
 <ScrollView
   ref={scrollViewRef}
-  className="flex-1 p-4"
-  onContentSizeChange={() => {
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-  }}
+  // className="flex-1 p-4 pt-12"
+  className={`flex-1 p-4 ${pinnedMessages.length > 0 ? "pt-12" : "pt-4"}`}
 >
   {messages.length === 0 && <ChatNewer selectedChat={selectedChat} />}
   
@@ -1400,7 +1398,7 @@ const scrollToMessage = (messageId: string) => {
         </View>
       )}
       {pinnedMessages.length > 0 && (
-  <View className="absolute top-[60px] left-0 right-0 z-10 items-center">
+  <View className="absolute top-[70px] left-2 right-2 z-10 items-center">
     <TouchableOpacity
       className="bg-white rounded-lg p-3 mx-3 shadow-md w-[95%] flex-row items-center justify-between"
       onPress={() => setShowPinnedMessagesList(!showPinnedMessagesList)}
