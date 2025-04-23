@@ -16,6 +16,11 @@ class SocketService {
     private attachmentSentCallbacks: ((data: { success: boolean, messageId: string }) => void)[] = [];
     private attachmentErrorCallbacks: ((error: { message: string }) => void)[] = [];
     private participantsCallbacks: ((participants: string[]) => void)[] = [];
+    private voteCreatedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
+    private voteUpdatedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
+    private voteResultCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
+    private voteErrorCallbacks: ((error: { message: string }) => void)[] = [];
+
 
     private constructor() {}
 
@@ -94,6 +99,26 @@ class SocketService {
         this.socket.on('conversation:participants_added', ({conversationId, participantIds}: {conversationId: string, participantIds: string[]}) => {
             console.log('Participants added to conversation:', conversationId, participantIds);
             this.participantsCallbacks.forEach(callback => callback(participantIds));
+        });
+
+        this.socket.on('vote:created', (data: { conversationId: string, vote: Message }) => {
+            console.log('Vote created received:', data);
+            this.voteCreatedCallbacks.forEach(callback => callback(data));
+        });
+
+        this.socket.on('vote:updated', (data: { conversationId: string, vote: Message }) => {
+            console.log('Vote updated received:', data);
+            this.voteUpdatedCallbacks.forEach(callback => callback(data));
+        });
+
+        this.socket.on('vote:result', (data: { conversationId: string, vote: Message }) => {
+            console.log('Vote result received:', data);
+            this.voteResultCallbacks.forEach(callback => callback(data));
+        });
+
+        this.socket.on('vote:error', (error: { message: string }) => {
+            console.error('Vote error:', error.message);
+            this.voteErrorCallbacks.forEach(callback => callback(error));
         });
     }
 
@@ -251,10 +276,75 @@ class SocketService {
         this.attachmentErrorCallbacks = this.attachmentErrorCallbacks.filter(cb => cb !== callback);
     }
     public sendSeen(messageId: string): void {
-          if (this.socket) {
-              this.socket.emit("message:seen", messageId);
-          }
-      }
+        if (this.socket) {
+            this.socket.emit("message:seen", messageId);
+        }
+    }
+
+    public createVote(data: { 
+        conversationId: string, 
+        question: string, 
+        options: string[], 
+        multiple: boolean 
+    }): void {
+        if (this.socket) {
+            console.log('Creating vote:', data);
+            this.socket.emit('vote:create', data);
+        }
+    }
+
+    public submitVote(data: { 
+        conversationId: string, 
+        voteId: string, 
+        optionId: string 
+    }): void {
+        if (this.socket) {
+            console.log('Submitting vote:', data);
+            this.socket.emit('vote:submit', data);
+        }
+    }
+
+    public getVote(data: { 
+        conversationId: string, 
+        voteId: string 
+    }): void {
+        if (this.socket) {
+            console.log('Getting vote:', data);
+            this.socket.emit('vote:get', data);
+        }
+    }
+
+    public onVoteCreated(callback: (data: { conversationId: string, vote: Message }) => void): void {
+        this.voteCreatedCallbacks.push(callback);
+    }
+
+    public onVoteUpdated(callback: (data: { conversationId: string, vote: Message }) => void): void {
+        this.voteUpdatedCallbacks.push(callback);
+    }
+
+    public onVoteResult(callback: (data: { conversationId: string, vote: Message }) => void): void {
+        this.voteResultCallbacks.push(callback);
+    }
+
+    public onVoteError(callback: (error: { message: string }) => void): void {
+        this.voteErrorCallbacks.push(callback);
+    }
+
+    public removeVoteCreatedListener(callback: (data: { conversationId: string, vote: Message }) => void): void {
+        this.voteCreatedCallbacks = this.voteCreatedCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeVoteUpdatedListener(callback: (data: { conversationId: string, vote: Message }) => void): void {
+        this.voteUpdatedCallbacks = this.voteUpdatedCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeVoteResultListener(callback: (data: { conversationId: string, vote: Message }) => void): void {
+        this.voteResultCallbacks = this.voteResultCallbacks.filter(cb => cb !== callback);
+    }
+
+    public removeVoteErrorListener(callback: (error: { message: string }) => void): void {
+        this.voteErrorCallbacks = this.voteErrorCallbacks.filter(cb => cb !== callback);
+    }
 }
 
 export default SocketService;

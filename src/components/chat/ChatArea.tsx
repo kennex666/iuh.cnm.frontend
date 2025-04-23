@@ -34,6 +34,7 @@ import FileMessageContent from "./FileMessageContent";
 import ChatHeader from "../chat-area/ChatHeader";
 import ChatNewer from "../chat-area/ChatNewer";
 import PollMessageContent from "./PollMessageContent";
+import VoteMessageContent from "./VoteMessageContent";
 
 export interface ChatAreaProps {
   selectedChat: Conversation | null;
@@ -556,102 +557,75 @@ export default function ChatArea({
     setShowMessageOptions(false);
   };
 
-  const [pollQuestion, setPollQuestion] = useState('');
-	const [pollOptions, setPollOptions] = useState(['', '']);
-	const [showPollModal, setShowPollModal] = useState(false);
-	const toggleModelPoll = () => {
-		setShowPollModal(!showPollModal);
-	  };
-	  
-	  const addPollOption = () => {
-		setPollOptions([...pollOptions, '']);
-	  };
-	  
-	  const handlePollOptionChange = (index: number, value: string) => {
-		const newOptions = [...pollOptions];
-		newOptions[index] = value;
-		setPollOptions(newOptions);
-	  };
-	  
-	  const handleCreatePoll = () => {
+  // Then update the state variable names:
+const [voteQuestion, setVoteQuestion] = useState('');
+const [voteOptions, setVoteOptions] = useState(['', '']);
+const [showVoteModal, setShowVoteModal] = useState(false);
 
-    console.log("pollQuestion yihii: ", pollQuestion);
-		// Kiểm tra dữ liệu hợp lệ
-		if (!pollQuestion.trim()) {
-		  // Có thể thêm thông báo lỗi
-		  return;
-		}
+// Change these functions:
+const toggleModelVote = () => {
+  setShowVoteModal(!showVoteModal);
+};
 
-    console.log("pollOptions: ", pollOptions);
-		
-		// Lọc ra các lựa chọn không trống
-		const filteredOptions = pollOptions.filter(opt => opt.trim());
+const addVoteOption = () => {
+  setVoteOptions([...voteOptions, '']);
+};
 
-    console.log("filteredOptions: ", filteredOptions);
-		
-		if (filteredOptions.length < 2) {
-		  // Có thể thêm thông báo lỗi: cần ít nhất 2 lựa chọn
-		  return;
-		}
-	  console.log("filteredOptions: ", filteredOptions);
-		// Tạo đối tượng dữ liệu bình chọn
-		const pollData = {
-		  question: pollQuestion,
-		  options: filteredOptions,
-		  votes: {} // Ban đầu không có ai bình chọn
-		};
-	  
-		// Tạo tin nhắn bình chọn giả lập
-		const newPollMessage: Message = {
-		  id: `poll-${Date.now()}`, // ID giả lập
-		  conversationId: selectedChat.id,
-		  senderId: user.id,
-		  content: JSON.stringify(pollData), // Lưu thông tin bình chọn dưới dạng JSON string
-		  type: MessageType.POLL,
-		  repliedToId: "",
-		  readBy: [],
-		  sentAt: new Date().toISOString(),
-		};
+const handleVoteOptionChange = (index: number, value: string) => {
+  const newOptions = [...voteOptions];
+  newOptions[index] = value;
+  setVoteOptions(newOptions);
+};
 
-    console.log("newPollMessage: ", newPollMessage);
-	  
-		// Thêm tin nhắn vào state hiện tại (giả lập)
-		setMessages(prevMessages => [...prevMessages, newPollMessage]);
+const handleCreateVote = () => {
+  // Kiểm tra dữ liệu hợp lệ
+  if (!voteQuestion.trim()) {
+    // Có thể thêm thông báo lỗi
+    return;
+  }
+  
+  // Lọc ra các lựa chọn không trống
+  const filteredOptions = voteOptions.filter(opt => opt.trim());
+  
+  if (filteredOptions.length < 2) {
+    // Có thể thêm thông báo lỗi: cần ít nhất 2 lựa chọn
+    return;
+  }
 
-    console.log("messages after: ", messages);
-		
-		// Reset form và đóng modal
-		setPollQuestion('');
-		setPollOptions(['', '']);
-		setShowPollModal(false);
-		
-		// Cuộn xuống để hiển thị tin nhắn mới
-		setTimeout(() => {
-		  scrollViewRef.current?.scrollToEnd({ animated: true });
-		}, 100);
-	  };
+  // Gửi yêu cầu tạo vote thông qua socket
+  socketService.createVote({
+    conversationId: selectedChat.id,
+    question: voteQuestion,
+    options: filteredOptions,
+    multiple: false // Mặc định chỉ cho phép chọn một
+  });
+  
+  // Reset form và đóng modal
+  setVoteQuestion('');
+  setVoteOptions(['', '']);
+  setShowVoteModal(false);
+};
 
+const confirmDeleteMessage = async () => {
+  if (!messageToDelete) return;
 
-  const confirmDeleteMessage = async () => {
-    if (!messageToDelete) return;
-
-    try {
-      console.log("messageToDelete: ", messageToDelete.id);
-      const response = await MessageService.deleteMessage(messageToDelete.id);
-      console.log("response delete message: ", response);
-      socketService.sendDeleteMessage(messageToDelete);
-      if (response.success) {
-        setMessages((prev) => prev.filter((m) => m.id !== messageToDelete.id));
-        setShowDeleteConfirm(false);
-        setMessageToDelete(null);
-      } else {
-        setError(response.statusMessage || "Không thể xóa tin nhắn");
-      }
-    } catch (err) {
-      console.error("Error deleting message:", err);
-      setError("Có lỗi xảy ra khi xóa tin nhắn");
+  try {
+    console.log("messageToDelete: ", messageToDelete.id);
+    const response = await MessageService.deleteMessage(messageToDelete.id);
+    console.log("response delete message: ", response);
+    socketService.sendDeleteMessage(messageToDelete);
+    if (response.success) {
+      setMessages((prev) => prev.filter((m) => m.id !== messageToDelete.id));
+      setShowDeleteConfirm(false);
+      setMessageToDelete(null);
+    } else {
+      setError(response.statusMessage || "Không thể xóa tin nhắn");
     }
-  };
+  } catch (err) {
+    console.error("Error deleting message:", err);
+    setError("Có lỗi xảy ra khi xóa tin nhắn");
+  }
+};
 
   if (loading) {
     return (
@@ -749,13 +723,13 @@ export default function ChatArea({
                               onImagePress={setFullScreenImage}
                             />
                           </View>
-                        ) : msg.type === MessageType.POLL ? (
+                        ) : msg.type === MessageType.VOTE ? (
                           <View className="self-center w-[400px] mx-auto">
-                            <PollMessageContent 
+                            <VoteMessageContent 
                               messageId={msg.id}
-                              pollData={JSON.parse(msg.content)}
+                              voteData={msg.content}
                               userId={user?.id}
-                              onVote={handleCreatePoll}
+                              conversationId={selectedChat.id}
                             />
                           </View>
                         ) : (
@@ -775,48 +749,48 @@ export default function ChatArea({
         })}
       </ScrollView>
   
-      {/* Poll Modal */}
-      {showPollModal && (
+      {/* Vote Modal */}
+      {showVoteModal && (
         <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
           <View className="bg-white rounded-2xl p-5 w-[90%] max-w-md">
             <View className="flex-row justify-between items-center mb-6">
               <Text className="text-xl font-semibold">Tạo bình chọn</Text>
-              <TouchableOpacity onPress={toggleModelPoll}>
+              <TouchableOpacity onPress={toggleModelVote}>
                 <Ionicons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
             
-            {/* Poll Question */}
+            {/* Vote Question */}
             <View className="mb-5">
               <Text className="text-gray-500 mb-2">Chủ đề bình chọn</Text>
               <TextInput
                 className="border border-gray-300 rounded-lg p-3 min-h-[45px] text-base"
                 placeholder="Đặt câu hỏi bình chọn"
-                value={pollQuestion}
-                onChangeText={setPollQuestion}
+                value={voteQuestion}
+                onChangeText={setVoteQuestion}
                 multiline
                 maxLength={200}
               />
-              <Text className="text-right text-gray-500 mt-1">{pollQuestion.length}/200</Text>
+              <Text className="text-right text-gray-500 mt-1">{voteQuestion.length}/200</Text>
             </View>
             
-            {/* Poll Options */}
+            {/* Vote Options */}
             <View className="mb-5">
               <Text className="text-gray-500 mb-2">Các lựa chọn</Text>
-              {pollOptions.map((option, index) => (
+              {voteOptions.map((option, index) => (
                 <TextInput
                   key={`option-${index}`}
                   className="border border-gray-300 rounded-lg p-3 mb-3 min-h-[45px] text-base"
                   placeholder={`Lựa chọn ${index + 1}`}
                   value={option}
-                  onChangeText={(text) => handlePollOptionChange(index, text)}
+                  onChangeText={(text) => handleVoteOptionChange(index, text)}
                 />
               ))}
               
               {/* Add option button */}
               <TouchableOpacity 
                 className="flex-row items-center" 
-                onPress={addPollOption}
+                onPress={addVoteOption}
               >
                 <Ionicons name="add-circle-outline" size={24} color="#3B82F6" />
                 <Text className="ml-2 text-blue-500">Thêm lựa chọn</Text>
@@ -827,14 +801,14 @@ export default function ChatArea({
             <View className="flex-row justify-end mt-2">
               <TouchableOpacity 
                 className="px-5 py-2 mr-2 rounded-lg bg-gray-100"
-                onPress={toggleModelPoll}
+                onPress={toggleModelVote}
               >
                 <Text className="font-medium text-gray-700">Hủy</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
                 className="px-5 py-2 rounded-lg bg-blue-500"
-                onPress={handleCreatePoll}
+                onPress={handleCreateVote}
               >
                 <Text className="font-medium text-white">Tạo bình chọn</Text>
               </TouchableOpacity>
@@ -1069,7 +1043,7 @@ export default function ChatArea({
           </View>
   
           <View className="relative">
-            <TouchableOpacity className="p-2" onPress={toggleModelPoll}>
+            <TouchableOpacity className="p-2" onPress={toggleModelVote}>
               <Ionicons name="bar-chart-outline" size={24} color="#666" />
             </TouchableOpacity>
           </View>
