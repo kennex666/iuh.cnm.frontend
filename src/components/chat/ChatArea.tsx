@@ -646,6 +646,49 @@ const confirmDeleteMessage = async () => {
   }
 };
 
+const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
+
+const handlePinMessage = (message: Message) => {
+  if (!selectedChat) return;
+  
+  try {
+    // Send pin message request to server
+    socketService.pinMessage({
+      conversationId: selectedChat.id,
+      messageId: message.id,
+    });
+    
+    // Close message options modal
+    setShowMessageOptions(false);
+  } catch (error) {
+    console.error("Error pinning message:", error);
+    setError("Failed to pin message");
+  }
+};
+
+// Add listener for pinned messages
+useEffect(() => {
+  const handlePinnedMessage = (data: { conversationId: string, pinnedMessages: Message[] }) => {
+    if (data.conversationId === selectedChat?.id) {
+      setPinnedMessages(data.pinnedMessages);
+    }
+  };
+
+  socketService.onPinnedMessage(handlePinnedMessage);
+  
+  return () => {
+    socketService.removePinnedMessageListener(handlePinnedMessage);
+  };
+}, [selectedChat?.id]);
+
+// Load initial pinned messages when conversation is selected
+useEffect(() => {
+  if (selectedChat?.pinMessages) {
+    setPinnedMessages(selectedChat.pinMessages);
+  } else {
+    setPinnedMessages([]);
+  }
+}, [selectedChat]);
 
 
   if (loading) {
@@ -692,6 +735,8 @@ const confirmDeleteMessage = async () => {
         }}
       >
         {messages.length === 0 && <ChatNewer selectedChat={selectedChat} />}
+        
+        {/* Render messages */}
         {messages.map((msg) => {
           const repliedToMessage =
             msg.repliedToId || msg.repliedTold
@@ -699,6 +744,24 @@ const confirmDeleteMessage = async () => {
                   (m) => m.id == msg.repliedToId || m.id == msg.repliedTold
                 )
               : null;
+              
+          // Special rendering for SYSTEM type messages (pinned messages)
+          if (msg.type === MessageType.SYSTEM) {
+            return (
+              <View key={msg.id} className="flex-row justify-center mb-4">
+                <View className="bg-gray-100 rounded-lg px-4 py-2 max-w-[80%] items-center">
+                  <Text className="text-gray-500 text-xs mb-1">
+                    System Message
+                  </Text>
+                  <Text className="text-gray-800 text-center">
+                    {msg.content}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+          
+          // Regular message rendering
           return (
             <View key={msg.id} className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}>
               <View className={`relative max-w-[70%] mt-2 flex flex-row ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
@@ -797,6 +860,7 @@ const confirmDeleteMessage = async () => {
           );
         })}
       </ScrollView>
+ 
   
       {/* Vote Modal */}
       {showVoteModal && (
@@ -923,6 +987,7 @@ const confirmDeleteMessage = async () => {
                 </View>
                 <Text className="ml-3 text-gray-800">Trả lời</Text>
               </TouchableOpacity>
+              
               <TouchableOpacity
                 className="flex-row items-center p-4 active:bg-gray-50"
                 onPress={() => handleForwardMessage(selectedMessage)}
@@ -932,6 +997,18 @@ const confirmDeleteMessage = async () => {
                 </View>
                 <Text className="ml-3 text-gray-800">Chuyển tiếp</Text>
               </TouchableOpacity>
+              
+              {/* Add pin message option */}
+              <TouchableOpacity
+                className="flex-row items-center p-4 active:bg-gray-50"
+                onPress={() => handlePinMessage(selectedMessage)}
+              >
+                <View className="w-8 h-8 rounded-full bg-blue-50 items-center justify-center">
+                  <Ionicons name="pin" size={20} color="#3B82F6" />
+                </View>
+                <Text className="ml-3 text-gray-800">Ghim tin nhắn</Text>
+              </TouchableOpacity>
+              
               {selectedMessage.senderId === user?.id && (
                 <TouchableOpacity
                   className="flex-row items-center p-4 active:bg-gray-50"
@@ -1236,6 +1313,21 @@ const confirmDeleteMessage = async () => {
               </TouchableOpacity>
             )}
           </View>
+        </View>
+      )}
+      {pinnedMessages.length > 0 && (
+        <View className="absolute top-[60px] left-0 right-0 z-10 items-center">
+          <TouchableOpacity
+            className="bg-white rounded-lg p-2 m-2 shadow-md flex-row items-center"
+            onPress={() => {
+              // Show details of pinned messages or scroll to them
+            }}
+          >
+            <Ionicons name="pin" size={16} color="#3B82F6" />
+            <Text className="text-gray-700 ml-2">
+              {pinnedMessages.length} tin nhắn được ghim
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>

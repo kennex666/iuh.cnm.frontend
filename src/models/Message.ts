@@ -6,6 +6,7 @@ export enum MessageType {
     VIDEO = "video",
     CALL = "call",
     VOTE = 'vote',
+    SYSTEM = 'system',
 }
 
 export interface Message {
