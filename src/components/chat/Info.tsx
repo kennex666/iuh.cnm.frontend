@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
 import { Conversation } from '@/src/models/Conversation';
 import Search from './Search';
@@ -10,6 +10,7 @@ import FilesInfo from '../info/FilesInfo';
 import { Ionicons } from '@expo/vector-icons';
 import GroupInfo from '../info/GroupInfo';
 import { ConversationService } from '@/src/api/services/ConversationService';
+import Conversations from './Conversations';
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -57,6 +58,14 @@ export interface InfoProps {
 
 export default function Info({ selectedChat, onBackPress }: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
+    const [loadConversation, setLoadConversation] = useState<Conversation | null>(null);
+
+    useEffect(() => {
+        if (selectedChat) {
+            setLoadConversation(selectedChat);
+        }
+    }
+    , [selectedChat?.id]);
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
@@ -118,19 +127,20 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
             />
             <ScrollView className="flex-1">
                 <ProfileInfo
-                    avatar={selectedChat.avatarUrl}
-                    name={selectedChat.name}
-                    isGroup={selectedChat.isGroup}
-                    memberCount={selectedChat.participantIds?.length}
+                    avatar={loadConversation?.avatarUrl}
+                    name={loadConversation?.name}
+                    isGroup={loadConversation?.isGroup ?? false}
+                    memberCount={loadConversation?.participantIds?.length ?? 0}
                     isOnline={!selectedChat.isGroup}
                 />
                 <ActionsInfo
-                    selectChat={selectedChat}
+                    selectChat={loadConversation}
+                    setLoadConversation={setLoadConversation}
                     onSearchPress={handleSearchPress}
                 />
-                {selectedChat.isGroup && (
+                {selectedChat.isGroup && loadConversation && loadConversation.participantIds && (
                     <GroupInfo
-                        group={selectedChat}
+                        group={loadConversation}
                     />
                 )}
                 <MediaInfo

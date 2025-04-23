@@ -1,4 +1,5 @@
-import React from 'react';
+import SocketService from '@/src/api/services/SocketService';
+import React, { useEffect } from 'react';
 import { View, Text, Image } from 'react-native';
 
 interface ProfileInfoProps {
@@ -16,6 +17,24 @@ export default function ProfileInfo({
     memberCount, 
     isOnline 
 }: ProfileInfoProps) {
+    // listen to socket events to update online status
+    let countNember = memberCount || 0;
+    useEffect(() => {
+        const handleOnlineStatus = (data: { conversationId: string, participantIds: string[] }) => {
+            console.log('Participants added:1212', data);
+            countNember =  countNember + data.participantIds.length;
+        };
+
+        // Assuming you have a socket service to listen to events
+        const socketService = SocketService.getInstance();
+        socketService.onParticipantsAddedServer(handleOnlineStatus);
+
+        return () => {
+            // Clean up the event listener when the component unmounts
+            socketService.removeParticipantsAddedServer(handleOnlineStatus);
+        };
+    }, []);
+
     return (
         <View className="items-center pt-8 pb-6 border-b-4 border-gray-200">
             <View className="mb-4 relative">
@@ -34,7 +53,7 @@ export default function ProfileInfo({
             </Text>
             <Text className="text-sm text-blue-500 mt-1">
                 {isGroup
-                    ? `${memberCount || 0} thành viên`
+                    ? `${countNember || 0} thành viên`
                     : isOnline ? 'Đang hoạt động' : 'Không hoạt động'}
             </Text>
         </View>

@@ -9,6 +9,7 @@ import { useUser } from '@/src/contexts/user/UserContext';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import FriendRequest from '@/src/models/FriendRequest';
+import SocketService from '@/src/api/services/SocketService';
 
 interface AddMemberModalProps {
     visible: boolean;
@@ -105,6 +106,8 @@ export default function AddMemberModal ({ visible, onClose, selectChat}: AddMemb
           return;
         }
 
+        const socketService = SocketService.getInstance();
+        socketService.actionParticipantsAdded({ conversationId: selectChat.id, participantIds: selectedUsers });
         console.log('Members added successfully!');
       }
       catch (error) {

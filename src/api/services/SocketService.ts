@@ -15,6 +15,7 @@ class SocketService {
     private deleteMessageCallbacks: ((message: Message) => void)[] = [];
     private attachmentSentCallbacks: ((data: { success: boolean, messageId: string }) => void)[] = [];
     private attachmentErrorCallbacks: ((error: { message: string }) => void)[] = [];
+    private participantsCallbacks: ((participants: string[]) => void)[] = [];
 
     private constructor() {}
 
@@ -89,6 +90,31 @@ class SocketService {
             console.error('Attachment error:', error.message);
             this.attachmentErrorCallbacks.forEach(callback => callback(error));
         });
+
+        this.socket.on('conversation:participants_added', ({conversationId, participantIds}: {conversationId: string, participantIds: string[]}) => {
+            console.log('Participants added to conversation:', conversationId, participantIds);
+            this.participantsCallbacks.forEach(callback => callback(participantIds));
+        });
+    }
+
+    public actionParticipantsAdded(data: { conversationId: string, participantIds: string[] }): void {
+        if (this.socket) {
+            console.log('Participants added to conversation:', data.conversationId, data.participantIds);
+            this.socket.emit('conversation:add_participants', data);
+        }
+    }
+
+    public onParticipantsAddedServer(callback: (data: { conversationId: string, participantIds: string[] }) => void): void {
+        if (this.socket) {
+            console.log('Listening for participants added event from server');
+            this.socket.on('conversation:participants_added', callback);
+        }
+    }
+
+    public removeParticipantsAddedServer(callback: (data: { conversationId: string, participantIds: string[] }) => void): void {
+        if (this.socket) {
+            this.socket.off('conversation:participants_added', callback);
+        }
     }
 
     public disconnect(): void {

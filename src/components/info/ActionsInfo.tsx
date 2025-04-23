@@ -12,11 +12,26 @@ import { ConversationService } from '@/src/api/services/ConversationService';
 
 interface ActionsInfoProps {
     selectChat: Conversation | null;
+    setLoadConversation: React.Dispatch<React.SetStateAction<Conversation | null>>;
     onSearchPress: () => void;
 }
-
-export default function ActionsInfo({ selectChat, onSearchPress }: ActionsInfoProps) {
+export default function ActionsInfo({ selectChat, setLoadConversation, onSearchPress }: ActionsInfoProps) {
     const [addMemberVisible, setAddMemberVisible] = useState(false);
+
+    const fetchConversation = async (conversationId: string) => {
+        try {
+            const conversation = await ConversationService.getConversationById(conversationId);
+            setLoadConversation(conversation.conversation);
+        }
+        catch (error) {
+            console.error('Error fetching conversation:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchConversation(selectChat?.id || '');
+    }
+    , [addMemberVisible]);
     
     return (
         <View className={`flex-row justify-around items-center pt-6 pb-4 border-b-4 border-gray-200`}>
@@ -37,7 +52,7 @@ export default function ActionsInfo({ selectChat, onSearchPress }: ActionsInfoPr
 
             {selectChat?.isGroup ? (
                 <TouchableOpacity className="items-center"
-                    onPress={() => setAddMemberVisible(true)}>
+                    onPress={() => {setAddMemberVisible(true); fetchConversation(selectChat.id);}}>
                     <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center mb-1.5 shadow-sm active:bg-blue-100">
                         <Ionicons name="people-outline" size={18} color="#3B82F6" />
                     </View>
