@@ -647,6 +647,9 @@ const confirmDeleteMessage = async () => {
 };
 
 const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
+const [showPinnedMessagesList, setShowPinnedMessagesList] = useState(false);
+const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+const messageRefs = useRef<{[key: string]: number}>({});
 
 const handlePinMessage = (message: Message) => {
   if (!selectedChat) return;
@@ -690,6 +693,27 @@ useEffect(() => {
   }
 }, [selectedChat]);
 
+const scrollToMessage = (messageId: string) => {
+  // Find the message index in the messages array
+  const messageIndex = messages.findIndex(msg => msg.id === messageId);
+  if (messageIndex === -1) return;
+  
+  // Get the position from refs or calculate approximate position
+  const yOffset = messageRefs.current[messageId] || messageIndex * 80;
+  
+  // Scroll to the message
+  scrollViewRef.current?.scrollTo({ y: yOffset, animated: true });
+  
+  // Highlight the message briefly
+  setHighlightedMessageId(messageId);
+  setTimeout(() => {
+    setHighlightedMessageId(null);
+  }, 1500);
+  
+  // Close the pinned messages list
+  setShowPinnedMessagesList(false);
+};
+
 
   if (loading) {
     return (
@@ -727,139 +751,199 @@ useEffect(() => {
       />
   
       {/* Messages Area */}
-      <ScrollView
-        ref={scrollViewRef}
-        className="flex-1 p-4"
-        onContentSizeChange={() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }}
-      >
-        {messages.length === 0 && <ChatNewer selectedChat={selectedChat} />}
+      {/* Messages Area */}
+<ScrollView
+  ref={scrollViewRef}
+  className="flex-1 p-4"
+  onContentSizeChange={() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }}
+>
+  {messages.length === 0 && <ChatNewer selectedChat={selectedChat} />}
+  
+  {/* Render messages */}
+  {messages.map((msg, index) => {
+    // Store position for scrolling to messages
+    const onLayout = (event) => {
+      const layout = event.nativeEvent.layout;
+      messageRefs.current[msg.id] = layout.y;
+    };
+    
+    // Check if this message is currently highlighted
+    const isHighlighted = msg.id === highlightedMessageId;
+    
+    const repliedToMessage =
+      msg.repliedToId || msg.repliedTold
+        ? messages.find((m) => m.id === msg.repliedToId || m.id === msg.repliedTold)
+        : null;
         
-        {/* Render messages */}
-        {messages.map((msg) => {
-          const repliedToMessage =
-            msg.repliedToId || msg.repliedTold
-              ? messages.find(
-                  (m) => m.id == msg.repliedToId || m.id == msg.repliedTold
-                )
-              : null;
-              
-          // Special rendering for SYSTEM type messages (pinned messages)
-          if (msg.type === MessageType.SYSTEM) {
-            return (
-              <View key={msg.id} className="flex-row justify-center mb-4">
-                <View className="bg-gray-100 rounded-lg px-4 py-2 max-w-[80%] items-center">
-                  <Text className="text-gray-500 text-xs mb-1">
-                    System Message
-                  </Text>
-                  <Text className="text-gray-800 text-center">
-                    {msg.content}
-                  </Text>
-                </View>
-              </View>
-            );
-          }
+    // Special rendering for SYSTEM type messages (pinned messages)
+    if (msg.type === MessageType.SYSTEM) {
+      return (
+        <View 
+          key={msg.id} 
+          className="flex-row justify-center mb-4"
+          onLayout={onLayout}
+        >
+          <View className={`bg-gray-100 rounded-lg px-4 py-2 max-w-[80%] items-center ${
+            isHighlighted ? "bg-yellow-100 border border-yellow-300" : ""
+          }`}>
+            <Text className="text-gray-500 text-xs mb-1">
+              System Message
+            </Text>
+            <Text className="text-gray-800 text-center">
+              {msg.content}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+    
+    // Regular message rendering
+    return (
+      <View 
+        key={msg.id} 
+        className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}
+        onLayout={onLayout}
+      >
+        <View className={`relative max-w-[70%] mt-2 flex flex-row ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
+          {msg.senderId !== user?.id && (
+            <Image 
+              source={{ 
+                uri: messageUsers[msg.senderId]?.avatarURL || 
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    messageUsers[msg.senderId]?.name || "User"
+                  )}&background=0068FF&color=fff`
+              }} 
+              className="w-8 h-8 rounded-full mr-2 mt-3" 
+              resizeMode="cover" 
+            />
+          )}
           
-          // Regular message rendering
-          return (
-            <View key={msg.id} className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}>
-              <View className={`relative max-w-[70%] mt-2 flex flex-row ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
-                <Image source={{ uri: msg.senderId === user?.id ? "" : messageUsers[msg.senderId]?.avatarURL }} className="w-8 h-8 rounded-full mr-2 mt-3" resizeMode="cover" />
-                <View className={`flex-col mt-2 ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
-                  {(msg.repliedToId || msg.repliedTold) && (
-                    <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500">
-                      <Text className="text-xs text-gray-500">
-                        Trả lời {messageUsers[repliedToMessage?.senderId ?? ""]?.name}
+          <View className={`flex-col mt-2 ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
+            {/* Replied message reference */}
+            {(msg.repliedToId || msg.repliedTold) && (
+              <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500 mb-1">
+                <Text className="text-xs text-gray-500">
+                  Trả lời {messageUsers[repliedToMessage?.senderId ?? ""]?.name || "Người dùng"}
+                </Text>
+                <Text className="text-sm text-gray-700" numberOfLines={1}>
+                  {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
+                </Text>
+              </View>
+            )}
+            
+            {/* Message content */}
+            <View className="flex-row items-center relative">
+              {msg.type === MessageType.VOTE ? (
+                <TouchableOpacity
+                  onLongPress={() => handleLongPressMessage(msg)}
+                  onPress={() => {
+                    setSelectedMessage(msg);
+                    setShowMessageOptions(true);
+                  }}
+                  delayLongPress={200}
+                  activeOpacity={0.7}
+                >
+                  <View className={`rounded-2xl p-2 ${
+                    msg.senderId === user?.id 
+                      ? isHighlighted ? "bg-blue-400" : "bg-blue-500" 
+                      : isHighlighted ? "bg-yellow-50 border border-yellow-300" : "bg-gray-100"
+                  }`}>
+                    {msg.senderId !== user?.id && (
+                      <Text className="text-gray-500 text-xs mb-1">
+                        {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
                       </Text>
-                      <Text className="text-sm text-gray-700" numberOfLines={1}>
-                        {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
+                    )}
+                    
+                    <TouchableWithoutFeedback 
+                      onPress={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <View className="self-center w-full min-w-[300px] pointer-events-auto">
+                        <VoteMessageContent 
+                          messageId={msg.id}
+                          voteData={msg.content}
+                          userId={user?.id}
+                          conversationId={selectedChat.id}
+                        />
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </View>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onLongPress={() => handleLongPressMessage(msg)}
+                  onPress={() => {
+                    setSelectedMessage(msg);
+                    setShowMessageOptions(true);
+                  }}
+                  delayLongPress={200}
+                  activeOpacity={0.7}
+                >
+                  <View className={`rounded-2xl p-2 ${
+                    msg.senderId === user?.id 
+                      ? isHighlighted ? "bg-blue-400" : "bg-blue-500" 
+                      : isHighlighted ? "bg-yellow-50 border border-yellow-300" : "bg-gray-100"
+                  }`}>
+                    {msg.senderId !== user?.id && (
+                      <Text className="text-gray-500 text-xs mb-1">
+                        {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
                       </Text>
-                    </View>
-                  )}
-                  <View className="flex-row items-center relative">
-                    {msg.type === MessageType.VOTE ? (
-                      // Wrap vote message in TouchableOpacity to handle message options
-                      <TouchableOpacity
-                        onLongPress={() => handleLongPressMessage(msg)}
-                        onPress={() => {
-                          setSelectedMessage(msg);
-                          setShowMessageOptions(true);
-                        }}
-                        delayLongPress={200}
-                        activeOpacity={0.7}
-                      >
-                        <View className={`rounded-2xl p-2 ${msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
-                          {msg.senderId !== user?.id && (
-                            <Text className="text-gray-500 text-xs mb-1">
-                              {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
-                            </Text>
-                          )}
-                          {/* Stop propagation on the vote content so clicks inside don't trigger message options */}
-                          <TouchableWithoutFeedback 
-                            onPress={(e) => {
-                              e.stopPropagation();
-                            }}
-                          >
-                            <View className="self-center w-full min-w-[300px] pointer-events-auto">
-                              <VoteMessageContent 
-                                messageId={msg.id}
-                                voteData={msg.content}
-                                userId={user?.id}
-                                conversationId={selectedChat.id}
-                              />
-                            </View>
-                          </TouchableWithoutFeedback>
-                        </View>
-                      </TouchableOpacity>
+                    )}
+                    
+                    {msg.type === MessageType.TEXT ? (
+                      <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+                        {msg.content}
+                      </Text>
+                    ) : msg.type === MessageType.FILE ? (
+                      <View className="flex-row items-center">
+                        <FileMessageContent
+                          messageId={msg.id}
+                          fileName={msg.content}
+                          isSender={msg.senderId === user?.id}
+                          getAttachment={getAttachmentByMessageId}
+                          onImagePress={setFullScreenImage}
+                        />
+                      </View>
                     ) : (
-                      // Normal behavior for other message types
-                      <TouchableOpacity
-                        onLongPress={() => handleLongPressMessage(msg)}
-                        onPress={() => {
-                          setSelectedMessage(msg);
-                          setShowMessageOptions(true);
-                        }}
-                        delayLongPress={200}
-                        activeOpacity={0.7}
-                      >
-                        <View className={`rounded-2xl p-2 ${msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
-                          {msg.senderId !== user?.id && (
-                            <Text className="text-gray-500 text-xs mb-1">
-                              {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
-                            </Text>
-                          )}
-                          {msg.type === MessageType.TEXT ? (
-                            <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-                              {msg.content}
-                            </Text>
-                          ) : msg.type === MessageType.FILE ? (
-                            <View className="flex-row items-center">
-                              <FileMessageContent
-                                messageId={msg.id}
-                                fileName={msg.content}
-                                isSender={msg.senderId === user?.id}
-                                getAttachment={getAttachmentByMessageId}
-                                onImagePress={setFullScreenImage}
-                              />
-                            </View>
-                          ) : (
-                            msg.type === MessageType.CALL && (
-                              <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-                                {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
-                              </Text>
-                            )
-                          )}
-                        </View>
-                      </TouchableOpacity>
+                      msg.type === MessageType.CALL && (
+                        <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+                          {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
+                        </Text>
+                      )
                     )}
                   </View>
-                </View>
-              </View>
+                </TouchableOpacity>
+              )}
             </View>
-          );
-        })}
-      </ScrollView>
+            
+            {/* Timestamp below message */}
+            {isHighlighted && (
+              <Text className="text-xs text-gray-500 mt-1">
+                {new Date(msg.sentAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              </Text>
+            )}
+          </View>
+          
+          {msg.senderId === user?.id && (
+            <Image 
+              source={{ 
+                uri: messageUsers[msg.senderId]?.avatarURL || 
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    messageUsers[msg.senderId]?.name || "User"
+                  )}&background=0068FF&color=fff`
+              }} 
+              className="w-8 h-8 rounded-full ml-2 mt-3" 
+              resizeMode="cover" 
+            />
+          )}
+        </View>
+      </View>
+    );
+  })}
+</ScrollView>
  
   
       {/* Vote Modal */}
@@ -1316,20 +1400,67 @@ useEffect(() => {
         </View>
       )}
       {pinnedMessages.length > 0 && (
-        <View className="absolute top-[60px] left-0 right-0 z-10 items-center">
-          <TouchableOpacity
-            className="bg-white rounded-lg p-2 m-2 shadow-md flex-row items-center"
-            onPress={() => {
-              // Show details of pinned messages or scroll to them
-            }}
-          >
-            <Ionicons name="pin" size={16} color="#3B82F6" />
-            <Text className="text-gray-700 ml-2">
-              {pinnedMessages.length} tin nhắn được ghim
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+  <View className="absolute top-[60px] left-0 right-0 z-10 items-center">
+    <TouchableOpacity
+      className="bg-white rounded-lg p-3 mx-3 shadow-md w-[95%] flex-row items-center justify-between"
+      onPress={() => setShowPinnedMessagesList(!showPinnedMessagesList)}
+    >
+      <View className="flex-row items-center">
+        <Ionicons name="pin" size={16} color="#3B82F6" />
+        <Text className="text-gray-700 ml-2 font-medium">
+          {pinnedMessages.length} tin nhắn được ghim
+        </Text>
+      </View>
+      <Ionicons 
+        name={showPinnedMessagesList ? "chevron-up" : "chevron-down"} 
+        size={16} 
+        color="#666" 
+      />
+    </TouchableOpacity>
+    
+    {showPinnedMessagesList && (
+      <View className="bg-white rounded-lg mt-1 mx-3 p-2 shadow-md w-[95%] max-h-[300px]">
+        <ScrollView className="max-h-[300px]">
+          {pinnedMessages.map((pinnedMsg) => {
+            const sender = messageUsers[pinnedMsg.senderId];
+            return (
+              <TouchableOpacity 
+                key={pinnedMsg.id} 
+                className="p-3 border-b border-gray-100 active:bg-gray-50"
+                onPress={() => scrollToMessage(pinnedMsg.id)}
+              >
+                <View className="flex-row items-center">
+                  <Image 
+                    source={{ 
+                      uri: sender?.avatarURL || 
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          sender?.name || "User"
+                        )}&background=0068FF&color=fff`
+                    }} 
+                    className="w-8 h-8 rounded-full"
+                    resizeMode="cover" 
+                  />
+                  <View className="ml-2 flex-1">
+                    <Text className="font-medium text-gray-800">
+                      {sender?.name || "Unknown User"}
+                    </Text>
+                    <Text className="text-gray-500 text-sm" numberOfLines={2}>
+                      {pinnedMsg.content}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color="#666" />
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+    )}
+  </View>
+)}
+
+
+
     </View>
   );
 
