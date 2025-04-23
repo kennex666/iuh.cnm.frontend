@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -9,34 +9,30 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CreateGroup from './CreateGroup';
+import { ConversationService } from '@/src/api/services/ConversationService';
+import { Conversation } from '@/src/models/Conversation';
 
 export default function GroupList() {
-    const [isCreateGroupVisible, setIsCreateGroupVisible] = useState(false);
 
-    // Mock data for UI demonstration
-    const groups = [
-        { 
-            id: '1', 
-            name: 'Nhóm lập trình React Native', 
-            avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png',
-            memberCount: 156,
-            lastActive: '2 giờ trước'
-        },
-        { 
-            id: '2', 
-            name: 'IUH CNM Group', 
-            avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png',
-            memberCount: 89,
-            lastActive: '5 phút trước'
-        },
-        { 
-            id: '3', 
-            name: 'Nhóm đồ án', 
-            avatarUrl: 'https://placehold.co/40x40/0068FF/FFFFFF/png',
-            memberCount: 12,
-            lastActive: 'Vừa xong'
-        },
-    ];
+    const [isCreateGroupVisible, setIsCreateGroupVisible] = useState(false);
+    const [groups, setGroups] = useState<Conversation[]>([]);
+
+    useEffect(() => {
+        // Fetch groups from API or database here
+        const fetchGroups = async () => {
+            try {
+                const response = await ConversationService.getConversations();
+                for(const group of response.conversations) {
+                    if(group.isGroup || group.participantIds.length > 2) {
+                        setGroups(prevGroups => [...prevGroups, group]);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching groups:', error);
+            }
+        }
+        fetchGroups();
+    }, []);
 
     return (
         <View className="flex-1 bg-white">
@@ -65,21 +61,22 @@ export default function GroupList() {
 
             {/* Groups List */}
             <ScrollView className="flex-1">
-                {groups.map(group => (
+                {groups.map((group, index) => (
                     <TouchableOpacity
-                        key={group.id}
+                        key={group.id || `group-${index}`}
                         className="flex-row items-center px-4 py-3 border-b border-gray-100"
                     >
                         <Image
-                            source={{ uri: group.avatarUrl }}
+                            source={{ uri: group.avatarUrl || 'https://placehold.co/400' }}
+                            resizeMode="cover"
                             className="w-12 h-12 rounded-full"
                         />
                         <View className="flex-1 ml-3">
                             <Text className="text-base font-medium text-gray-800">
-                                {group.name}
+                                {group.name || 'No Name'}
                             </Text>
                             <Text className="text-sm text-gray-500">
-                                {group.memberCount} thành viên • {group.lastActive}
+                                {group.participantIds.length} thành viên • 
                             </Text>
                         </View>
                         <TouchableOpacity className="p-2">

@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import FriendRequest from '@/src/models/FriendRequest';
-import { useAuth } from '@/src/contexts/UserContext';
+import { useUser } from '@/src/contexts/user/UserContext';
 import SocketService from '@/src/api/services/SocketService';
 
 export default function FriendRequestList() {
@@ -23,7 +23,7 @@ export default function FriendRequestList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
-    const { user } = useAuth();
+    const { user } = useUser();
     const [friendAccepted, setFriendAccepted] = useState<FriendRequest[]>([]);
     const [friendSent, setFriendSent] = useState<FriendRequest[]>([]);
     const [senderNames, setSenderNames] = useState<Record<string, string>>({});

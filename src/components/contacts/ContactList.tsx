@@ -10,8 +10,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import FriendRequest from '@/src/models/FriendRequest';
-import { AuthStorage } from '@/src/services/AuthStorage';
-import { useAuth } from '@/src/contexts/UserContext';
+import { AuthStorage } from '@/src/storage/AuthStorage';
+import { useUser } from '@/src/contexts/user/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import { User } from '@/src/models/User';
 
@@ -25,7 +25,7 @@ export default function ContactList() {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [friends, setFriends] = useState<FriendInfo[]>([]);
-    const { user } = useAuth();
+    const { user } = useUser();
 
     useEffect(() => {
         loadFriendRequests();

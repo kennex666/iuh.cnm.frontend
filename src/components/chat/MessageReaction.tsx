@@ -23,7 +23,7 @@ interface MessageReactionProps {
 export default function MessageReaction({messageId, isVisible, onReact, onToggle, isSender}: MessageReactionProps) {
     return (
 		<View
-			className={`absolute z-50`}
+			className={`absolute bottom-0`}
 			style={
 				isSender
 					? {

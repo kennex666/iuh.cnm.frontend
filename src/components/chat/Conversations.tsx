@@ -1,87 +1,103 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {Alert, Image, Linking, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import {Alert, Image, Linking, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {FontAwesome, Ionicons, MaterialCommunityIcons} from '@expo/vector-icons';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
-import { useAuth } from '@/src/contexts/UserContext';
+import { useUser } from '@/src/contexts/user/UserContext';
 import { UserService } from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
 import { Message, MessageType } from '@/src/models/Message';
 import { Link, useFocusEffect } from 'expo-router';
 import { MessageService } from '@/src/api/services/MessageService';
+import QRScanner from '../ui/QRScanner';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
     onSelectChat: (chat: Conversation) => void;
+    newSelectedChat?: Conversation | null;
 }
 
-export default function Conversations({selectedChat, onSelectChat}: ConversationsProps) {
+export default function Conversations({selectedChat, onSelectChat, newSelectedChat}: ConversationsProps) {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useAuth();
+    const { user } = useUser();
     const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
     const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
     const socketService = useRef(SocketService.getInstance()).current;
     const [isComingCall, setIsComingCall] = useState(false);
     const [linkCall, setLinkCall] = useState<string | null>(null);
     const [dataCall, setDataCall] = useState<any>(null);
+    const [showQRScanner, setShowQRScanner] = useState(false);
 
     // Fetch conversations
+    const fetchConversations = async () => {
+        try {
+            const response = await ConversationService.getConversations();
+            if (response.success) {
+                setConversations(response.conversations);
+
+                // Fetch avatars for all participants
+                const uniqueParticipantIds = new Set<string>();
+                response.conversations.forEach((conv) => {
+                    conv.participantIds.forEach((id) =>
+                        uniqueParticipantIds.add(id)
+                    );
+                });
+
+                const avatars: Record<string, string> = {};
+                for (const participantId of uniqueParticipantIds) {
+                    if (participantId !== user?.id) {
+                        const userResponse = await UserService.getUserById(
+                            participantId
+                        );
+                        if (userResponse.success && userResponse.user) {
+                            avatars[participantId] =
+                                userResponse.user.avatarURL;
+                            participantNames[participantId] =
+                                userResponse.user.name;
+                        }
+                    }
+                }
+                setParticipantAvatars(avatars);
+                setParticipantNames(participantNames);
+            } else {
+                setError(
+                    response.message || "Failed to fetch conversations"
+                );
+            }
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "An unknown error occurred"
+            );
+        } finally {
+            console.log("Conversations fetched");
+            setLoading(false);
+        }
+    };
     useFocusEffect(
         useCallback(() => {
-            console.log("Fetching conversations...");
-            const fetchConversations = async () => {
-                try {
-                    const response = await ConversationService.getConversations();
-                    if (response.success) {
-                        setConversations(response.conversations);
-
-                        // Fetch avatars for all participants
-                        const uniqueParticipantIds = new Set<string>();
-                        response.conversations.forEach((conv) => {
-                            conv.participants.forEach((id) =>
-                                uniqueParticipantIds.add(id)
-                            );
-                        });
-
-                        const avatars: Record<string, string> = {};
-                        for (const participantId of uniqueParticipantIds) {
-                            if (participantId !== user?.id) {
-                                const userResponse = await UserService.getUserById(
-                                    participantId
-                                );
-                                if (userResponse.success && userResponse.user) {
-                                    avatars[participantId] =
-                                        userResponse.user.avatarURL;
-                                    participantNames[participantId] =
-                                        userResponse.user.name;
-                                }
-                            }
-                        }
-                        setParticipantAvatars(avatars);
-                        setParticipantNames(participantNames);
-                    } else {
-                        setError(
-                            response.message || "Failed to fetch conversations"
-                        );
-                    }
-                } catch (error) {
-                    setError(
-                        error instanceof Error
-                            ? error.message
-                            : "An unknown error occurred"
-                    );
-                } finally {
-                    console.log("Conversations fetched");
-                    setLoading(false);
-                }
-            };
-
             fetchConversations();
-        }, [user?.id])
-    )
+        }, [user?.id, showQRScanner])
+    );
 
+    // load conversations when socket add participant
+    useEffect(() => {
+        const handleAddParticipant = (updatedConversation: Conversation) => {
+            fetchConversations();
+        };
+        console.log("Socket listener added for add participant", conversations);
+        const socketService = SocketService.getInstance();
+        socketService.onParticipantsAddedServer(handleAddParticipant);
+        return () => {
+            socketService.removeParticipantsAddedServer(handleAddParticipant);
+        };
+    }, [socketService]);
+
+
+    // Update readBy field when conversation is selected
     useEffect(() => {
         setConversations((prev) =>
             prev.map((conv) => {
@@ -184,7 +200,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         
         if (conversation.isGroup) {
             // Lấy tên của 2 người đầu tiên trong nhóm
-            const otherParticipants = conversation.participants
+            const otherParticipants = conversation.participantIds
                 .filter(id => id !== user?.id)
                 .slice(0, 2);
             const names = otherParticipants.map(id => participantNames[id] || 'Unknown');
@@ -192,7 +208,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
         }
         
         // Trong chat riêng tư, lấy tên của người còn lại
-        const otherParticipantId = conversation.participants.find(id => id !== user?.id);
+        const otherParticipantId = conversation.participantIds.find(id => id !== user?.id);
         return otherParticipantId ? participantNames[otherParticipantId] || 'Unknown' : 'Unknown';
     };
 
@@ -257,8 +273,8 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 				</View>
 			)}
 			{/* Search Bar */}
-			<View className="py-4">
-				<View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2 h-12">
+			<View className="py-4 justify-between flex-row items-center">
+				<View className="flex-row items-center bg-gray-200 rounded-full px-4 py-2 h-12 flex-1 mr-4">
 					<Ionicons name="search-outline" size={20} color="#666" />
 					<TextInput
 						className="flex-1 ml-2 text-lg"
@@ -266,8 +282,18 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 						placeholderTextColor="#666"
 					/>
 				</View>
+                {
+                    Platform.OS !== "web" && (
+                        <TouchableOpacity className="items-center justify-center w-11 h-11 bg-blue-400 rounded-full"
+                            onPress={() => {
+                                setShowQRScanner(!showQRScanner);
+                            }}
+                        >
+                        <MaterialCommunityIcons name="qrcode-scan" size={18} color="white" />
+                        </TouchableOpacity>
+                    )
+                }
 			</View>
-
 			{/* Conversations List */}
 			<ScrollView className="flex-1">
 				{conversations.map((conversation) => (
@@ -280,6 +306,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 						}`}
 						onPress={() => {
 							onSelectChat(conversation);
+                            console.log("Selected chat: ", conversation);
 						}}
 					>
 						<View className="relative">
@@ -287,13 +314,13 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 								source={{
 									uri:
 										!conversation.isGroup &&
-										conversation.participants.length < 3
+										conversation.participantIds.length < 3
 											? participantAvatars[
-													conversation.participants.find(
+													conversation.participantIds.find(
 														(id) => id !== user?.id
 													) || ""
-											  ] || conversation.avatar
-											: conversation.avatar,
+											  ] || conversation.avatarUrl
+											: conversation.avatarUrl,
 									headers: {
 										Accept: "image/*",
 									},
@@ -302,7 +329,7 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 								className="w-12 h-12 rounded-full"
 							/>
 							{!conversation.isGroup &&
-								conversation.participants.length > 0 && (
+								conversation.participantIds.length > 0 && (
 									<View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
 								)}
 						</View>
@@ -348,6 +375,31 @@ export default function Conversations({selectedChat, onSelectChat}: Conversation
 					</TouchableOpacity>
 				))}
 			</ScrollView>
+            {
+                showQRScanner && (
+                    <Modal 
+                        animationType="slide"
+                        transparent={true}
+                        visible={showQRScanner}
+                        onRequestClose={() => {
+                            setShowQRScanner(!showQRScanner);
+                        }}
+                    >
+                        <View className="flex-1">
+                            <View>
+                                <TouchableOpacity className="absolute top-12 left-8 z-50 w-12 h-12 bg-white rounded-full items-center justify-center shadow-lg"
+                                    onPress={() => {
+                                        setShowQRScanner(!showQRScanner);
+                                    }}
+                                >
+                                    <Ionicons name="close" size={24} color="black" />
+                                </TouchableOpacity>
+                            </View>
+                            <QRScanner setShowQRScanner={setShowQRScanner}/>
+                        </View>
+                    </Modal>
+                )
+            }
 		</View>
 	);
 }

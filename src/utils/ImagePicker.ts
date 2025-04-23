@@ -1,47 +1,185 @@
 import * as ImagePicker from 'expo-image-picker';
-import {Alert, Platform} from 'react-native';
+import {Alert, Linking, Platform} from 'react-native';
 
-const requestMediaLibraryPermission = async () => {
-    if (Platform.OS !== 'web') {
-        console.log('Requesting media library permission...');
-        const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert('Thông báo', 'Cần quyền truy cập vào thư viện ảnh để sử dụng tính năng này!');
-            return false;
-        }
+interface ImagePickerResult {
+    success: boolean;
+    uri: string | null;
+    message: string;
+    width?: number;
+    height?: number;
+    mimeType?: string;
+}
+
+interface PickImageOptions {
+    aspect: [number, number];
+    successMessage: string;
+    allowsEditing?: boolean;
+    quality?: number;
+}
+
+const mediaTypes: ImagePicker.MediaType[] = ["images"]
+let mediaLibraryPermissionGranted: boolean | null = null;
+
+const requestMediaLibraryPermission = async (): Promise<boolean> => {
+    if (mediaLibraryPermissionGranted !== null) {
+        return mediaLibraryPermissionGranted;
+    }
+
+    if (Platform.OS === 'web') {
+        mediaLibraryPermissionGranted = true;
         return true;
     }
-    return true;
+
+    try {
+        const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const granted = status === 'granted';
+
+        mediaLibraryPermissionGranted = granted;
+
+        if (!granted) {
+            Alert.alert(
+                'Quyền truy cập bị từ chối',
+                'Cần quyền truy cập vào thư viện ảnh để sử dụng tính năng này. Vui lòng cấp quyền trong cài đặt.',
+                [
+                    {text: 'Đóng'},
+                    {
+                        text: 'Đi đến Cài đặt',
+                        onPress: () => {
+                            Linking.openSettings().catch(() => {
+                                if (__DEV__) {
+                                    console.warn('Failed to open settings');
+                                }
+                            });
+                        }
+                    }
+                ]
+            );
+        }
+
+        return granted;
+    } catch (error) {
+        if (__DEV__) {
+            console.warn('Error requesting media library permission:', error);
+        }
+        return false;
+    }
 };
 
-const pickImage = async (options: {
-    aspect: [number, number],
-    successMessage: string
-}) => {
-    console.log('Picking image with options:', options);
-    const hasPermission = await requestMediaLibraryPermission();
-    if (!hasPermission)
-        return {success: false, uri: null, message: 'Không có quyền truy cập vào thư viện ảnh!'};
-
-    let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+const pickImage = async (options: PickImageOptions): Promise<ImagePickerResult> => {
+    const defaultOptions = {
         allowsEditing: true,
-        aspect: options.aspect,
         quality: 0.7,
+    };
+
+    const finalOptions = {...defaultOptions, ...options};
+
+    const hasPermission = await requestMediaLibraryPermission();
+    if (!hasPermission) {
+        return {
+            success: false,
+            uri: null,
+            message: 'Không có quyền truy cập vào thư viện ảnh!'
+        };
+    }
+
+    try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: mediaTypes,
+            allowsEditing: finalOptions.allowsEditing,
+            aspect: finalOptions.aspect,
+            quality: finalOptions.quality,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const asset = result.assets[0];
+            return {
+                success: true,
+                uri: asset.uri,
+                message: finalOptions.successMessage,
+                width: asset.width,
+                height: asset.height,
+                mimeType: asset.mimeType
+            };
+        }
+
+        return {
+            success: false,
+            uri: null,
+            message: 'Không có ảnh nào được chọn!'
+        };
+    } catch (error) {
+        if (__DEV__) {
+            console.warn('Error picking image:', error);
+        }
+
+        return {
+            success: false,
+            uri: null,
+            message: 'Đã xảy ra lỗi khi chọn ảnh!'
+        };
+    }
+};
+
+export const pickAvatar = async (): Promise<ImagePickerResult> => {
+    return pickImage({
+        aspect: [1, 1],
+        successMessage: 'Đã cập nhật ảnh đại diện!',
+        allowsEditing: true
     });
-
-    if (!result.canceled && result.assets && result.assets.length > 0)
-        return {success: true, uri: result.assets[0].uri, message: options.successMessage};
-
-    return {success: false, uri: null, message: 'Không có ảnh nào được chọn!'};
 };
 
-export const pickAvatar = async () => {
-    console.log('Picking avatar...');
-    return pickImage({aspect: [1, 1], successMessage: 'Đã cập nhật ảnh đại diện!'});
+export const pickCover = async (): Promise<ImagePickerResult> => {
+    return pickImage({
+        aspect: [16, 9],
+        successMessage: 'Đã cập nhật ảnh bìa!',
+        allowsEditing: true
+    });
 };
 
-export const pickCover = async () => {
-    console.log('Picking cover...');
-    return pickImage({aspect: [16, 9], successMessage: 'Đã cập nhật ảnh bìa!'});
+export const pickMultipleImages = async (): Promise<{
+    success: boolean;
+    uris: string[];
+    message: string;
+}> => {
+    const hasPermission = await requestMediaLibraryPermission();
+    if (!hasPermission) {
+        return {
+            success: false,
+            uris: [],
+            message: 'Không có quyền truy cập vào thư viện ảnh!'
+        };
+    }
+
+    try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: mediaTypes,
+            allowsMultipleSelection: true,
+            quality: 0.7,
+        });
+
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const uris = result.assets.map(asset => asset.uri);
+            return {
+                success: true,
+                uris,
+                message: `Đã chọn ${uris.length} ảnh!`
+            };
+        }
+
+        return {
+            success: false,
+            uris: [],
+            message: 'Không có ảnh nào được chọn!'
+        };
+    } catch (error) {
+        if (__DEV__) {
+            console.warn('Error picking multiple images:', error);
+        }
+
+        return {
+            success: false,
+            uris: [],
+            message: 'Đã xảy ra lỗi khi chọn ảnh!'
+        };
+    }
 };

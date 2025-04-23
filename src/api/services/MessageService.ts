@@ -1,8 +1,8 @@
 import axios from "axios";
 import { Message, MessageType } from "@/src/models/Message";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { AuthStorage } from "@/src/services/AuthStorage";
-import { useAuth } from "@/src/contexts/UserContext";
+import { AuthStorage } from "@/src/storage/AuthStorage";
+import { useUser } from "@/src/contexts/user/UserContext";
 import { Alert } from "react-native";
 
 interface MessageService {
@@ -67,7 +67,6 @@ export const MessageService: MessageService = {
 						"Hãy làm quen với người dùng này",
 				};
 			}
-			console.log("response of get messages: ", response.data);
 			if (response.data.success) {
 				const messages = response.data.data.map((msg: Message) => ({
 					id: msg.id,
@@ -79,8 +78,6 @@ export const MessageService: MessageService = {
 					sentAt: msg.sentAt,
 					readBy: msg.readBy || [],
 				}));
-
-				console.log("messages of conversation: ", messages);
 
 				return {
 					success: true,
