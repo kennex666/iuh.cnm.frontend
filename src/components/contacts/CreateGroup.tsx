@@ -20,6 +20,7 @@ import {Conversation} from '@/src/models/Conversation';
 import Toast from '../ui/Toast';
 import { UserProvider, useUser } from '@/src/contexts/user/UserContext';
 import * as ImagePicker from 'expo-image-picker';
+import SocketService from '@/src/api/services/SocketService';
 
 interface CreateGroupProps {
     visible: boolean;
@@ -189,6 +190,16 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
 
             console.log('Creating group with data:', newConversation);
             const response = await ConversationService.createConversation(newConversation);
+            const socketService = SocketService.getInstance();
+            if (!response.success) {
+                setToast({
+                    visible: true,
+                    message: "Group creation failed",
+                    type: 'error'
+                });
+                return;
+            }
+            socketService.actionParticipantsAdded({conversationId: response.conversation.id, participantIds: response.conversation.participantIds});
             if (response.success) {
                 console.log('Group created successfully:', response.conversation);
                 onClose(); // Close the modal after creating the group
