@@ -606,6 +606,21 @@ const handleCreateVote = () => {
   setShowVoteModal(false);
 };
 
+useEffect(() => {
+  const handleVoteCreated = (data: { conversationId: string, vote: any }) => {
+    if (data.conversationId === selectedChat?.id) {
+      // Add the new vote message to the list
+      setMessages((prev) => [...prev, data.vote]);
+    }
+  };
+
+  socketService.onVoteCreated(handleVoteCreated);
+  
+  return () => {
+    socketService.removeVoteCreatedListener(handleVoteCreated);
+  };
+}, [selectedChat?.id]);
+
 const confirmDeleteMessage = async () => {
   if (!messageToDelete) return;
 
@@ -724,7 +739,7 @@ const confirmDeleteMessage = async () => {
                             />
                           </View>
                         ) : msg.type === MessageType.VOTE ? (
-                          <View className="self-center w-[400px] mx-auto">
+                          <View className="self-center w-full min-w-[300px]">
                             <VoteMessageContent 
                               messageId={msg.id}
                               voteData={msg.content}
