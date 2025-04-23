@@ -788,6 +788,13 @@ const confirmDeleteMessage = async () => {
                             )
                           )}
                         </View>
+                        <MessageReaction
+                          messageId={msg.id}
+                          isVisible={activeReactionId === msg.id}
+                          onReact={handleReaction}
+                          onToggle={() => handleReactionToggle(msg.id)}
+                          isSender={msg.senderId === user?.id}
+                        />
                       </TouchableOpacity>
                     )}
                   </View>
