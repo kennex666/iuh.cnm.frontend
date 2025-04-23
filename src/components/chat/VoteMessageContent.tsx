@@ -117,7 +117,20 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
   }, [messageId, conversationId]);
 
   const handleVote = (optionId: string) => {
-    if (userVoted) return; // Prevent voting again
+    // For non-multiple votes, prevent voting again
+    // For multiple votes, allow selecting more options
+    if (!vote?.multiple && userVoted) {
+      return;
+    }
+    
+    // For multiple votes, check if this specific option is already selected
+    const optionAlreadySelected = vote?.options.find(
+      opt => opt.id === optionId && opt.votes && opt.votes.includes(userId)
+    );
+    
+    if (optionAlreadySelected) {
+      return; // Already voted for this option
+    }
     
     setLoading(true);
     socketService.submitVote({
@@ -172,7 +185,8 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
           <TouchableOpacity
             key={option.id || index}
             onPress={() => handleVote(option.id)}
-            disabled={userVoted || loading}
+            // Only disable if non-multiple vote and user already voted
+            // disabled={(loading) || (!vote.multiple && userVoted)}
             className={`mb-2 rounded-lg overflow-hidden border ${
               isSelected ? 'border-blue-500' : 'border-gray-200'
             }`}
@@ -206,6 +220,7 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
       
       <Text className="text-gray-500 text-sm mt-2">
         {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'}
+        {vote.multiple && <Text> · Multiple choices allowed</Text>}
       </Text>
     </View>
   );

@@ -8,9 +8,11 @@ import {
   Linking,
   Platform,
   ScrollView,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Conversation } from "@/src/models/Conversation";
@@ -561,6 +563,7 @@ export default function ChatArea({
 const [voteQuestion, setVoteQuestion] = useState('');
 const [voteOptions, setVoteOptions] = useState(['', '']);
 const [showVoteModal, setShowVoteModal] = useState(false);
+const [allowMultipleVotes, setAllowMultipleVotes] = useState(false);
 
 // Change these functions:
 const toggleModelVote = () => {
@@ -597,7 +600,8 @@ const handleCreateVote = () => {
     conversationId: selectedChat.id,
     question: voteQuestion,
     options: filteredOptions,
-    multiple: false // Mặc định chỉ cho phép chọn một
+    // multiple: false // Mặc định chỉ cho phép chọn một
+    multiple: allowMultipleVotes,
   });
   
   // Reset form và đóng modal
@@ -641,6 +645,8 @@ const confirmDeleteMessage = async () => {
     setError("Có lỗi xảy ra khi xóa tin nhắn");
   }
 };
+
+
 
   if (loading) {
     return (
@@ -709,53 +715,81 @@ const confirmDeleteMessage = async () => {
                     </View>
                   )}
                   <View className="flex-row items-center relative">
-                    <TouchableOpacity
-                      onLongPress={() => handleLongPressMessage(msg)}
-                      onPress={() => {
-                        setSelectedMessage(msg);
-                        setShowMessageOptions(true);
-                      }}
-                      delayLongPress={200}
-                      activeOpacity={0.7}
-                    >
-                      <View className={`rounded-2xl p-2 ${msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
-                        {msg.senderId !== user?.id && (
-                          <Text className="text-gray-500 text-xs mb-1">
-                            {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
-                          </Text>
-                        )}
-                        {msg.type === MessageType.TEXT ? (
-                          <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-                            {msg.content}
-                          </Text>
-                        ) : msg.type === MessageType.FILE ? (
-                          <View className="flex-row items-center">
-                            <FileMessageContent
-                              messageId={msg.id}
-                              fileName={msg.content}
-                              isSender={msg.senderId === user?.id}
-                              getAttachment={getAttachmentByMessageId}
-                              onImagePress={setFullScreenImage}
-                            />
-                          </View>
-                        ) : msg.type === MessageType.VOTE ? (
-                          <View className="self-center w-full min-w-[300px]">
-                            <VoteMessageContent 
-                              messageId={msg.id}
-                              voteData={msg.content}
-                              userId={user?.id}
-                              conversationId={selectedChat.id}
-                            />
-                          </View>
-                        ) : (
-                          msg.type === MessageType.CALL && (
-                            <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-                              {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
+                    {msg.type === MessageType.VOTE ? (
+                      // Wrap vote message in TouchableOpacity to handle message options
+                      <TouchableOpacity
+                        onLongPress={() => handleLongPressMessage(msg)}
+                        onPress={() => {
+                          setSelectedMessage(msg);
+                          setShowMessageOptions(true);
+                        }}
+                        delayLongPress={200}
+                        activeOpacity={0.7}
+                      >
+                        <View className={`rounded-2xl p-2 ${msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
+                          {msg.senderId !== user?.id && (
+                            <Text className="text-gray-500 text-xs mb-1">
+                              {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
                             </Text>
-                          )
-                        )}
-                      </View>
-                    </TouchableOpacity>
+                          )}
+                          {/* Stop propagation on the vote content so clicks inside don't trigger message options */}
+                          <TouchableWithoutFeedback 
+                            onPress={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <View className="self-center w-full min-w-[300px] pointer-events-auto">
+                              <VoteMessageContent 
+                                messageId={msg.id}
+                                voteData={msg.content}
+                                userId={user?.id}
+                                conversationId={selectedChat.id}
+                              />
+                            </View>
+                          </TouchableWithoutFeedback>
+                        </View>
+                      </TouchableOpacity>
+                    ) : (
+                      // Normal behavior for other message types
+                      <TouchableOpacity
+                        onLongPress={() => handleLongPressMessage(msg)}
+                        onPress={() => {
+                          setSelectedMessage(msg);
+                          setShowMessageOptions(true);
+                        }}
+                        delayLongPress={200}
+                        activeOpacity={0.7}
+                      >
+                        <View className={`rounded-2xl p-2 ${msg.senderId === user?.id ? "bg-blue-500" : "bg-gray-100"}`}>
+                          {msg.senderId !== user?.id && (
+                            <Text className="text-gray-500 text-xs mb-1">
+                              {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
+                            </Text>
+                          )}
+                          {msg.type === MessageType.TEXT ? (
+                            <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+                              {msg.content}
+                            </Text>
+                          ) : msg.type === MessageType.FILE ? (
+                            <View className="flex-row items-center">
+                              <FileMessageContent
+                                messageId={msg.id}
+                                fileName={msg.content}
+                                isSender={msg.senderId === user?.id}
+                                getAttachment={getAttachmentByMessageId}
+                                onImagePress={setFullScreenImage}
+                              />
+                            </View>
+                          ) : (
+                            msg.type === MessageType.CALL && (
+                              <Text className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
+                                {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
+                              </Text>
+                            )
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               </View>
@@ -810,6 +844,16 @@ const confirmDeleteMessage = async () => {
                 <Ionicons name="add-circle-outline" size={24} color="#3B82F6" />
                 <Text className="ml-2 text-blue-500">Thêm lựa chọn</Text>
               </TouchableOpacity>
+            </View>
+
+            <View className="flex-row items-center mb-5">
+              <Switch
+                value={allowMultipleVotes}
+                onValueChange={setAllowMultipleVotes}
+                trackColor={{ false: "#d1d5db", true: "#bfdbfe" }}
+                thumbColor={allowMultipleVotes ? "#3B82F6" : "#9ca3af"}
+              />
+              <Text className="ml-2 text-gray-700">Cho phép chọn nhiều lựa chọn</Text>
             </View>
             
             {/* Footer buttons */}
