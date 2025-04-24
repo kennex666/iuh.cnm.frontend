@@ -1,7 +1,7 @@
 import {ApiEndpoints} from '@/src/constants/ApiConstant';
 import axios from 'axios';
 import {User} from '@/src/models/User';
-import {AuthStorage} from '@/src/services/AuthStorage';
+import {AuthStorage} from '@/src/storage/AuthStorage';
 
 export interface LoginResponse {
     data: {

@@ -1,9 +1,12 @@
-// Định nghĩa enum cho các loại tin nhắn
 export enum MessageType {
-    TEXT = 'text',
-    IMAGE = 'image',
-    FILE = 'file',
-    REACTION = 'reaction'
+    TEXT = "text",
+    IMAGE = "image",
+    FILE = "file",
+    AUDIO = "audio",
+    VIDEO = "video",
+    CALL = "call",
+    VOTE = 'vote',
+    SYSTEM = 'system',
 }
 
 export interface Message {
@@ -12,7 +15,8 @@ export interface Message {
     senderId: string;
     content: string;
     type: MessageType;
-    repliedToId?: string;  // Optional vì có default value trong schema
+    repliedToId: string;
+    repliedTold?: string;
     sentAt: Date | string;
     readBy: string[];
 }

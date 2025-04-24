@@ -4,7 +4,7 @@ import {Ionicons} from '@expo/vector-icons';
 import Toast from '@/src/components/ui/Toast';
 import Button from '@/src/components/ui/Button';
 import {AuthService} from '@/src/api/services/AuthService';
-import {useAuth} from '@/src/contexts/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 import {router} from "expo-router";
 
 interface Device {
@@ -22,7 +22,7 @@ interface DeviceAccessModalDesktopProps {
 
 export default function DeviceAccessModalDesktop({visible, onClose}: DeviceAccessModalDesktopProps) {
     const [loading, setLoading] = useState(false);
-    const {logout} = useAuth();
+    const {logout} = useUser();
     const [showConfirmLogout, setShowConfirmLogout] = useState(false);
     const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
     const [toast, setToast] = useState({
