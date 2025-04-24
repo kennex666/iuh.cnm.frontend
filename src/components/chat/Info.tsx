@@ -12,6 +12,7 @@ import GroupInfo from '../info/GroupInfo';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import Conversations from './Conversations';
 import QRScanner from '../ui/QRScanner';
+import { useUser } from '@/src/contexts/user/UserContext';
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -60,6 +61,7 @@ export interface InfoProps {
 export default function Info({ selectedChat, onBackPress }: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [loadConversation, setLoadConversation] = useState<Conversation | null>(selectedChat);
+    const { user } = useUser(); // Get the current user
 
     useEffect(() => {
         if (selectedChat) {
@@ -71,6 +73,16 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
     const handleSearchPress = () => {
         setIsSearchVisible(true);
     };
+
+    const isAdmin = React.useMemo(() => {
+        if (!loadConversation || !user) return false;
+        
+        const currentParticipant = loadConversation.participantInfo?.find(
+            participant => participant.id === user.id
+        );
+        
+        return currentParticipant?.role === 'admin';
+    }, [loadConversation, user]);
 
     const handleDisbandGroup = async () => {
         console.log('Disband group:', selectedChat?.id);
@@ -153,9 +165,12 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
                 <FilesInfo
                     files={MOCK_FILES}
                 />
-                {selectedChat.isGroup && (
+                {selectedChat.isGroup && isAdmin && (
                     <View className="mb-2 pt-2 border-t border-gray-200">
-                        <TouchableOpacity className="flex-row items-center px-4 py-2 ounded-xl" onPress={handleDisbandGroup}>
+                        <TouchableOpacity 
+                            className="flex-row items-center px-4 py-2 rounded-xl" 
+                            onPress={handleDisbandGroup}
+                        >
                             <Ionicons name="trash-outline" size={18} color="red" className="mr-2" />
                             <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>
                         </TouchableOpacity>
