@@ -1,14 +1,15 @@
 import axios from 'axios';
-import {AuthStorage} from '@/src/services/AuthStorage';
+import {AuthStorage} from '@/src/storage/AuthStorage';
 import {Platform} from 'react-native';
+import { URL_BE } from '../constants/ApiConstant';
 
 const getApiUrl = () => {
     if (Platform.OS === 'web') {
-        return 'http://localhost:8087/api';
+        return `${URL_BE}/api`;
     } else if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:8087/api';
+        return `http://10.0.2.2:8087/api`;
     } else {
-        return 'http://localhost:8087/api';
+        return `http://${process.env.EXPO_PUBLIC_API_URL}:8087/api`;
     }
 };
 
