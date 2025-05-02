@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Animated, StyleSheet, Text} from 'react-native';
+import {Animated, StyleSheet, Text, View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 
 interface ToastProps {
@@ -20,22 +20,43 @@ const Toast = ({
                    showIcon = true
                }: ToastProps) => {
     const opacity = new Animated.Value(0);
+    const translateY = new Animated.Value(20);
 
     useEffect(() => {
         if (visible) {
-            Animated.sequence([
+            Animated.parallel([
                 Animated.timing(opacity, {
                     toValue: 1,
                     duration: 300,
                     useNativeDriver: true,
                 }),
-                Animated.delay(duration),
-                Animated.timing(opacity, {
+                Animated.spring(translateY, {
                     toValue: 0,
-                    duration: 300,
+                    damping: 15,
+                    mass: 1,
+                    stiffness: 200,
                     useNativeDriver: true,
-                }),
-            ]).start(() => onHide());
+                })
+            ]).start();
+
+            const timer = setTimeout(() => {
+                Animated.parallel([
+                    Animated.timing(opacity, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.spring(translateY, {
+                        toValue: 20,
+                        damping: 15,
+                        mass: 1,
+                        stiffness: 200,
+                        useNativeDriver: true,
+                    })
+                ]).start(() => onHide());
+            }, duration);
+
+            return () => clearTimeout(timer);
         }
     }, [visible, duration]);
 
@@ -59,29 +80,55 @@ const Toast = ({
     const getIconName = (): keyof typeof Ionicons.glyphMap => {
         switch (type) {
             case 'success':
-                return 'checkmark-circle-outline';
+                return 'checkmark-circle';
             case 'error':
-                return 'alert-circle-outline';
+                return 'alert-circle';
             case 'warning':
-                return 'warning-outline';
+                return 'warning';
             case 'info':
-                return 'information-circle-outline';
+                return 'information-circle';
             default:
-                return 'information-circle-outline';
+                return 'information-circle';
+        }
+    };
+
+    const getIconColor = () => {
+        switch (type) {
+            case 'success':
+                return '#10B981';
+            case 'error':
+                return '#EF4444';
+            case 'warning':
+                return '#F59E0B';
+            case 'info':
+                return '#3B82F6';
+            default:
+                return '#3B82F6';
         }
     };
 
     return (
-        <Animated.View style={[styles.container, {opacity}, getToastStyle(), {zIndex: 9999}]}>
-            {showIcon && (
-                <Ionicons
-                    name={getIconName()}
-                    size={20}
-                    color="white"
-                    style={styles.icon}
-                />
-            )}
-            <Text style={styles.message}>{message}</Text>
+        <Animated.View 
+            style={[
+                styles.container,
+                {
+                    opacity,
+                    transform: [{ translateY }]
+                }
+            ]}
+        >
+            <View style={[styles.toastContent, getToastStyle()]}>
+                {showIcon && (
+                    <View style={[styles.iconContainer, { backgroundColor: getIconColor() + '20' }]}>
+                        <Ionicons
+                            name={getIconName()}
+                            size={24}
+                            color={getIconColor()}
+                        />
+                    </View>
+                )}
+                <Text style={[styles.message, { color: getIconColor() }]}>{message}</Text>
+            </View>
         </Animated.View>
     );
 };
@@ -92,42 +139,60 @@ const styles = StyleSheet.create({
         bottom: 60,
         left: 20,
         right: 20,
-        backgroundColor: '#000',
-        padding: 16,
-        borderRadius: 8,
-        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 9999,
+    },
+    toastContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        maxWidth: '100%',
         shadowColor: '#000',
         shadowOffset: {
             width: 0,
-            height: 2,
+            height: 4,
         },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 8,
     },
     success: {
-        backgroundColor: '#4CAF50',
+        borderColor: '#10B981',
+        borderWidth: 1,
+        borderStyle: 'solid',
     },
     error: {
-        backgroundColor: '#F44336',
+        borderColor: '#EF4444',
+        borderWidth: 1,
+        borderStyle: 'solid',
     },
     warning: {
-        backgroundColor: '#FF9800',
+        borderColor: '#F59E0B',
+        borderWidth: 1,
+        borderStyle: 'solid',
     },
     info: {
-        backgroundColor: '#2196F3',
+        borderColor: '#3B82F6',
+        borderWidth: 1,
+        borderStyle: 'solid',
     },
-    icon: {
-        marginRight: 8,
+    iconContainer: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
     },
     message: {
-        color: 'white',
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '500',
         flexShrink: 1,
+        lineHeight: 20,
     }
 });
 
