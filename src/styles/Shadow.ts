@@ -10,11 +10,11 @@ export const Shadows = StyleSheet.create({
         elevation: 3,
     },
     lg: {
-        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.15)',
         elevation: 5,
     },
     xl: {
-        boxShadow: '0px 6px 8px rgba(0, 0, 0, 0.15)',
+        boxShadow: '0px 6px 8px rgba(0, 0, 0, 0.2)',
         elevation: 7,
     },
 });
