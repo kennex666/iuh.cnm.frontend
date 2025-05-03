@@ -12,23 +12,25 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     setShowQRScanner
 }) => {
     return (
-        <View className="py-4 justify-between flex-row items-center">
-            <View className="flex-row items-center bg-gray-200 rounded-full px-4 py-2 h-12 flex-1 mr-4">
-                <Ionicons name="search-outline" size={20} color="#666" />
-                <TextInput
-                    className="flex-1 ml-2 text-lg"
-                    placeholder="Tìm kiếm cuộc trò chuyện..."
-                    placeholderTextColor="#666"
-                />
+        <View className="px-4 py-2 border-b border-gray-100 bg-white">
+            <View className="flex-row items-center justify-between">
+                <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 h-9">
+                    <Ionicons name="search" size={16} color="#65676B" />
+                    <TextInput
+                        className="flex-1 ml-2 text-[15px] text-gray-700"
+                        placeholder="Tìm kiếm trên Messenger"
+                        placeholderTextColor="#65676B"
+                    />
+                </View>
+                {Platform.OS !== "web" && (
+                    <TouchableOpacity 
+                        className="ml-2 w-9 h-9 items-center justify-center"
+                        onPress={() => setShowQRScanner(!showQRScanner)}
+                    >
+                        <MaterialCommunityIcons name="qrcode-scan" size={24} color="#0084FF" />
+                    </TouchableOpacity>
+                )}
             </View>
-            {Platform.OS !== "web" && (
-                <TouchableOpacity 
-                    className="items-center justify-center w-11 h-11 bg-blue-400 rounded-full"
-                    onPress={() => setShowQRScanner(!showQRScanner)}
-                >
-                    <MaterialCommunityIcons name="qrcode-scan" size={18} color="white" />
-                </TouchableOpacity>
-            )}
         </View>
     );
 }; 
