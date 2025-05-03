@@ -1,34 +1,48 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {createContext, ReactNode, useContext, useState} from "react";
+import TabBarManager from "@/src/contexts/tabbar/helper/TabBarManager";
 
-type TabBarContextType = {
-	isVisible: boolean;
-	showTabBar: () => void;
-	hideTabBar: () => void;
-};
+interface TabBarContextType {
+    isVisible: boolean;
+    showTabBar: () => void;
+    hideTabBar: () => void;
+}
 
-const TabBarContext = createContext<TabBarContextType | undefined>(undefined);
+interface TabBarProviderProps {
+    children: ReactNode;
+}
 
-export const TabBarProvider: React.FC<{ children: React.ReactNode }> = ({
-	children,
-}) => {
-	const [isVisible, setIsVisible] = useState(true);
+const TabBarContext = createContext<TabBarContextType>({
+    isVisible: true,
+    showTabBar: () => {
+    },
+    hideTabBar: () => {
+    },
+});
 
-	const value: TabBarContextType = {
-		isVisible,
-		showTabBar: () => setIsVisible(true),
-		hideTabBar: () => setIsVisible(false),
-	};
+export const useTabBar = () => useContext(TabBarContext);
 
-	return (
-		<TabBarContext.Provider value={value}>
-			{children}
-		</TabBarContext.Provider>
-	);
-};
+export const TabBarProvider = ({children}: TabBarProviderProps) => {
+    const [isVisible, setIsVisible] = useState(TabBarManager.isVisible);
 
-export const useTabBar = () => {
-	const context = useContext(TabBarContext);
-	if (!context)
-		throw new Error("useTabBar must be used within TabBarProvider");
-	return context;
+    const handleShowTabBar = () => {
+        TabBarManager.show();
+        setIsVisible(true);
+    };
+
+    const handleHideTabBar = () => {
+        TabBarManager.hide();
+        setIsVisible(false);
+    };
+
+    return (
+        <TabBarContext.Provider
+            value={{
+                isVisible,
+                showTabBar: handleShowTabBar,
+                hideTabBar: handleHideTabBar,
+            }}
+        >
+            {children}
+        </TabBarContext.Provider>
+    );
 };
