@@ -1,7 +1,6 @@
-import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { Reaction } from "@/src/models/Reaction";
-import { BaseService } from "./BaseService";
-import { AxiosRequestConfig } from "axios";
+import {ApiEndpoints} from "@/src/constants/ApiConstant";
+import {Reaction} from "@/src/models/Reaction";
+import {BaseService, ExtendedAxiosRequestConfig} from "./BaseService";
 
 interface ReactionService {
     getAllReactions: () => Promise<{
@@ -99,11 +98,7 @@ export const ReactionService: ReactionService = {
             formData.append('emoji', reaction.emoji);
 
             // Config for multipart/form-data
-            const config: AxiosRequestConfig = {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            };
+            const config: ExtendedAxiosRequestConfig = { isFormData: true };
 
             const response = await BaseService.authenticatedRequest<any>(
                 'post',

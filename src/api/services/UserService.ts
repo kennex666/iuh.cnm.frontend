@@ -1,205 +1,173 @@
-import axios from 'axios';
-import {User} from '@/src/models/User';
-import {AuthStorage} from '@/src/storage/AuthStorage';
-import {ApiEndpoints} from '@/src/constants/ApiConstant';
+import { User } from '@/src/models/User';
+import { ApiEndpoints } from '@/src/constants/ApiConstant';
+import { BaseService, ExtendedAxiosRequestConfig } from './BaseService';
 
-export const UserService = {
-    async update(userData: Partial<User>): Promise<{
+interface UserService {
+    update: (userData: Partial<User>) => Promise<{
         success: boolean;
         user?: User;
-        message?: string;
-    }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        message: string;
+    }>;
+    me: () => Promise<{
+        success: boolean;
+        user?: User;
+        message: string;
+    }>;
+    getUserById: (userId: string) => Promise<{
+        success: boolean;
+        user?: User;
+        message: string;
+    }>;
+    getUserByPhone: (phone: string) => Promise<{
+        success: boolean;
+        users?: User[];
+        message: string;
+    }>;
+}
 
+export const UserService: UserService = {
+    async update(userData: Partial<User>) {
+        try {
+            // Format date if present
             if (userData.dob) userData.dob = new Date(userData.dob).toISOString();
 
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_USER}/update`,
-                userData,
-                {headers: {Authorization: `Bearer ${token}`}}
+                userData
             );
 
-            if (response.data.success) {
-                const apiUser = response.data.data;
-                const appUser: User = {
-                    id: apiUser.id,
-                    name: apiUser.name,
-                    email: apiUser.email,
-                    phone: apiUser.phone,
-                    gender: apiUser.gender,
-                    password: "",
-                    avatarURL: apiUser.avatarUrl,
-                    coverURL: apiUser.coverUrl,
-                    dob: apiUser.dob,
-                    isOnline: apiUser.isOnline,
-                    createdAt: apiUser.createdAt,
-                    updatedAt: apiUser.updatedAt,
-                };
-
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    user: appUser
+                    success: false,
+                    message: response.message || "Update failed"
                 };
             }
 
+            const appUser = mapApiUserToModel(response.data);
+
             return {
-                success: false,
-                message: response.data.errorMessage || "Update failed"
+                success: true,
+                user: appUser,
+                message: response.message || "User updated successfully"
             };
         } catch (error: any) {
             console.error("Update user error:", error);
             return {
                 success: false,
-                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
+                message: error.message || "Network error occurred"
             };
         }
     },
 
-    async me(): Promise<{
-        success: boolean;
-        user?: User;
-        message?: string;
-    }> {
+    async me() {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
-
-            const response = await axios.get(
-                `${ApiEndpoints.API_AUTH}/me`,
-                {headers: {Authorization: `Bearer ${token}`}}
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_AUTH}/me`
             );
 
-            if (response.data.success) {
-                const apiUser = response.data.data;
-                const appUser: User = {
-                    id: apiUser.id,
-                    name: apiUser.name,
-                    email: apiUser.email || "",
-                    phone: apiUser.phone,
-                    gender: apiUser.gender,
-                    password: "",
-                    avatarURL: apiUser.avatarUrl,
-                    coverURL: apiUser.coverUrl,
-                    dob: apiUser.dob,
-                    isOnline: apiUser.isOnline,
-                    createdAt: apiUser.createdAt,
-                    updatedAt: apiUser.updatedAt,
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    message: response.message || "Failed to fetch user profile"
                 };
-                return {success: true, user: appUser};
             }
+
+            const appUser = mapApiUserToModel(response.data);
+
             return {
-                success: false,
-                message: response.data.errorMessage || "Failed to fetch user profile"
+                success: true,
+                user: appUser,
+                message: response.message || "User profile retrieved successfully"
             };
         } catch (error: any) {
             console.error("Get current user error:", error);
             return {
                 success: false,
-                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
+                message: error.message || "Network error occurred"
             };
         }
     },
-    getUserById: async (userId: string): Promise<{
-        success: boolean;
-        user?: User;
-        message?: string;
-    }> => {
+
+    async getUserById(userId: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_USER}/${userId}`
+            );
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
-                    message: "No access token found"
+                    message: response.message || "Failed to fetch user profile"
                 };
             }
-            const response = await axios.get(
-                `${ApiEndpoints.API_USER}/${userId}`,
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-            if (response.data.success) {
-                const apiUser = response.data.data;
-                const appUser: User = {
-                    id: apiUser.id,
-                    name: apiUser.name,
-                    email: apiUser.email || "",
-                    phone: apiUser.phone,
-                    gender: apiUser.gender,
-                    password: "",
-                    avatarURL: apiUser.avatarUrl,
-                    coverURL: apiUser.coverUrl,
-                    dob: apiUser.dob,
-                    isOnline: apiUser.isOnline,
-                    createdAt: apiUser.createdAt,
-                    updatedAt: apiUser.updatedAt,
-                };
-                return {success: true, user: appUser};
-            }
+
+            const appUser = mapApiUserToModel(response.data);
+
             return {
-                success: false,
-                message: response.data.errorMessage || "Failed to fetch user profile"
-            };    
-        }
-        catch (error: any) {
+                success: true,
+                user: appUser,
+                message: response.message || "User profile retrieved successfully"
+            };
+        } catch (error: any) {
             console.error("Get user by ID error:", error);
             return {
                 success: false,
-                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
+                message: error.message || "Network error occurred"
             };
         }
     },
-    // get user by phone
-    //http://localhost:8087/api/user/search?q=0388889221
-    getUserByPhone: async (phone: string): Promise<{
-        success: boolean;
-        users?: User[];
-        message?: string;
-    }> => {
+
+    async getUserByPhone(phone: string) {
         try {
-            const response = await axios.get(
-                `${ApiEndpoints.API_USER}/search?q=${phone}`
+            const config: ExtendedAxiosRequestConfig = { skipAuth: true };
+
+            const response = await BaseService.authenticatedRequest<any[]>(
+                'get',
+                `${ApiEndpoints.API_USER}/search?q=${phone}`,
+                null,
+                config
             );
-            console.log("Data of response", response.data);
-            if (response.data.success) {
-                const apiUsers = response.data.data;
-                const appUsers: User[] = apiUsers.map((apiUser: any) => ({
-                    id: apiUser.id,
-                    name: apiUser.name,
-                    email: apiUser.email || "",
-                    phone: apiUser.phone,
-                    gender: apiUser.gender,
-                    password: "",
-                    avatarURL: apiUser.avatarUrl || "default",
-                    coverURL: apiUser.coverUrl || "default",
-                    dob: apiUser.dob,
-                    isOnline: apiUser.isOnline,
-                    createdAt: apiUser.createdAt,
-                    updatedAt: apiUser.updatedAt,
-                }));
-                return {success: true, users: appUsers};
+
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    message: response.message || "Failed to fetch users"
+                };
             }
+
+            const appUsers = response.data.map(mapApiUserToModel);
+
             return {
-                success: false,
-                message: response.data.errorMessage || "Failed to fetch user profile"
+                success: true,
+                users: appUsers,
+                message: response.message || "Users retrieved successfully"
             };
-        }
-        catch (error: any) {
+        } catch (error: any) {
             console.error("Get user by phone error:", error);
             return {
                 success: false,
-                message: error.response?.data?.errorMessage || error.message || "Network error occurred",
+                message: error.message || "Network error occurred"
             };
         }
     }
 };
+
+function mapApiUserToModel(apiUser: any): User {
+    return {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email || "",
+        phone: apiUser.phone,
+        gender: apiUser.gender,
+        password: "",
+        avatarURL: apiUser.avatarUrl || "default",
+        coverURL: apiUser.coverUrl || "default",
+        dob: apiUser.dob,
+        isOnline: apiUser.isOnline,
+        createdAt: apiUser.createdAt,
+        updatedAt: apiUser.updatedAt,
+    };
+}
