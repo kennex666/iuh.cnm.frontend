@@ -150,7 +150,7 @@ export const attachments = [
         url: "https://example.com/document.pdf",
         fileType: "application/pdf",
         fileName: "document.pdf",
-        size: 1024576 // 1MB
+        size: 1024576
     }
 ];
 
@@ -174,32 +174,26 @@ export const getAllUsers = () => {
     return users;
 };
 
-// Helper function to get user by ID
-export const getUserById = (userId) => {
+export const getUserById = (userId: any) => {
     return users.find(user => user.id === userId);
 };
 
-// Helper function to get conversations for a user
-export const getConversationsByUserId = (userId) => {
+export const getConversationsByUserId = (userId: any) => {
     return conversations.filter(conv => conv.participantIds.includes(userId));
 };
 
-// Helper function to get conversation by ID
-export const getConversationById = (conversationId) => {
+export const getConversationById = (conversationId: any) => {
     return conversations.find(conv => conv.id === conversationId);
 };
 
-// Helper function to get messages for a conversation
-export const getMessagesByConversationId = (conversationId) => {
+export const getMessagesByConversationId = (conversationId: any) => {
     return messages.filter(msg => msg.conversationId === conversationId);
 };
 
-// Helper function to get attachments for a message
-export const getAttachmentsByMessageId = (messageId) => {
+export const getAttachmentsByMessageId = (messageId: any) => {
     return attachments.filter(att => att.messageId === messageId);
 };
 
-// Helper function to get reactions for a message
-export const getReactionsByMessageId = (messageId) => {
+export const getReactionsByMessageId = (messageId: any) => {
     return reactions.filter(react => react.messageId === messageId);
 }; 
