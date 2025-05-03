@@ -7,22 +7,32 @@ import {FriendRequest} from '@/src/models/FriendRequest';
 class SocketService {
     private static instance: SocketService;
     private socket: Socket | null = null;
+
+    // Callback storage
+    // Message related
     private messageCallbacks: ((message: Message) => void)[] = [];
+    private deleteMessageCallbacks: ((message: Message) => void)[] = [];
+    private pinnedMessageCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
+
+    // Conversation related
     private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
+    private participantsCallbacks: ((updatedConversation: Conversation) => void)[] = [];
+
+    // Friend request related
     private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
     private friendRequestActionCallbacks: ((requestId: string, receiverId: string) => void)[] = [];
-    private deleteMessageCallbacks: ((message: Message) => void)[] = [];
+
+    // Attachment related
     private attachmentSentCallbacks: ((data: { success: boolean, messageId: string }) => void)[] = [];
     private attachmentErrorCallbacks: ((error: { message: string }) => void)[] = [];
-    private participantsCallbacks: ((updatedConversation: Conversation) => void)[] = [];
+
+    // Vote related
     private voteCreatedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteUpdatedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteResultCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteErrorCallbacks: ((error: { message: string }) => void)[] = [];
-    private pinnedMessageCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
 
-    private constructor() {
-    }
+    private constructor() {}
 
     public static getInstance(): SocketService {
         if (!SocketService.instance) {
@@ -30,6 +40,10 @@ class SocketService {
         }
         return SocketService.instance;
     }
+
+    //==================================
+    // Connection management
+    //==================================
 
     public connect(token: string): void {
         if (this.socket) {
@@ -45,6 +59,54 @@ class SocketService {
 
         this.setupEventListeners();
     }
+
+    public disconnect(): void {
+        if (this.socket) {
+            console.log('Disconnecting socket');
+            this.socket.disconnect();
+            this.socket = null;
+        }
+    }
+
+    public ping(): void {
+        if (this.socket) {
+            this.socket.emit('ping');
+        }
+    }
+
+    //==================================
+    // Conversation management
+    //==================================
+
+    public joinConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('join_conversation', conversationId);
+        }
+    }
+
+    public leaveConversation(conversationId: string): void {
+        if (this.socket) {
+            this.socket.emit('leave_conversation', conversationId);
+        }
+    }
+
+    public sendConversation(conversation: Conversation): void {
+        if (this.socket) {
+            this.socket.emit('conversation:new', conversation);
+        }
+    }
+
+    public onNewConversation(callback: (conversation: Conversation) => void): void {
+        this.conversationCallbacks.push(callback);
+    }
+
+    public removeConversationListener(callback: (conversation: Conversation) => void): void {
+        this.conversationCallbacks = this.conversationCallbacks.filter(cb => cb !== callback);
+    }
+
+    //==================================
+    // Participants management
+    //==================================
 
     public actionParticipantsAdded(data: { conversationId: string, participantIds: string[] }): void {
         if (this.socket) {
@@ -66,31 +128,9 @@ class SocketService {
         }
     }
 
-    public disconnect(): void {
-        if (this.socket) {
-            console.log('Disconnecting socket');
-            this.socket.disconnect();
-            this.socket = null;
-        }
-    }
-
-    public ping(): void {
-        if (this.socket) {
-            this.socket.emit('ping');
-        }
-    }
-
-    public joinConversation(conversationId: string): void {
-        if (this.socket) {
-            this.socket.emit('join_conversation', conversationId);
-        }
-    }
-
-    public leaveConversation(conversationId: string): void {
-        if (this.socket) {
-            this.socket.emit('leave_conversation', conversationId);
-        }
-    }
+    //==================================
+    // Message handling
+    //==================================
 
     public sendMessage(message: Message): void {
         if (this.socket) {
@@ -103,6 +143,20 @@ class SocketService {
         this.messageCallbacks.push(callback);
     }
 
+    public removeMessageListener(callback: (message: Message) => void): void {
+        this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback);
+    }
+
+    public sendSeen(messageId: string): void {
+        if (this.socket) {
+            this.socket.emit("message:seen", messageId);
+        }
+    }
+
+    //==================================
+    // Message deletion
+    //==================================
+
     public sendDeleteMessage(message: Message): void {
         if (this.socket) {
             this.socket.emit('send_delete_message', message);
@@ -113,57 +167,31 @@ class SocketService {
         this.deleteMessageCallbacks.push(callback);
     }
 
-    public sendFriendRequest(friendRequest: FriendRequest): void {
+    //==================================
+    // Pinned messages
+    //==================================
+
+    public pinMessage(data: { conversationId: string, messageId: string }): void {
         if (this.socket) {
-            this.socket.emit('friend_request:send', friendRequest);
+            console.log('Pinning message:', data);
+            this.socket.emit('message:pin', data);
         }
     }
 
-    public sendDeleteFriendRequest(data: { senderId: string, receiverId: string }): void {
-        if (this.socket) {
-            this.socket.emit('friend_request:delete', data);
-        }
+    public onPinnedMessage(callback: (data: { conversationId: string, pinnedMessages: Message[] }) => void): void {
+        this.pinnedMessageCallbacks.push(callback);
     }
 
-    public onDeleteFriendRequest(callback: (requestId: string, receiverId: string) => void): void {
-        this.friendRequestActionCallbacks.push(callback);
+    public removePinnedMessageListener(callback: (data: {
+        conversationId: string,
+        pinnedMessages: Message[]
+    }) => void): void {
+        this.pinnedMessageCallbacks = this.pinnedMessageCallbacks.filter(cb => cb !== callback);
     }
 
-    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
-        this.friendRequestCallbacks.push(callback);
-    }
-
-    public sendConversation(conversation: Conversation): void {
-        if (this.socket) {
-            this.socket.emit('conversation:new', conversation);
-        }
-    }
-
-    public onNewConversation(callback: (conversation: Conversation) => void): void {
-        this.conversationCallbacks.push(callback);
-    }
-
-    public removeMessageListener(callback: (message: Message) => void): void {
-        this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback);
-    }
-
-    public removeConversationListener(callback: (conversation: Conversation) => void): void {
-        this.conversationCallbacks = this.conversationCallbacks.filter(cb => cb !== callback);
-    }
-
-    public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
-        this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
-    }
-
-    public removeFriendRequestActionListener(callback: (requestId: string, receiverId: string) => void): void {
-        this.friendRequestActionCallbacks = this.friendRequestActionCallbacks.filter(cb => cb !== callback);
-    }
-
-    public sendAcceptFriendRequest(requestId: string): void {
-        if (this.socket) {
-            this.socket.emit("friend_request:accept", requestId);
-        }
-    }
+    //==================================
+    // File attachments
+    //==================================
 
     public sendAttachment(
         conversationId: string,
@@ -200,11 +228,47 @@ class SocketService {
         this.attachmentErrorCallbacks = this.attachmentErrorCallbacks.filter(cb => cb !== callback);
     }
 
-    public sendSeen(messageId: string): void {
+    //==================================
+    // Friend requests
+    //==================================
+
+    public sendFriendRequest(friendRequest: FriendRequest): void {
         if (this.socket) {
-            this.socket.emit("message:seen", messageId);
+            this.socket.emit('friend_request:send', friendRequest);
         }
     }
+
+    public onFriendRequest(callback: (friendRequest: FriendRequest) => void): void {
+        this.friendRequestCallbacks.push(callback);
+    }
+
+    public removeFriendRequestListener(callback: (friendRequest: FriendRequest) => void): void {
+        this.friendRequestCallbacks = this.friendRequestCallbacks.filter(cb => cb !== callback);
+    }
+
+    public sendAcceptFriendRequest(requestId: string): void {
+        if (this.socket) {
+            this.socket.emit("friend_request:accept", requestId);
+        }
+    }
+
+    public sendDeleteFriendRequest(data: { senderId: string, receiverId: string }): void {
+        if (this.socket) {
+            this.socket.emit('friend_request:delete', data);
+        }
+    }
+
+    public onDeleteFriendRequest(callback: (requestId: string, receiverId: string) => void): void {
+        this.friendRequestActionCallbacks.push(callback);
+    }
+
+    public removeFriendRequestActionListener(callback: (requestId: string, receiverId: string) => void): void {
+        this.friendRequestActionCallbacks = this.friendRequestActionCallbacks.filter(cb => cb !== callback);
+    }
+
+    //==================================
+    // Voting
+    //==================================
 
     public createVote(data: {
         conversationId: string,
@@ -271,55 +335,20 @@ class SocketService {
         this.voteErrorCallbacks = this.voteErrorCallbacks.filter(cb => cb !== callback);
     }
 
-    public pinMessage(data: { conversationId: string, messageId: string }): void {
-        if (this.socket) {
-            console.log('Pinning message:', data);
-            this.socket.emit('message:pin', data);
-        }
-    }
-
-    public onPinnedMessage(callback: (data: { conversationId: string, pinnedMessages: Message[] }) => void): void {
-        this.pinnedMessageCallbacks.push(callback);
-    }
-
-    public removePinnedMessageListener(callback: (data: {
-        conversationId: string,
-        pinnedMessages: Message[]
-    }) => void): void {
-        this.pinnedMessageCallbacks = this.pinnedMessageCallbacks.filter(cb => cb !== callback);
-    }
+    //==================================
+    // Event setup
+    //==================================
 
     private setupEventListeners(): void {
         if (!this.socket) return;
 
+        // Connection events
         this.socket.on('connect', () => {
             console.log('Socket connected');
         });
 
         this.socket.on('disconnect', () => {
             console.log('Socket disconnected');
-        });
-
-        this.socket.on('message:new', (message: Message) => {
-            console.log('New message received: ', message);
-            this.messageCallbacks.forEach(callback => callback(message));
-        });
-
-        this.socket.on('conversation:new', (conversation: Conversation) => {
-            this.conversationCallbacks.forEach(callback => callback(conversation));
-        });
-
-        this.socket.on('friend_request:new', (friendRequest: FriendRequest) => {
-            this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
-        });
-
-        this.socket.on('friend_request:new_delete', (data: { senderId: string, receiverId: string }) => {
-            console.log('Delete friend request received:', data);
-            this.friendRequestActionCallbacks.forEach(callback => callback(data.senderId, data.receiverId));
-        });
-
-        this.socket.on('delete_message', (message: Message) => {
-            this.deleteMessageCallbacks.forEach(callback => callback(message));
         });
 
         this.socket.on('pong', (message: string) => {
@@ -330,6 +359,42 @@ class SocketService {
             console.error('Socket error:', error.message);
         });
 
+        // Message events
+        this.socket.on('message:new', (message: Message) => {
+            console.log('New message received: ', message);
+            this.messageCallbacks.forEach(callback => callback(message));
+        });
+
+        this.socket.on('delete_message', (message: Message) => {
+            this.deleteMessageCallbacks.forEach(callback => callback(message));
+        });
+
+        this.socket.on('message:pinned', (data: { conversationId: string, pinnedMessages: Message[] }) => {
+            console.log('Message pinned:', data);
+            this.pinnedMessageCallbacks.forEach(callback => callback(data));
+        });
+
+        // Conversation events
+        this.socket.on('conversation:new', (conversation: Conversation) => {
+            this.conversationCallbacks.forEach(callback => callback(conversation));
+        });
+
+        this.socket.on('conversation:participants_added', (updatedConversation: Conversation) => {
+            console.log('Participants added to conversation:', updatedConversation);
+            this.participantsCallbacks.forEach(callback => callback(updatedConversation));
+        });
+
+        // Friend request events
+        this.socket.on('friend_request:new', (friendRequest: FriendRequest) => {
+            this.friendRequestCallbacks.forEach(callback => callback(friendRequest));
+        });
+
+        this.socket.on('friend_request:new_delete', (data: { senderId: string, receiverId: string }) => {
+            console.log('Delete friend request received:', data);
+            this.friendRequestActionCallbacks.forEach(callback => callback(data.senderId, data.receiverId));
+        });
+
+        // Attachment events
         this.socket.on('attachment:sent', (data: { success: boolean, messageId: string }) => {
             this.attachmentSentCallbacks.forEach(callback => callback(data));
         });
@@ -339,11 +404,7 @@ class SocketService {
             this.attachmentErrorCallbacks.forEach(callback => callback(error));
         });
 
-        this.socket.on('conversation:participants_added', (updatedConversation: Conversation) => {
-            console.log('Participants added to conversation:', updatedConversation);
-            this.participantsCallbacks.forEach(callback => callback(updatedConversation));
-        });
-
+        // Vote events
         this.socket.on('vote:created', (data: { conversationId: string, vote: Message }) => {
             console.log('Vote created received:', data);
             this.voteCreatedCallbacks.forEach(callback => callback(data));
@@ -362,11 +423,6 @@ class SocketService {
         this.socket.on('vote:error', (error: { message: string }) => {
             console.error('Vote error:', error.message);
             this.voteErrorCallbacks.forEach(callback => callback(error));
-        });
-
-        this.socket.on('message:pinned', (data: { conversationId: string, pinnedMessages: Message[] }) => {
-            console.log('Message pinned:', data);
-            this.pinnedMessageCallbacks.forEach(callback => callback(data));
         });
     }
 }
