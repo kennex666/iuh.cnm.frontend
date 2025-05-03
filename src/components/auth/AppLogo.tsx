@@ -9,11 +9,12 @@ interface AppLogoProps {
     className?: string;
 }
 
-const AppLogo = ({
-                     size = 80,
-                     logoSource = ImageConstants.logo,
-                     className = ''
-                 }: AppLogoProps) => {
+const AppLogo = (
+    {
+        size = 80,
+        logoSource = ImageConstants.logo,
+        className = ''
+    }: AppLogoProps) => {
     return (
         <View className={`items-center mb-6 ${className}`}>
             <View

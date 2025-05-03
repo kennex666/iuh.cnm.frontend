@@ -7,11 +7,12 @@ interface GradientBackgroundProps {
     className?: string;
 }
 
-const GradientBackground = ({
-                                children,
-                                keyboardShouldPersistTaps = 'handled',
-                                className = ''
-                            }: GradientBackgroundProps) => {
+const GradientBackground = (
+    {
+        children,
+        keyboardShouldPersistTaps = 'handled',
+        className = ''
+    }: GradientBackgroundProps) => {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
