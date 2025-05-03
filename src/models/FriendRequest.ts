@@ -1,4 +1,4 @@
-interface FriendRequest {
+export interface FriendRequest {
     id: string;
     senderId: string;
     receiverId: string;
@@ -6,6 +6,3 @@ interface FriendRequest {
     createAt: Date;
     updateAt: Date;
 }
-
-export default FriendRequest;
-

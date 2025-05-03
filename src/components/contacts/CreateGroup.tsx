@@ -15,11 +15,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
 import { User } from '@/src/models/User';
-import FriendRequest from '@/src/models/FriendRequest';
+import { FriendRequest } from '@/src/models/FriendRequest';
 import { ConversationService } from '@/src/api/services/ConversationService';
 import {Conversation} from '@/src/models/Conversation';
 import Toast from '../ui/Toast';
-import { UserProvider, useUser } from '@/src/contexts/user/UserContext';
+import { useUser } from '@/src/contexts/user/UserContext';
 import * as ImagePicker from 'expo-image-picker';
 import SocketService from '@/src/api/services/SocketService';
 

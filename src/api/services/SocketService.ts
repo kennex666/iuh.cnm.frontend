@@ -1,9 +1,8 @@
 import { io, Socket } from 'socket.io-client';
-import { useEffect, useRef } from 'react';
 import { ApiEndpoints } from '@/src/constants/ApiConstant';
 import { Message } from '@/src/models/Message';
 import { Conversation } from '@/src/models/Conversation';
-import FriendRequest from '@/src/models/FriendRequest';
+import { FriendRequest } from '@/src/models/FriendRequest';
 
 class SocketService {
     private static instance: SocketService;

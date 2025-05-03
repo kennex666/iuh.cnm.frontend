@@ -8,7 +8,7 @@ import { Conversation } from '@/src/models/Conversation';
 import { useUser } from '@/src/contexts/user/UserContext';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
 import { UserService } from '@/src/api/services/UserService';
-import FriendRequest from '@/src/models/FriendRequest';
+import { FriendRequest } from '@/src/models/FriendRequest';
 import SocketService from '@/src/api/services/SocketService';
 
 interface AddMemberModalProps {

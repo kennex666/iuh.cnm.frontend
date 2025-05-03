@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AddMemberModal from './AddMemberModal';
 import { FriendRequestService } from '@/src/api/services/FriendRequestService';
-import FriendRequest from '@/src/models/FriendRequest';
+import { FriendRequest } from '@/src/models/FriendRequest';
 import { User } from '@/src/models/User';
 import { UserService } from '@/src/api/services/UserService';
 import { useUser } from '@/src/contexts/user/UserContext';
