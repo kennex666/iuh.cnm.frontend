@@ -1,5 +1,6 @@
 import {ImageSourcePropType} from "react-native";
 import axios from "axios";
+import {ImageConstants} from "@/src/constants/ImageConstant";
 
 type ImageURL = string | null | undefined;
 
@@ -17,15 +18,15 @@ const validateImageURL = async (url: ImageURL, fallbackImage: any): Promise<Imag
 };
 
 const validateAvatar = async (url: string | null | undefined): Promise<ImageSourcePropType> => {
-    return validateImageURL(url, require("@/resources/assets/profile/avatar.png"));
+    return validateImageURL(url, ImageConstants.profile.avatar);
 };
 
 const validateCover = async (url: string | null | undefined): Promise<ImageSourcePropType> => {
-    return validateImageURL(url, require("@/resources/assets/profile/cover.png"));
+    return validateImageURL(url, ImageConstants.profile.cover);
 };
 
 const validateGroupAvatar = async (url: string | null | undefined): Promise<ImageSourcePropType> => {
-    return validateImageURL(url, require("@/resources/assets/profile/cover.png"));
+    return validateImageURL(url, ImageConstants.profile.group);
 };
 
 export {validateAvatar, validateCover, validateGroupAvatar};
