@@ -20,6 +20,7 @@ class SocketService {
     private voteUpdatedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteResultCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteErrorCallbacks: ((error: { message: string }) => void)[] = [];
+    private loginQRCallbacks: ((data: { data: { deviceCode: string, socketId: string } }) => void)[] = [];
     
     private constructor() {}
 
@@ -43,6 +44,19 @@ class SocketService {
         });
 
         this.setupEventListeners();
+    }
+
+    public connectQR(): void {
+        if (this.socket) {
+            console.log("Socket already connected for QR");
+            return; 
+        }
+
+        this.socket = io(ApiEndpoints.SOCKET_LOGIN_QR, {
+            transports: ['websocket']
+        });
+
+        this.setupEventListenersForQR();
     }
 
     private setupEventListeners(): void {
@@ -119,6 +133,41 @@ class SocketService {
             console.error('Vote error:', error.message);
             this.voteErrorCallbacks.forEach(callback => callback(error));
         });
+    }
+
+    private setupEventListenersForQR(): void {
+        if (!this.socket) return;
+
+        this.socket.on('connect', () => {
+            console.log('Socket connected for QR login');
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log('Socket disconnected for QR login');
+        });
+
+        this.socket.on('loginQR:generate', (data: { data: { deviceCode: string, socketId: string } }) => {
+            this.loginQRCallbacks.forEach(callback => callback(data));
+        });
+
+        this.socket.on('error', (error: { message: string }) => {
+            console.error('Socket error for QR login:', error.message);
+        });
+    }
+
+    public generateLoginQR(): void {
+        if (this.socket) {
+            console.log('Generating QR code for login');
+            this.socket.emit('loginQR:generate');
+        }
+    }
+
+    public onGenerateLoginQR(callback: (data: { data: { deviceCode: string, socketId: string } }) => void): void {
+        this.loginQRCallbacks.push(callback);
+    }
+
+    public removeGenerateLoginQRListener(callback: (data: { data: { deviceCode: string, socketId: string } }) => void): void {
+        this.loginQRCallbacks = this.loginQRCallbacks.filter(cb => cb !== callback);
     }
 
     public actionParticipantsAdded(data: { conversationId: string, participantIds: string[] }): void {

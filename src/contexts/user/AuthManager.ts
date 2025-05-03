@@ -32,7 +32,7 @@ class AuthManager {
 
             return {
                 success: false,
-                message: result.message || 'Đăng nhập thất bại!',
+                message: 'Đăng nhập thất bại !',
                 errorCode: result?.errorCode || 0
             };
         } catch (error: any) {
