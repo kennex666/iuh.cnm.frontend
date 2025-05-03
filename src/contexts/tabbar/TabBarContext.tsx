@@ -1,5 +1,5 @@
 import React, {createContext, ReactNode, useContext, useState} from "react";
-import TabBarManager from "@/src/contexts/tabbar/helper/TabBarManager";
+import TabBarManager from "@/src/contexts/tabbar/manager/TabBarManager";
 
 interface TabBarContextType {
     isVisible: boolean;

@@ -3,7 +3,7 @@ import {UserStorage} from '@/src/storage/UserStorage';
 import {isUserComplete, User} from '@/src/models/User';
 import {Profile} from '@/src/models/Profile';
 import {AuthStorage} from '@/src/storage/AuthStorage';
-import {ApiResponse} from '@/src/contexts/user/helper/ApiResponse';
+import {ApiResponse} from '@/src/contexts/user/manager/ApiResponse';
 import SocketService from '@/src/api/services/SocketService';
 
 class UserManager {
