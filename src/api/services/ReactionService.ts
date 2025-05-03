@@ -98,7 +98,7 @@ export const ReactionService: ReactionService = {
             formData.append('emoji', reaction.emoji);
 
             // Config for multipart/form-data
-            const config: ExtendedAxiosRequestConfig = { isFormData: true };
+            const config: ExtendedAxiosRequestConfig = {isFormData: true};
 
             const response = await BaseService.authenticatedRequest<any>(
                 'post',

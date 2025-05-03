@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Linking } from 'react-native';
-import { Attachment } from '@/src/models/Attachment';
-import { Video, ResizeMode } from 'expo-av';
+import React, {useEffect, useRef, useState} from 'react';
+import {Dimensions, Image, Linking, Text, TouchableOpacity, View} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {Attachment} from '@/src/models/Attachment';
+import {ResizeMode, Video} from 'expo-av';
 
 interface FileMessageContentProps {
     messageId: string;
@@ -15,11 +14,11 @@ interface FileMessageContentProps {
 
 type GLYPHS = keyof typeof Ionicons.glyphMap;
 
-const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onImagePress }: FileMessageContentProps) => {
+const FileMessageContent = ({messageId, fileName, isSender, getAttachment, onImagePress}: FileMessageContentProps) => {
     const [attachment, setAttachment] = useState<Attachment | null>(null);
     const [loading, setLoading] = useState(true);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [mediaDimensions, setMediaDimensions] = useState({ width: 200, height: 200 });
+    const [mediaDimensions, setMediaDimensions] = useState({width: 200, height: 200});
     const videoRef = useRef<Video>(null);
 
     const MAX_HEIGHT = 600; // Chiều cao tối đa cho media
@@ -47,30 +46,30 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
     const calculateDimensions = async (attachment: Attachment) => {
         try {
             const getSize = () => {
-                return new Promise<{width: number, height: number}>((resolve) => {
+                return new Promise<{ width: number, height: number }>((resolve) => {
                     if (attachment.fileType?.startsWith('image/')) {
                         // Đối với hình ảnh, sử dụng Image.getSize để lấy kích thước thực
                         Image.getSize(
                             attachment.url,
                             (width, height) => {
-                                resolve({ width, height });
+                                resolve({width, height});
                             },
                             () => {
                                 // Fallback nếu không lấy được kích thước
-                                resolve({ width: maxContentWidth, height: maxContentWidth * 0.75 });
+                                resolve({width: maxContentWidth, height: maxContentWidth * 0.75});
                             }
                         );
                     } else if (attachment.fileType?.startsWith('video/')) {
                         // Đối với video, sử dụng tỉ lệ mặc định 16:9 hoặc 9:16 tùy thuộc vào orientation
                         // Giả sử đây là video dọc (portrait) như bạn đề cập (720x1280)
-                        resolve({ width: 720, height: 1280 });
+                        resolve({width: 720, height: 1280});
                     } else {
-                        resolve({ width: maxContentWidth, height: maxContentWidth * 0.75 });
+                        resolve({width: maxContentWidth, height: maxContentWidth * 0.75});
                     }
                 });
             };
 
-            const { width, height } = await getSize();
+            const {width, height} = await getSize();
 
             let newWidth, newHeight;
 
@@ -103,11 +102,11 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
             if (newWidth < 120) newWidth = 120;
             if (newHeight < 120) newHeight = 120;
 
-            setMediaDimensions({ width: newWidth, height: newHeight });
+            setMediaDimensions({width: newWidth, height: newHeight});
         } catch (error) {
             console.error('Error calculating dimensions:', error);
             // Sử dụng kích thước mặc định nếu có lỗi
-            setMediaDimensions({ width: maxContentWidth, height: (maxContentWidth * 9) / 16 });
+            setMediaDimensions({width: maxContentWidth, height: (maxContentWidth * 9) / 16});
         }
     };
 
@@ -191,7 +190,7 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
                 activeOpacity={0.9}
             >
                 <Image
-                    source={{ uri: attachment.url }}
+                    source={{uri: attachment.url}}
                     className="rounded-lg"
                     style={{
                         width: mediaDimensions.width,
@@ -199,7 +198,9 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
                         alignSelf: 'center'
                     }}
                     resizeMode="cover"
-                    onError={(error) => {console.error('Error loading image:', error);}}
+                    onError={(error) => {
+                        console.error('Error loading image:', error);
+                    }}
                 />
                 <View className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center">
                     <Text className="text-white text-xs">{fileName}</Text>
@@ -219,7 +220,7 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
                 >
                     <Video
                         ref={videoRef}
-                        source={{ uri: attachment.url }}
+                        source={{uri: attachment.url}}
                         style={{
                             width: mediaDimensions.width,
                             height: mediaDimensions.height,
@@ -236,18 +237,19 @@ const FileMessageContent = ({ messageId, fileName, isSender, getAttachment, onIm
                     {/* Overlay hiển thị nút play/pause */}
                     <View
                         className="absolute inset-0 items-center justify-center"
-                        style={{ backgroundColor: isPlaying ? 'transparent' : 'rgba(0,0,0,0.3)' }}
+                        style={{backgroundColor: isPlaying ? 'transparent' : 'rgba(0,0,0,0.3)'}}
                     >
                         {!isPlaying && (
                             <View className="bg-white/30 rounded-full p-3">
-                                <Ionicons name="play" size={24} color="white" />
+                                <Ionicons name="play" size={24} color="white"/>
                             </View>
                         )}
                     </View>
 
                     {/* Hiển thị tên file */}
-                    <View className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center">
-                        <Ionicons name="videocam" size={12} color="white" />
+                    <View
+                        className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center">
+                        <Ionicons name="videocam" size={12} color="white"/>
                         <Text className="text-white text-xs ml-1">{fileName}</Text>
                     </View>
                 </TouchableOpacity>

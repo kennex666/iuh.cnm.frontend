@@ -1,6 +1,6 @@
-import { User } from '@/src/models/User';
-import { ApiEndpoints } from '@/src/constants/ApiConstant';
-import { BaseService, ExtendedAxiosRequestConfig } from './BaseService';
+import {User} from '@/src/models/User';
+import {ApiEndpoints} from '@/src/constants/ApiConstant';
+import {BaseService, ExtendedAxiosRequestConfig} from './BaseService';
 
 interface UserService {
     update: (userData: Partial<User>) => Promise<{
@@ -122,7 +122,7 @@ export const UserService: UserService = {
 
     async getUserByPhone(phone: string) {
         try {
-            const config: ExtendedAxiosRequestConfig = { skipAuth: true };
+            const config: ExtendedAxiosRequestConfig = {skipAuth: true};
 
             const response = await BaseService.authenticatedRequest<any[]>(
                 'get',

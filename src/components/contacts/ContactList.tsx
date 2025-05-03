@@ -1,17 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    Image,
-    ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { FriendRequestService } from '@/src/api/services/FriendRequestService';
-import { FriendRequest } from '@/src/models/FriendRequest';
-import { useUser } from '@/src/contexts/user/UserContext';
-import { UserService } from '@/src/api/services/UserService';
-import { User } from '@/src/models/User';
+import React, {useEffect, useState} from 'react';
+import {Image, ScrollView, Text, TextInput, View,} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {FriendRequestService} from '@/src/api/services/FriendRequestService';
+import {FriendRequest} from '@/src/models/FriendRequest';
+import {useUser} from '@/src/contexts/user/UserContext';
+import {UserService} from '@/src/api/services/UserService';
+import {User} from '@/src/models/User';
 
 interface FriendInfo extends User {
     friendRequestDate: Date;
@@ -23,7 +17,7 @@ export default function ContactList() {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [friends, setFriends] = useState<FriendInfo[]>([]);
-    const { user } = useUser();
+    const {user} = useUser();
 
     useEffect(() => {
         loadFriendRequests();
@@ -42,10 +36,10 @@ export default function ContactList() {
                 setFriendRequests(response.friendRequests);
                 // Tạo mảng tạm để lưu thông tin bạn bè
                 const tempFriends: FriendInfo[] = [];
-                for(const request of response.friendRequests) {
+                for (const request of response.friendRequests) {
                     const friendId = request.senderId === user.id ? request.receiverId : request.senderId;
                     const friend = await UserService.getUserById(friendId);
-                    if(friend.success && friend.user) {
+                    if (friend.success && friend.user) {
                         tempFriends.push({
                             ...friend.user,
                             friendRequestDate: request.createAt
@@ -65,10 +59,9 @@ export default function ContactList() {
         }
     };
 
-    
 
     console.log('friendRequests', friendRequests);
-    const filteredRequests = friendRequests.filter(request => 
+    const filteredRequests = friendRequests.filter(request =>
         request.senderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.receiverId.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -94,7 +87,7 @@ export default function ContactList() {
             {/* Search Bar */}
             <View className="px-4 py-2 border-b border-gray-200">
                 <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-                    <Ionicons name="search" size={20} color="#666" />
+                    <Ionicons name="search" size={20} color="#666"/>
                     <TextInput
                         className="flex-1 ml-2 text-base text-gray-800"
                         placeholder="Tìm bạn bè..."
@@ -109,7 +102,7 @@ export default function ContactList() {
             <ScrollView className="flex-1">
                 {friends.length === 0 ? (
                     <View className="flex-1 justify-center items-center p-4">
-                        <Ionicons name="people-outline" size={48} color="#666" />
+                        <Ionicons name="people-outline" size={48} color="#666"/>
                         <Text className="text-gray-500 mt-2">Chưa có bạn bè nào</Text>
                     </View>
                 ) : (
@@ -117,9 +110,9 @@ export default function ContactList() {
                         <View key={friend.id} className="border-b border-gray-100">
                             <View className="flex-row items-center px-4 py-3">
                                 <Image
-                                    source={{ 
-                                        uri: friend.avatarURL === "default" ? 
-                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.name)}&background=0068FF&color=fff` 
+                                    source={{
+                                        uri: friend.avatarURL === "default" ?
+                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(friend.name)}&background=0068FF&color=fff`
                                             : friend.avatarURL
                                     }}
                                     className="w-12 h-12 rounded-full"

@@ -1,6 +1,6 @@
-import { ApiEndpoints } from '@/src/constants/ApiConstant';
-import { User } from '@/src/models/User';
-import { BaseService } from './BaseService';
+import {ApiEndpoints} from '@/src/constants/ApiConstant';
+import {User} from '@/src/models/User';
+import {BaseService} from './BaseService';
 import axios from 'axios';
 
 export interface LoginResponse {

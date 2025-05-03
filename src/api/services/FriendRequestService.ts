@@ -1,6 +1,6 @@
-import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { FriendRequest } from "@/src/models/FriendRequest";
-import { BaseService } from "./BaseService";
+import {ApiEndpoints} from "@/src/constants/ApiConstant";
+import {FriendRequest} from "@/src/models/FriendRequest";
+import {BaseService} from "./BaseService";
 
 interface FriendRequestService {
     getAllFriendRequests: () => Promise<{

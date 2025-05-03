@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Message } from '@/src/models/Message';
+import React, {useState} from 'react';
+import {Image, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {Message} from '@/src/models/Message';
 
 interface ForwardMessageModalProps {
     message: Message;
@@ -45,7 +45,7 @@ const mockConversations = [
     }
 ];
 
-export default function ForwardMessageModal({ message, onClose, onForward }: ForwardMessageModalProps) {
+export default function ForwardMessageModal({message, onClose, onForward}: ForwardMessageModalProps) {
     const [selectedConversations, setSelectedConversations] = useState<string[]>([]);
 
     const toggleConversation = (conversationId: string) => {
@@ -65,7 +65,7 @@ export default function ForwardMessageModal({ message, onClose, onForward }: For
                 <View className="p-4 border-b border-gray-200 flex-row items-center justify-between">
                     <Text className="text-lg font-semibold text-gray-900">Chuyển tiếp tin nhắn</Text>
                     <TouchableOpacity onPress={onClose}>
-                        <Ionicons name="close" size={24} color="#666" />
+                        <Ionicons name="close" size={24} color="#666"/>
                     </TouchableOpacity>
                 </View>
 
@@ -86,12 +86,12 @@ export default function ForwardMessageModal({ message, onClose, onForward }: For
                         >
                             <View className="relative">
                                 <Image
-                                    source={{ uri: conversation.avatar }}
+                                    source={{uri: conversation.avatar}}
                                     className="w-12 h-12 rounded-full"
                                 />
                                 {conversation.isGroup && (
                                     <View className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1">
-                                        <Ionicons name="people" size={12} color="white" />
+                                        <Ionicons name="people" size={12} color="white"/>
                                     </View>
                                 )}
                             </View>
@@ -102,12 +102,12 @@ export default function ForwardMessageModal({ message, onClose, onForward }: For
                                 </Text>
                             </View>
                             <View className="w-6 h-6 rounded-full border-2 border-blue-500 items-center justify-center"
-                                style={{
-                                    backgroundColor: selectedConversations.includes(conversation.id) ? '#3B82F6' : 'transparent'
-                                }}
+                                  style={{
+                                      backgroundColor: selectedConversations.includes(conversation.id) ? '#3B82F6' : 'transparent'
+                                  }}
                             >
                                 {selectedConversations.includes(conversation.id) && (
-                                    <Ionicons name="checkmark" size={16} color="white" />
+                                    <Ionicons name="checkmark" size={16} color="white"/>
                                 )}
                             </View>
                         </TouchableOpacity>
@@ -124,7 +124,8 @@ export default function ForwardMessageModal({ message, onClose, onForward }: For
                         onPress={() => onForward(selectedConversations)}
                         disabled={selectedConversations.length === 0}
                     >
-                        <Text className={`font-medium ${selectedConversations.length > 0 ? 'text-white' : 'text-gray-500'}`}>
+                        <Text
+                            className={`font-medium ${selectedConversations.length > 0 ? 'text-white' : 'text-gray-500'}`}>
                             Chuyển tiếp
                         </Text>
                     </TouchableOpacity>

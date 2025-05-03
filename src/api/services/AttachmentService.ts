@@ -1,6 +1,6 @@
-import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { Attachment } from '@/src/models/Attachment';
-import { BaseService } from "./BaseService";
+import {ApiEndpoints} from "@/src/constants/ApiConstant";
+import {Attachment} from '@/src/models/Attachment';
+import {BaseService} from "./BaseService";
 
 interface AttachmentService {
     getAttachmentByMessageId: (messageId: string) => Promise<{

@@ -215,7 +215,7 @@ export const ConversationService: ConversationService = {
             const response = await BaseService.authenticatedRequest<any>(
                 'put',
                 `${ApiEndpoints.API_CONVERSATION}/add-participants/${conversationId}`,
-                { participantIds }
+                {participantIds}
             );
 
             if (!response.success || !response.data) {
@@ -248,7 +248,7 @@ export const ConversationService: ConversationService = {
             const response = await BaseService.authenticatedRequest<any>(
                 'put',
                 `${ApiEndpoints.API_CONVERSATION}/remove-participants/${conversationId}`,
-                { participantIds }
+                {participantIds}
             );
 
             if (!response.success || !response.data) {
@@ -281,7 +281,7 @@ export const ConversationService: ConversationService = {
             const response = await BaseService.authenticatedRequest<any>(
                 'put',
                 `${ApiEndpoints.API_CONVERSATION}/transfer-admin/${conversationId}`,
-                { toUserId: newAdminId }
+                {toUserId: newAdminId}
             );
 
             if (!response.success || !response.data) {
@@ -314,7 +314,7 @@ export const ConversationService: ConversationService = {
             const response = await BaseService.authenticatedRequest<any>(
                 'put',
                 `${ApiEndpoints.API_CONVERSATION}/grant-mod-role/${conversationId}`,
-                { toUserId: userId }
+                {toUserId: userId}
             );
 
             if (!response.success || !response.data) {
@@ -380,7 +380,7 @@ export const ConversationService: ConversationService = {
             const response = await BaseService.authenticatedRequest<any>(
                 'put',
                 `${ApiEndpoints.API_CONVERSATION}/pin-message/${conversationId}`,
-                { messageId }
+                {messageId}
             );
 
             if (!response.success || !response.data) {
@@ -413,7 +413,7 @@ export const ConversationService: ConversationService = {
             const response = await BaseService.authenticatedRequest<any>(
                 'put',
                 `${ApiEndpoints.API_CONVERSATION}/join-group-by-url`,
-                { url }
+                {url}
             );
 
             if (!response.success || !response.data) {
