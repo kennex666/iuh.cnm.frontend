@@ -20,6 +20,7 @@ class SocketService {
     private voteUpdatedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteResultCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
     private voteErrorCallbacks: ((error: { message: string }) => void)[] = [];
+    private pinnedMessageCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
     private loginQRCallbacks: ((data: { data: { deviceCode: string, socketId: string } }) => void)[] = [];
     
     private constructor() {}
@@ -132,6 +133,11 @@ class SocketService {
         this.socket.on('vote:error', (error: { message: string }) => {
             console.error('Vote error:', error.message);
             this.voteErrorCallbacks.forEach(callback => callback(error));
+        });
+
+        this.socket.on('message:pinned', (data: { conversationId: string, pinnedMessages: Message[] }) => {
+            console.log('Message pinned:', data);
+            this.pinnedMessageCallbacks.forEach(callback => callback(data));
         });
     }
 
@@ -392,6 +398,21 @@ class SocketService {
 
     public removeVoteErrorListener(callback: (error: { message: string }) => void): void {
         this.voteErrorCallbacks = this.voteErrorCallbacks.filter(cb => cb !== callback);
+    }
+
+    public pinMessage(data: { conversationId: string, messageId: string }): void {
+        if (this.socket) {
+            console.log('Pinning message:', data);
+            this.socket.emit('message:pin', data);
+        }
+    }
+
+    public onPinnedMessage(callback: (data: { conversationId: string, pinnedMessages: Message[] }) => void): void {
+        this.pinnedMessageCallbacks.push(callback);
+    }
+
+    public removePinnedMessageListener(callback: (data: { conversationId: string, pinnedMessages: Message[] }) => void): void {
+        this.pinnedMessageCallbacks = this.pinnedMessageCallbacks.filter(cb => cb !== callback);
     }
 }
 
