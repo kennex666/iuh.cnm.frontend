@@ -57,9 +57,7 @@ export default function Login() {
 
         setLoading(true);
         try {
-            console.log('Attempting login with:', phoneNumber, password);
             const result = await login({phone: phoneNumber, password});
-            console.log('Login result:', result);
 
             if (result.success) {
                 setToast({
@@ -113,10 +111,9 @@ export default function Login() {
                 });
             }
         } catch (error) {
-            console.error('Login error:', error);
             setToast({
                 visible: true,
-                message: `Có lỗi xảy ra: ${error || 'Unknown error'}`,
+                message: `Đăng nhập thất bại`,
                 type: 'error'
             });
         } finally {
@@ -147,7 +144,7 @@ export default function Login() {
                         <View className="w-full max-w-[100%] sm:max-w-[420px]">
                             <AppLogo/>
 
-                            <View className="mt-4 sm:mt-6">
+                            <View className="mt-4 sm:mt-2">
                                 <AuthHeader
                                     title="Welcome Back!"
                                     subtitle={'Đăng nhập để kết nối với bạn bè và\nngười thân của bạn'}
@@ -191,15 +188,22 @@ export default function Login() {
                                         className="mt-2"
                                     />
 
-                                    <Divider text="Hoặc" className="mt-3"/>
+                                  
 
-                                    <Button
-                                        title="Đăng nhập bằng mã QR"
-                                        onPress={handleQrCodeLogin}
-                                        variant="outline"
-                                        icon="qr-code-outline"
-                                        className="mt-2"
-                                    />
+                                    {
+                                        Platform.OS === 'web' && (
+                                            <>
+                                                <Divider text="Hoặc" className="mt-3"/>
+                                                <Button
+                                                    title="Đăng nhập bằng mã QR"
+                                                    onPress={handleQrCodeLogin}
+                                                    variant="outline"
+                                                    icon="qr-code-outline"
+                                                    className="mt-2"
+                                                />
+                                            </>
+                                        )
+                                    }
 
                                     {/* Tính năng phát triển */}
                                     {/* <Button

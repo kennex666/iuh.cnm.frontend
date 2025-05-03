@@ -10,7 +10,7 @@ import FilesInfo from '../info/FilesInfo';
 import { Ionicons } from '@expo/vector-icons';
 import GroupInfo from '../info/GroupInfo';
 import { ConversationService } from '@/src/api/services/ConversationService';
-import Conversations from './Conversations';
+import Conversations from '../conversations/Conversations';
 import QRScanner from '../ui/QRScanner';
 import { useUser } from '@/src/contexts/user/UserContext';
 

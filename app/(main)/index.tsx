@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useWindowDimensions, View} from 'react-native';
-import Conversations from '@/src/components/chat/Conversations';
+import Conversations from '@/src/components/conversations/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
 import Info from '@/src/components/chat/Info';
 import {Conversation} from '@/src/models/Conversation';

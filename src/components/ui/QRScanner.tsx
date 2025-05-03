@@ -60,7 +60,7 @@ export default function QRScanner({
             onScan(data);
         }
 
-        if (showDefaultAlert) {
+        if (showDefaultAlert && data.startsWith("https://") ){
             setTimeout(() => {
                 Alert.alert("QR Code", data, [
                     {text: "Thoát", onPress: () => (qrLock.current = false)},
@@ -92,7 +92,23 @@ export default function QRScanner({
                     },
                 ]);
             }, 500);
-        } else {
+        } else if(data !== null ){
+            setTimeout(() => {
+                Alert.alert("QR Code", data, [
+                    {text: "Thoát", onPress: () => (qrLock.current = false)},
+                    {
+                        text: "Mở liên kết",
+                        onPress: () => {
+                            Linking.openURL(data).catch(() => {
+                                Alert.alert("Error", `Không thể mở liên kết ${data}`);
+                            });
+                            qrLock.current = false;
+                        },
+                    },
+                ]);
+            }, 500);
+        }
+         else {
             setTimeout(() => {
                 qrLock.current = false;
             }, lockScanTime);
