@@ -1,7 +1,6 @@
-import axios from "axios";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { AuthStorage } from "@/src/storage/AuthStorage";
 import { FriendRequest } from "@/src/models/FriendRequest";
+import { BaseService } from "./BaseService";
 
 interface FriendRequestService {
     getAllFriendRequests: () => Promise<{
@@ -60,48 +59,22 @@ interface FriendRequestService {
     }>;
 }
 
-export const FriendRequestService: FriendRequestService = {
+export const FriendRequestService = {
     async getAllFriendRequests(): Promise<{
         success: boolean;
         friendRequests: FriendRequest[];
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequests: [],
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest[]>(
+            'get',
+            ApiEndpoints.API_FRIEND_REQUEST
+        );
 
-            const response = await axios.get(ApiEndpoints.API_FRIEND_REQUEST, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequests: response.data.data,
-                    message: response.data.message || "Successfully fetched friend requests",
-                };
-            }
-            return {
-                success: false,
-                friendRequests: [],
-                message: response.data.message || "Failed to fetch friend requests",
-            };
-        } catch (error) {
-            console.error("Get friend requests error:", error);
-            return {
-                success: false,
-                friendRequests: [],
-                message: "Failed to get friend requests",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequests: response.data || [],
+            message: response.message
+        };
     },
 
     async getFriendRequestById(id: string): Promise<{
@@ -109,42 +82,16 @@ export const FriendRequestService: FriendRequestService = {
         friendRequest: FriendRequest;
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequest: {} as FriendRequest,
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest>(
+            'get',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/${id}`
+        );
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequest: response.data.data,
-                    message: response.data.message || "Successfully fetched friend request",
-                };
-            }
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: response.data.message || "Failed to fetch friend request",
-            };
-        } catch (error) {
-            console.error("Get friend request error:", error);
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: "Failed to get friend request",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequest: response.data || ({} as FriendRequest),
+            message: response.message
+        };
     },
 
     async createFriendRequest(friendRequest: FriendRequest): Promise<{
@@ -152,43 +99,19 @@ export const FriendRequestService: FriendRequestService = {
         friendRequest: FriendRequest;
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequest: {} as FriendRequest,
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest>(
+            'post',
+            ApiEndpoints.API_FRIEND_REQUEST,
+            friendRequest
+        );
 
-            const response = await axios.post(ApiEndpoints.API_FRIEND_REQUEST, friendRequest, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+        console.log("create friend request response: ", response);
 
-            console.log("create friend request response: ", response.data);
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequest: response.data.data,
-                    message: response.data.message || "Successfully created friend request",
-                };
-            }
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: response.data.message || "Failed to create friend request",
-            };
-        } catch (error) {
-            console.error("Create friend request error:", error);
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: "Failed to create friend request",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequest: response.data || ({} as FriendRequest),
+            message: response.message
+        };
     },
 
     async acceptFriendRequest(id: string): Promise<{
@@ -196,44 +119,19 @@ export const FriendRequestService: FriendRequestService = {
         friendRequest: FriendRequest;
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequest: {} as FriendRequest,
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest>(
+            'put',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/accept/${id}`,
+            {}
+        );
 
-            const response = await axios.put(`${ApiEndpoints.API_FRIEND_REQUEST}/accept/${id}`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+        console.log(response);
 
-            console.log(response.data);
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequest: response.data.data,
-                    message: response.data.message || "Successfully accepted friend request",
-                };
-            }
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: response.data.message || "Failed to accept friend request",
-            };
-        } catch (error) {
-            console.error("Accept friend request error:", error);
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: "Failed to accept friend request",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequest: response.data || ({} as FriendRequest),
+            message: response.message
+        };
     },
 
     async declineFriendRequest(id: string): Promise<{
@@ -241,81 +139,32 @@ export const FriendRequestService: FriendRequestService = {
         friendRequest: FriendRequest;
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequest: {} as FriendRequest,
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest>(
+            'put',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/decline/${id}`,
+            {}
+        );
 
-            const response = await axios.put(`${ApiEndpoints.API_FRIEND_REQUEST}/decline/${id}`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequest: response.data.data,
-                    message: response.data.message || "Successfully declined friend request",
-                };
-            }
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: response.data.message || "Failed to decline friend request",
-            };
-        } catch (error) {
-            console.error("Decline friend request error:", error);
-            return {
-                success: false,
-                friendRequest: {} as FriendRequest,
-                message: "Failed to decline friend request",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequest: response.data || ({} as FriendRequest),
+            message: response.message
+        };
     },
 
     async deleteFriendRequest(id: string): Promise<{
         success: boolean;
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<void>(
+            'delete',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/${id}`
+        );
 
-            //http://localhost:8087/api/friendRequests/302997088919094272
-            const response = await axios.delete(`http://localhost:8087/api/friendRequests/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    message: response.data.message || "Successfully deleted friend request",
-                };
-            }
-            return {
-                success: false,
-                message: response.data.message || "Failed to delete friend request",
-            };
-        } catch (error) {
-            console.error("Delete friend request error:", error);
-            return {
-                success: false,
-                message: "Failed to delete friend request",
-            };
-        }
+        return {
+            success: response.success,
+            message: response.message
+        };
     },
 
     async getAllPendingFriendRequests(userId: string): Promise<{
@@ -323,42 +172,16 @@ export const FriendRequestService: FriendRequestService = {
         friendRequests: FriendRequest[];
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequests: [],
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest[]>(
+            'get',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/pending/receiver`
+        );
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/receiver`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequests: response.data.data,
-                    message: response.data.message || "Successfully fetched pending friend requests",
-                };
-            }
-            return {
-                success: false,
-                friendRequests: [],
-                message: response.data.message || "Failed to fetch pending friend requests",
-            };
-        } catch (error) {
-            console.error("Get pending friend requests error:", error);
-            return {
-                success: false,
-                friendRequests: [],
-                message: "Failed to get pending friend requests",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequests: response.data || [],
+            message: response.message
+        };
     },
 
     async getAllAcceptedFriendRequests(userId: string): Promise<{
@@ -366,43 +189,18 @@ export const FriendRequestService: FriendRequestService = {
         friendRequests: FriendRequest[];
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequests: [],
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest[]>(
+            'get',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/accepted/userId`
+        );
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/accepted/userId`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+        console.log("get accepted friend requests: ", response);
 
-            console.log("get accepted friend requests: ", response.data);
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequests: response.data.data,
-                    message: response.data.message || "Successfully fetched accepted friend requests",
-                };
-            }
-            return {
-                success: false,
-                friendRequests: [],
-                message: response.data.message || "Failed to fetch accepted friend requests",
-            };
-        } catch (error) {
-            console.error("Get accepted friend requests error:", error);
-            return {
-                success: false,
-                friendRequests: [],
-                message: "Failed to get accepted friend requests",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequests: response.data || [],
+            message: response.message
+        };
     },
 
     async getAllDeclinedFriendRequests(userId: string): Promise<{
@@ -410,42 +208,16 @@ export const FriendRequestService: FriendRequestService = {
         friendRequests: FriendRequest[];
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequests: [],
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest[]>(
+            'get',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/decline/${userId}`
+        );
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/decline/${userId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequests: response.data.data,
-                    message: response.data.message || "Successfully fetched declined friend requests",
-                };
-            }
-            return {
-                success: false,
-                friendRequests: [],
-                message: response.data.message || "Failed to fetch declined friend requests",
-            };
-        } catch (error) {
-            console.error("Get declined friend requests error:", error);
-            return {
-                success: false,
-                friendRequests: [],
-                message: "Failed to get declined friend requests",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequests: response.data || [],
+            message: response.message
+        };
     },
 
     async getAllPendingFriendRequestsByReceiverId(receiverId: string): Promise<{
@@ -453,42 +225,16 @@ export const FriendRequestService: FriendRequestService = {
         friendRequests: FriendRequest[];
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequests: [],
-                    message: "No token found",
-                }
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest[]>(
+            'get',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/pending/receiver`
+        );
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/receiver`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequests: response.data.data,
-                    message: response.data.message || "Successfully fetched pending friend requests",
-                };
-            }
-            return {
-                success: false,
-                friendRequests: [],
-                message: response.data.message || "Failed to fetch pending friend requests",
-            };
-        } catch (error) {
-            console.error("Get pending friend requests by receiver id error:", error);
-            return {
-                success: false,
-                friendRequests: [],
-                message: "Failed to get pending friend requests by receiver id",
-            };
-        }
+        return {
+            success: response.success,
+            friendRequests: response.data || [],
+            message: response.message
+        };
     },
 
     async getAllPendingFriendRequestsBySenderId(): Promise<{
@@ -496,41 +242,15 @@ export const FriendRequestService: FriendRequestService = {
         friendRequests: FriendRequest[];
         message: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    friendRequests: [],
-                    message: "No token found",
-                };
-            }
+        const response = await BaseService.authenticatedRequest<FriendRequest[]>(
+            'get',
+            `${ApiEndpoints.API_FRIEND_REQUEST}/pending/sender`
+        );
 
-            const response = await axios.get(`${ApiEndpoints.API_FRIEND_REQUEST}/pending/sender`, { 
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    friendRequests: response.data.data,
-                    message: response.data.message || "Successfully fetched pending friend requests",
-                };
-            }
-            return {
-                success: false,
-                friendRequests: [],
-                message: response.data.message || "Failed to fetch pending friend requests",
-            };
-        } catch (error) {
-            console.error("Get pending friend requests by sender id error:", error);
-            return {
-                success: false,
-                friendRequests: [],
-                message: "Failed to get pending friend requests by sender id",
-            };
-        }
-    }   
-}; 
+        return {
+            success: response.success,
+            friendRequests: response.data || [],
+            message: response.message
+        };
+    }
+};
