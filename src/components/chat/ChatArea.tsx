@@ -697,7 +697,6 @@ export default function ChatArea({
         // Get the position from refs or calculate approximate position
         const yOffset = messageRefs.current[messageId] || messageIndex * 80;
 
-        // Scroll to the message
         scrollViewRef.current?.scrollTo({y: yOffset, animated: true});
 
         // Highlight the message briefly
@@ -709,6 +708,20 @@ export default function ChatArea({
         // Close the pinned messages list
         setShowPinnedMessagesList(false);
     };
+
+
+    if (loading) {
+        return (
+            <View className="flex-1 items-center justify-center bg-blue-50/50 rounded-2xl m-4">
+                <View className="bg-white p-6 rounded-2xl shadow-sm items-center">
+                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6"/>
+                    <Text className="text-blue-900 mt-4 text-center">
+                        Chọn một cuộc trò chuyện để xem thông tin chi tiết
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 
 
     if (loading) {

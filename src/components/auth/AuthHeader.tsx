@@ -8,7 +8,7 @@ interface AuthHeaderProps {
 
 const AuthHeader = ({title, subtitle}: AuthHeaderProps) => {
     return (
-        <View className="mb-6">
+        <View className="mb-2">
             <Text className="text-2xl font-bold text-gray-800 text-center mb-2">
                 {title}
             </Text>

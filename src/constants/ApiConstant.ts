@@ -14,4 +14,5 @@ export const ApiEndpoints = {
     API_REACTION: `${URL_BE}/api/reaction`,
     API_WEBRTC: `${URL_BE}/webrtc`,
     SOCKET_URL: `${URL_BE}`,
+    SOCKET_LOGIN_QR: `${URL_BE}/loginQR`,
 };

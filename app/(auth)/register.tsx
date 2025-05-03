@@ -129,7 +129,7 @@ export default function Register() {
 
             setToast({
                 visible: true,
-                message: 'Đăng ký thành công!',
+                message: 'Mã 2FA đã được gửi đến số điện  thoại!',
                 type: 'success'
             });
 
