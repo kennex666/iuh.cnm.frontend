@@ -4,7 +4,7 @@ import {useFonts} from 'expo-font';
 import {UserProvider} from '@/src/contexts/user/UserContext';
 import {setupAxios} from "@/src/api/AxiosConfig";
 import "../global.css";
-import { TabBarProvider } from '@/src/contexts/TabBarContext';
+import { TabBarProvider } from '@/src/contexts/tabbar/TabBarContext';
 
 export {ErrorBoundary} from 'expo-router';
 

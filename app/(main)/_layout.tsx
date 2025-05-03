@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import ProfileModal from "@/app/(main)/profileUser";
 import { validateAvatar } from "@/src/utils/ImageValidator";
 import { useUser } from "@/src/contexts/user/UserContext";
-import { TabBarProvider, useTabBar } from "@/src/contexts/TabBarContext";
+import { TabBarProvider, useTabBar } from "@/src/contexts/tabbar/TabBarContext";
 
 type Route = {
   name: string;

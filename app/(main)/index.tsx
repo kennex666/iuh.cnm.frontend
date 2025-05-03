@@ -5,7 +5,7 @@ import ChatArea from '@/src/components/chat/ChatArea';
 import Info from '@/src/components/chat/Info';
 import {Conversation} from '@/src/models/Conversation';
 import { useNavigation } from 'expo-router';
-import { useTabBar } from '@/src/contexts/TabBarContext';
+import { useTabBar } from '@/src/contexts/tabbar/TabBarContext';
 
 export default function MessagesScreen() {
     // slectedChat state to manage the currently selected chat

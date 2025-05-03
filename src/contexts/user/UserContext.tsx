@@ -40,7 +40,6 @@ const UserContext = createContext<UserContextType>({
     refreshUserData: async () => false,
 });
 
-
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({children}: UserProviderProps) => {
