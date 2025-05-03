@@ -2,7 +2,7 @@ import {AuthService as ApiAuthService} from '@/src/api/services/AuthService';
 import {AuthStorage} from '@/src/storage/AuthStorage';
 import {UserStorage} from '@/src/storage/UserStorage';
 import {User} from '@/src/models/User';
-import {ApiResponse} from '@/src/contexts/user/ApiResponse';
+import {ApiResponse} from '@/src/contexts/user/helper/ApiResponse';
 import SocketService from '@/src/api/services/SocketService';
 
 interface LoginCredentials {
