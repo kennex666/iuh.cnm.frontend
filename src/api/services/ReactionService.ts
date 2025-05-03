@@ -1,7 +1,7 @@
-import axios from "axios";
 import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { AuthStorage } from "@/src/storage/AuthStorage";
 import { Reaction } from "@/src/models/Reaction";
+import { BaseService } from "./BaseService";
+import { AxiosRequestConfig } from "axios";
 
 interface ReactionService {
     getAllReactions: () => Promise<{
@@ -26,204 +26,146 @@ interface ReactionService {
 }
 
 export const ReactionService: ReactionService = {
-    async getAllReactions(): Promise<{
-        success: boolean;
-        reactions: Reaction[];
-        message: string;
-    }> {
+    async getAllReactions() {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any[]>(
+                'get',
+                ApiEndpoints.API_REACTION
+            );
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     reactions: [],
-                    message: "No token found",
+                    message: response.message || "Failed to fetch reactions"
                 };
             }
 
-            const response = await axios.get(ApiEndpoints.API_REACTION, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const reactions = response.data.map(mapApiReactionToModel);
 
-            if (response.data.success) {
-                const reactions = response.data.data.map((apiReaction: any) => ({
-                    id: apiReaction.id,
-                    messageId: apiReaction.messageId,
-                    userId: apiReaction.userId,
-                    emoji: apiReaction.emoji,
-                    createdAt: apiReaction.createdAt,
-                    updatedAt: apiReaction.updatedAt
-                }));
-                return { 
-                    success: true, 
-                    reactions, 
-                    message: response.data.message || "Successfully fetched reactions" 
-                };
-            }
-            return { 
-                success: false, 
-                reactions: [], 
-                message: response.data.message || "Failed to fetch reactions" 
+            return {
+                success: true,
+                reactions,
+                message: response.message || "Successfully fetched reactions"
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Get reactions error:", error);
             return {
                 success: false,
                 reactions: [],
-                message: "Failed to get reactions",
+                message: error.message || "Failed to get reactions"
             };
         }
     },
 
-    async getReactionById(id: string): Promise<{
-        success: boolean;
-        reaction: Reaction;
-        message: string;
-    }> {
+    async getReactionById(id: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_REACTION}/${id}`
+            );
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     reaction: {} as Reaction,
-                    message: "No token found",
+                    message: response.message || "Failed to fetch reaction"
                 };
             }
 
-            const response = await axios.get(`${ApiEndpoints.API_REACTION}/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const reaction = mapApiReactionToModel(response.data);
 
-            if (response.data.success) {
-                const apiReaction = response.data.data;
-                const reaction: Reaction = {
-                    id: apiReaction.id,
-                    messageId: apiReaction.messageId,
-                    userId: apiReaction.userId,
-                    emoji: apiReaction.emoji,
-                    createdAt: apiReaction.createdAt,
-                    updatedAt: apiReaction.updatedAt
-                };
-
-                return { 
-                    success: true, 
-                    reaction, 
-                    message: response.data.message || "Successfully fetched reaction" 
-                };
-            }
-            return { 
-                success: false, 
-                reaction: {} as Reaction, 
-                message: response.data.message || "Failed to fetch reaction" 
+            return {
+                success: true,
+                reaction,
+                message: response.message || "Successfully fetched reaction"
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Get reaction error:", error);
             return {
                 success: false,
                 reaction: {} as Reaction,
-                message: "Failed to get reaction",
+                message: error.message || "Failed to get reaction"
             };
         }
     },
 
-    async createReaction(reaction: Reaction): Promise<{
-        success: boolean;
-        reaction: Reaction;
-        message: string;
-    }> {
+    async createReaction(reaction: Reaction) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    reaction: {} as Reaction,
-                    message: "No token found",
-                };
-            }
-
+            // Use FormData for multipart/form-data uploads
             const formData = new FormData();
             formData.append('messageId', reaction.messageId);
             formData.append('userId', reaction.userId);
             formData.append('emoji', reaction.emoji);
 
-            const response = await axios.post(ApiEndpoints.API_REACTION, formData, {
+            // Config for multipart/form-data
+            const config: AxiosRequestConfig = {
                 headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
 
-            if (response.data.success) {
-                const apiReaction = response.data.data;
-                const newReaction: Reaction = {
-                    id: apiReaction.id,
-                    messageId: apiReaction.messageId,
-                    userId: apiReaction.userId,
-                    emoji: apiReaction.emoji,
-                    createdAt: apiReaction.createdAt,
-                    updatedAt: apiReaction.updatedAt
-                };
+            const response = await BaseService.authenticatedRequest<any>(
+                'post',
+                ApiEndpoints.API_REACTION,
+                formData,
+                config
+            );
 
-                return { 
-                    success: true, 
-                    reaction: newReaction, 
-                    message: response.data.message || "Successfully created reaction" 
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    reaction: {} as Reaction,
+                    message: response.message || "Failed to create reaction"
                 };
             }
-            return { 
-                success: false, 
-                reaction: {} as Reaction, 
-                message: response.data.message || "Failed to create reaction" 
+
+            const newReaction = mapApiReactionToModel(response.data);
+
+            return {
+                success: true,
+                reaction: newReaction,
+                message: response.message || "Successfully created reaction"
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Create reaction error:", error);
             return {
                 success: false,
                 reaction: {} as Reaction,
-                message: "Failed to create reaction",
+                message: error.message || "Failed to create reaction"
             };
         }
     },
 
-    async deleteReaction(id: string): Promise<{
-        success: boolean;
-        message: string;
-    }> {
+    async deleteReaction(id: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No token found",
-                };
-            }
+            const response = await BaseService.authenticatedRequest<void>(
+                'delete',
+                `${ApiEndpoints.API_REACTION}/${id}`
+            );
 
-            const response = await axios.delete(`${ApiEndpoints.API_REACTION}/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return { 
-                    success: true, 
-                    message: response.data.message || "Successfully deleted reaction" 
-                };
-            }
-            return { 
-                success: false, 
-                message: response.data.message || "Failed to delete reaction" 
+            return {
+                success: response.success,
+                message: response.message || (response.success ?
+                    "Successfully deleted reaction" : "Failed to delete reaction")
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error("Delete reaction error:", error);
             return {
                 success: false,
-                message: "Failed to delete reaction",
+                message: error.message || "Failed to delete reaction"
             };
         }
     }
-}; 
+};
+
+function mapApiReactionToModel(apiReaction: any): Reaction {
+    return {
+        id: apiReaction.id || apiReaction._id,
+        messageId: apiReaction.messageId,
+        userId: apiReaction.userId,
+        emoji: apiReaction.emoji,
+        createdAt: apiReaction.createdAt,
+        updatedAt: apiReaction.updatedAt
+    };
+}
