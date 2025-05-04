@@ -20,6 +20,8 @@ import UploadProgressModal from "@/src/components/chat/modal/UploadProgressModal
 import VoteCreationModal from "@/src/components/chat/modal/VoteCreationModal";
 import {useVoteCreation} from "@/src/hooks/chat/useVoteCreation";
 import MessageList from "@/src/components/chat/message/MessageList";
+import FullScreenImageViewer from "@/src/components/chat/message/FullScreenImageViewer";
+import PinnedMessagesPanel from "@/src/components/chat/message/PinnedMessagesPanel";
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -828,83 +830,19 @@ export default function ChatArea(
                     </TouchableOpacity>
                 </View>
             </View>
-
-            {/* Full Screen Image Viewer */}
+            
             {fullScreenImage && (
-                <View className="absolute inset-0 bg-black z-50 flex-1 justify-center items-center">
-                    <Image
-                        source={{uri: fullScreenImage}}
-                        className="w-full h-full"
-                        resizeMode="contain"
-                    />
-                    <TouchableOpacity
-                        className="absolute top-10 right-5 bg-black/30 rounded-full p-2"
-                        onPress={() => setFullScreenImage(null)}
-                    >
-                        <Ionicons name="close" size={24} color="white"/>
-                    </TouchableOpacity>
-                </View>
+                <FullScreenImageViewer
+                    imageUri={fullScreenImage}
+                    onClose={() => setFullScreenImage(null)}
+                />
             )}
 
-            {pinnedMessages.length > 0 && (
-                <View className="absolute top-[70px] left-2 right-2 z-10 items-center">
-                    <TouchableOpacity
-                        className="bg-white rounded-lg p-3 mx-3 shadow-md w-[95%] flex-row items-center justify-between"
-                        onPress={() => setShowPinnedMessagesList(!showPinnedMessagesList)}
-                    >
-                        <View className="flex-row items-center">
-                            <Ionicons name="pin" size={16} color="#3B82F6"/>
-                            <Text className="text-gray-700 ml-2 font-medium">
-                                {pinnedMessages.length} tin nhắn được ghim
-                            </Text>
-                        </View>
-                        <Ionicons
-                            name={showPinnedMessagesList ? "chevron-up" : "chevron-down"}
-                            size={16}
-                            color="#666"
-                        />
-                    </TouchableOpacity>
-
-                    {showPinnedMessagesList && (
-                        <View className="bg-white rounded-lg mt-1 mx-3 p-2 shadow-md w-[95%] max-h-[300px]">
-                            <ScrollView className="max-h-[300px]">
-                                {pinnedMessages.map((pinnedMsg) => {
-                                    const sender = messageUsers[pinnedMsg.senderId];
-                                    return (
-                                        <TouchableOpacity
-                                            key={pinnedMsg.id}
-                                            className="p-3 border-b border-gray-100 active:bg-gray-50"
-                                            onPress={() => scrollToMessage(pinnedMsg.id)}
-                                        >
-                                            <View className="flex-row items-center">
-                                                <Image
-                                                    source={{
-                                                        uri: sender?.avatarURL ||
-                                                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                                                sender?.name || "User"
-                                                            )}&background=0068FF&color=fff`
-                                                    }}
-                                                    className="w-8 h-8 rounded-full"
-                                                    resizeMode="cover"
-                                                />
-                                                <View className="ml-2 flex-1">
-                                                    <Text className="font-medium text-gray-800">
-                                                        {sender?.name || "Unknown User"}
-                                                    </Text>
-                                                    <Text className="text-gray-500 text-sm" numberOfLines={2}>
-                                                        {pinnedMsg.content}
-                                                    </Text>
-                                                </View>
-                                                <Ionicons name="chevron-forward" size={16} color="#666"/>
-                                            </View>
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </ScrollView>
-                        </View>
-                    )}
-                </View>
-            )}
+            <PinnedMessagesPanel
+                pinnedMessages={pinnedMessages}
+                messageUsers={messageUsers}
+                onScrollToMessage={scrollToMessage}
+            />
 
             <FileSelectionModal
                 visible={isModalChecked}
