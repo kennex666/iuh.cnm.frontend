@@ -127,7 +127,8 @@ export default function ChatArea(
     // Initialize conversation and fetch messages when a chat is selected
     useEffect(() => {
         if (selectedChat) {
-            fetchMessages();
+            fetchMessages().then(() => {
+            });
             socketService.joinConversation(selectedChat.id);
         }
 
@@ -210,7 +211,8 @@ export default function ChatArea(
         const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
         senderIds.forEach((id) => {
             if (!messageUsers[id]) {
-                fetchUserInfo(id);
+                fetchUserInfo(id).then(() => {
+                });
             }
         });
     }, [messages]);
@@ -243,7 +245,8 @@ export default function ChatArea(
             }
         };
 
-        loadOtherParticipant();
+        loadOtherParticipant().then(() => {
+        });
     }, [selectedChat, user]);
 
     // ================================================== Handlers
