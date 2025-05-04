@@ -22,7 +22,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = (
     if (!visible) return null;
 
     return (
-        <View className="absolute bottom-12 left-2 bg-white z-50">
+        <View className="absolute bottom-20 left-2 bg-white z-50">
             <Animated.View
                 style={{
                     transform: [

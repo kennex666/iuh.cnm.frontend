@@ -4,7 +4,6 @@ import {
     Animated,
     Easing,
     Image,
-    Platform,
     ScrollView,
     Switch,
     Text,
@@ -24,9 +23,6 @@ import {useUser} from "@/src/contexts/user/UserContext";
 import {UserService} from "@/src/api/services/UserService";
 import SocketService from "@/src/api/services/SocketService";
 import ForwardMessageModal from "./ForwardMessageModal";
-
-import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
 import {AttachmentService} from "@/src/api/services/AttachmentService";
 import {Attachment} from "@/src/models/Attachment";
 import FileMessageContent from "./FileMessageContent";
@@ -55,7 +51,7 @@ export default function ChatArea({
     const [isNewer, setIsNewer] = useState(false);
     const [newMessage, setNewMessage] = useState("");
     const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
-    const [isModelChecked, setIsModelChecked] = useState(false);
+    const [isModalChecked, setIsModalChecked] = useState(false);
     const [isModelImage, setIsModelImage] = useState(false);
     const [isModelEmoji, setIsModelEmoji] = useState(false);
     const [isModelSticker, setIsModelSticker] = useState(false);
@@ -155,25 +151,24 @@ export default function ChatArea({
 
     // Refactoring: File Upload
     const {
-        fileUploading,
         uploadProgress,
         uploadStatusMessage,
         showUploadModal,
-        error: uploadError,
         handleSelectFile,
-        closeUploadModal,
-        resetUploadState
+        closeUploadModal
     } = useFileUpload(selectedChat?.id, user?.id, fetchMessages);
 
     const handleSelectImageWithClose = () => {
-        handleSelectFile();
+        handleSelectFile().then(() => {});
         toggleModelChecked();
     };
 
     const handleSelectFileWithClose = () => {
-        handleSelectFile();
+        handleSelectFile().then(() => {});
         toggleModelChecked();
     };
+
+    //// End Refactoring: File Upload
 
     // Join conversation when component mounts
     useEffect(() => {
@@ -349,15 +344,15 @@ export default function ChatArea({
 
     // Toggle models
     const toggleModelChecked = () => {
-        if (isModelChecked) {
+        if (isModalChecked) {
             Animated.timing(scaleAnimation, {
                 toValue: 0,
                 duration: 100,
                 easing: Easing.out(Easing.ease),
                 useNativeDriver: true,
-            }).start(() => setIsModelChecked(false));
+            }).start(() => setIsModalChecked(false));
         } else {
-            setIsModelChecked(true);
+            setIsModalChecked(true);
             Animated.timing(scaleAnimation, {
                 toValue: 1,
                 duration: 100,
@@ -1240,7 +1235,7 @@ export default function ChatArea({
             )}
 
             <FileSelectionModal
-                visible={isModelChecked}
+                visible={isModalChecked}
                 onClose={toggleModelChecked}
                 onSelectImage={handleSelectImageWithClose}
                 onSelectFile={handleSelectFileWithClose}
