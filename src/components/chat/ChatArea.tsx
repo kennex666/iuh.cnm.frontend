@@ -38,87 +38,57 @@ export default function ChatArea(
         onBackPress,
         onInfoPress,
     }: ChatAreaProps) {
-    const {user} = useUser();
+
+    //================================================== State
+    // Main chat state
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isNewer, setIsNewer] = useState(false);
     const [newMessage, setNewMessage] = useState("");
-    const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
-    const [isModalChecked, setIsModalChecked] = useState(false);
-    const [isModelImage, setIsModelImage] = useState(false);
-    const [isModelEmoji, setIsModelEmoji] = useState(false);
-    const [isModelSticker, setIsModelSticker] = useState(false);
-    const [isModelGift, setIsModelGift] = useState(false);
-    const scaleAnimation = useRef(new Animated.Value(0)).current;
-    const socketService = useRef(SocketService.getInstance()).current;
-    const scrollViewRef = useRef<ScrollView>(null);
 
-    const [inputHeight, setInputHeight] = useState(28);
-    const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
+    // Message interaction state
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
     const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-    const [showMessageOptions, setShowMessageOptions] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
-    const [showForwardModal, setShowForwardModal] = useState(false);
+    const [activeReactionId, setActiveReactionId] = useState<string | null>(null);
+
+    // Pinned messages state
+    const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
+    const [showPinnedMessagesList, setShowPinnedMessagesList] = useState(false);
+    const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+
+    // User and participant state
+    const {user} = useUser();
+    const [messageUsers, setMessageUsers] = useState<{ [key: string]: any }>({});
     const [otherParticipant, setOtherParticipant] = useState<{
         name: string;
         avatar: string;
         isOnline: boolean;
     } | null>(null);
 
-    const [attachments, setAttachments] = useState<{ [key: string]: Attachment }>(
-        {}
-    );
+    // Attachments state
+    const [attachments, setAttachments] = useState<{ [key: string]: Attachment }>({});
     const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
+    // Modal visibility state
+    const [showMessageOptions, setShowMessageOptions] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showForwardModal, setShowForwardModal] = useState(false);
+    const [isModalChecked, setIsModalChecked] = useState(false);
+    const [isModelImage, setIsModelImage] = useState(false);
+    const [isModelEmoji, setIsModelEmoji] = useState(false);
+    const [isModelSticker, setIsModelSticker] = useState(false);
+    const [isModelGift, setIsModelGift] = useState(false);
 
-    // Update the getAttachmentByMessageId function
-    const getAttachmentByMessageId = async (messageId: string) => {
-        try {
-            // Check if we already have the attachment in local state
-            if (attachments[messageId]) {
-                return attachments[messageId];
-            }
+    // Vote creation state
+    const {showVoteModal, toggleVoteModal, handleCreateVote} = useVoteCreation(selectedChat?.id);
 
-            // If not, fetch it from the server
-            const response = await AttachmentService.getAttachmentByMessageId(
-                messageId
-            );
-
-            if (response.success && response.data && response.data.length > 0) {
-                const attachment = response.data[0]; // Get the first attachment if there are multiple
-
-                // Save to local state for future use
-                setAttachments((prev) => ({
-                    ...prev,
-                    [messageId]: attachment,
-                }));
-
-                return attachment;
-            }
-
-            return null;
-        } catch (error) {
-            console.error("Error fetching attachment:", error);
-            return null;
-        }
-    };
-
-    const fetchUserInfo = async (userId: string) => {
-        try {
-            const response = await UserService.getUserById(userId);
-            if (response.success) {
-                setMessageUsers((prev) => ({
-                    ...prev,
-                    [userId]: response.user,
-                }));
-            }
-        } catch (err) {
-            console.error("Error fetching user:", err);
-        }
-    };
+    // Refs
+    const scaleAnimation = useRef(new Animated.Value(0)).current;
+    const socketService = useRef(SocketService.getInstance()).current;
+    const scrollViewRef = useRef<ScrollView>(null);
+    const messageRefs = useRef<{ [key: string]: number }>({});
 
     // Fetch messages from server
     const fetchMessages = async () => {
@@ -126,24 +96,25 @@ export default function ChatArea(
 
         try {
             setLoading(true);
+
             const response = await MessageService.getMessages(selectedChat.id);
-            console.log("response fetch messages: ", response);
+
             if (response.success) {
                 setMessages(response.messages);
                 setIsNewer(response.isNewer);
                 setError(null);
             } else {
-                setError(response.statusMessage);
+                setError(response.statusMessage || "Unknown error occurred");
             }
-        } catch (err) {
-            setError("Failed to load messages");
-            console.error("Error fetching messages:", err);
+        } catch (error) {
+            const errorMessage = "Failed to load messages";
+            console.error(`${errorMessage}:`, error);
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    // Refactoring: File Upload
     const {
         uploadProgress,
         uploadStatusMessage,
@@ -152,39 +123,28 @@ export default function ChatArea(
         closeUploadModal
     } = useFileUpload(selectedChat?.id, user?.id, fetchMessages);
 
-    const handleSelectImageWithClose = () => {
-        handleSelectFile().then(() => {
-        });
-        toggleModalChecked();
-    };
-
-    const handleSelectFileWithClose = () => {
-        handleSelectFile().then(() => {
-        });
-        toggleModalChecked();
-    };
-
-    //// End Refactoring: File Upload
-
-    // Refactoring: Vote Creation
-
-    const {showVoteModal, toggleVoteModal, handleCreateVote} = useVoteCreation(selectedChat?.id);
-
-    //// End Refactoring: Vote Creation
-
-    // Join conversation when component mounts
+    // ================================================== useEffect
+    // Initialize conversation and fetch messages when a chat is selected
     useEffect(() => {
         if (selectedChat) {
             fetchMessages();
             socketService.joinConversation(selectedChat.id);
         }
 
-        // Cleanup function to leave conversation when component unmounts or conversation changes
         return () => {
             if (selectedChat) {
                 socketService.leaveConversation(selectedChat.id);
             }
         };
+    }, [selectedChat]);
+
+    // Load initial pinned messages when conversation changes
+    useEffect(() => {
+        if (selectedChat?.pinMessages) {
+            setPinnedMessages(selectedChat.pinMessages);
+        } else {
+            setPinnedMessages([]);
+        }
     }, [selectedChat]);
 
     // Auto scroll to bottom when messages change
@@ -199,7 +159,7 @@ export default function ChatArea(
         const handleNewMessage = (message: Message) => {
             if (message.conversationId === selectedChat?.id) {
                 setMessages((prev) => [...prev, message]);
-                // Scroll to bottom when new message arrives
+
                 setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({animated: true});
                 }, 100);
@@ -209,13 +169,43 @@ export default function ChatArea(
         };
 
         socketService.onNewMessage(handleNewMessage);
-        // Cleanup on unmount
+
         return () => {
             socketService.removeMessageListener(handleNewMessage);
         };
     }, [selectedChat?.id]);
 
-    // Fetch user info for each unique sender
+    // Listen for vote creation events
+    useEffect(() => {
+        const handleVoteCreated = (data: { conversationId: string, vote: any }) => {
+            if (data.conversationId === selectedChat?.id) {
+                setMessages((prev) => [...prev, data.vote]);
+            }
+        };
+
+        socketService.onVoteCreated(handleVoteCreated);
+
+        return () => {
+            socketService.removeVoteCreatedListener(handleVoteCreated);
+        };
+    }, [selectedChat?.id]);
+
+    // Listen for pinned message updates
+    useEffect(() => {
+        const handlePinnedMessage = (data: { conversationId: string, pinnedMessages: Message[] }) => {
+            if (data.conversationId === selectedChat?.id) {
+                setPinnedMessages(data.pinnedMessages);
+            }
+        };
+
+        socketService.onPinnedMessage(handlePinnedMessage);
+
+        return () => {
+            socketService.removePinnedMessageListener(handlePinnedMessage);
+        };
+    }, [selectedChat?.id]);
+
+    // Fetch user info for each unique message sender
     useEffect(() => {
         const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
         senderIds.forEach((id) => {
@@ -223,15 +213,13 @@ export default function ChatArea(
                 fetchUserInfo(id);
             }
         });
-        // load lai messages
     }, [messages]);
 
-    // Load other participant info when selectedChat changes
+    // Load other participant info for 1:1 chats
     useEffect(() => {
         const loadOtherParticipant = async () => {
             if (!selectedChat || !user) return;
 
-            // Find the other participant's ID
             const otherUserId = selectedChat.participantIds.find(
                 (id) => id !== user.id
             );
@@ -258,92 +246,62 @@ export default function ChatArea(
         loadOtherParticipant();
     }, [selectedChat, user]);
 
-    // Send message to server
-    const handleSendMessage = async () => {
-        if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
+    // ================================================== Handlers
+    // ================================================== Handlers
 
-        const messageData: Message = {
-            id: new Date().getTime().toString(),
-            conversationId: selectedChat.id,
-            senderId: user.id,
-            content: newMessage.trim(),
-            type: MessageType.TEXT,
-            repliedToId: replyingTo?.id || "",
-            readBy: [],
-            sentAt: new Date().toISOString(),
-        };
-
-        try {
-            // Send through socket
-            socketService.sendMessage(messageData);
-
-            setNewMessage("");
-            setReplyingTo(null);
-            setSelectedMessage(null);
-        } catch (err) {
-            console.error("Error sending message:", err);
-            setError("Failed to send message");
-        }
+// Handles image selection and closes file selection modal
+    const handleSelectImageWithClose = () => {
+        handleSelectFile().then(() => {
+        });
+        toggleModalChecked();
     };
 
-    const handleReactionToggle = (messageId: string) => {
-        if (activeReactionId === messageId) {
-            setActiveReactionId(null);
-        } else {
-            setActiveReactionId(messageId);
-        }
+// Handles file selection and closes file selection modal
+    const handleSelectFileWithClose = () => {
+        handleSelectFile().then(() => {
+        });
+        toggleModalChecked();
     };
 
-    const handleReaction = (messageId: string, reactionId: string) => {
-        console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
-
-        const reactionData = {
-            messageId: messageId,
-            userId: user?.id || "",
-            emoji: reactionId,
-        };
-
+// Retrieves attachment for a specific message, using cache when available
+    const getAttachmentByMessageId = async (messageId: string) => {
         try {
-            // TODO: Implement reaction handling
-            console.log("Reaction data:", reactionData);
-        } catch (err) {
-            console.error("Error sending reaction:", err);
-            setError("Failed to send reaction");
-        }
-
-        setActiveReactionId(null);
-    };
-
-    const handleForward = async (selectedConversations: string[]) => {
-        if (!replyingTo || !user?.id) return;
-
-        try {
-            // Tạo tin nhắn mới cho mỗi cuộc trò chuyện được chọn
-            for (const conversationId of selectedConversations) {
-                const newMessage: Message = {
-                    id: new Date().getTime().toString(),
-                    conversationId: conversationId,
-                    senderId: user.id,
-                    content: replyingTo.content,
-                    type: MessageType.TEXT,
-                    repliedToId: replyingTo.id,
-                    readBy: [],
-                    sentAt: new Date().toISOString(),
-                };
-
-                // Gửi tin nhắn qua socket
-                socketService.sendMessage(newMessage);
+            if (attachments[messageId]) {
+                return attachments[messageId];
             }
 
-            // Đóng modal và reset state
-            setShowForwardModal(false);
-            setReplyingTo(null);
-        } catch (err) {
-            console.error("Error forwarding message:", err);
-            setError("Failed to forward message");
+            const response = await AttachmentService.getAttachmentByMessageId(messageId);
+            if (response.success && response.data && response.data.length > 0) {
+                const attachment = response.data[0];
+                setAttachments((prev) => ({
+                    ...prev,
+                    [messageId]: attachment,
+                }));
+                return attachment;
+            }
+            return null;
+        } catch (error) {
+            console.error("Error fetching attachment:", error);
+            return null;
         }
     };
 
+// Fetches user information and updates message users state
+    const fetchUserInfo = async (userId: string) => {
+        try {
+            const response = await UserService.getUserById(userId);
+            if (response.success) {
+                setMessageUsers((prev) => ({
+                    ...prev,
+                    [userId]: response.user,
+                }));
+            }
+        } catch (err) {
+            console.error("Error fetching user:", err);
+        }
+    };
+
+// Toggles the file selection modal with animation
     const toggleModalChecked = () => {
         if (isModalChecked) {
             Animated.timing(scaleAnimation, {
@@ -363,72 +321,72 @@ export default function ChatArea(
         }
     };
 
-    const toggleModelImage = () => {
-        setIsModelImage(!isModelImage);
+// Toggle modal visibility functions
+    const toggleModelImage = () => setIsModelImage(!isModelImage);
+    const toggleModelEmoji = () => setIsModelEmoji(!isModelEmoji);
+    const toggleModelSticker = () => setIsModelSticker(!isModelSticker);
+    const toggleModelGift = () => setIsModelGift(!isModelGift);
+
+// Sends a new message to the current conversation
+    const handleSendMessage = async () => {
+        if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
+
+        const messageData: Message = {
+            id: new Date().getTime().toString(),
+            conversationId: selectedChat.id,
+            senderId: user.id,
+            content: newMessage.trim(),
+            type: MessageType.TEXT,
+            repliedToId: replyingTo?.id || "",
+            readBy: [],
+            sentAt: new Date().toISOString(),
+        };
+
+        try {
+            socketService.sendMessage(messageData);
+            setNewMessage("");
+            setReplyingTo(null);
+            setSelectedMessage(null);
+        } catch (err) {
+            console.error("Error sending message:", err);
+            setError("Failed to send message");
+        }
     };
 
-    const toggleModelEmoji = () => {
-        setIsModelEmoji(!isModelEmoji);
-        console.log("Emoji model toggled: ", isModelEmoji);
-    };
-
-    const toggleModelSticker = () => {
-        setIsModelSticker(!isModelSticker);
-    };
-
-    const toggleModelGift = () => {
-        setIsModelGift(!isModelGift);
-    };
-
+    // Opens message options when a message is long-pressed
     const handleLongPressMessage = (msg: Message) => {
         setSelectedMessage(msg);
         setShowMessageOptions(true);
     };
 
+    // Sets up a message to reply to
     const handleReplyMessage = (msg: Message) => {
-        console.log("msg now: ", msg);
         setReplyingTo(msg);
         setShowMessageOptions(false);
-        // Focus vào input
     };
 
-    const handleForwardMessage = async (msg: Message) => {
-        // Set the message being forwarded as the replyingTo message
+    // Prepares a message to be forwarded
+    const handleForwardMessage = (msg: Message) => {
         setReplyingTo(msg);
         setShowMessageOptions(false);
         setShowForwardModal(true);
-        // Focus vào input để người dùng có thể nhập nội dung forward
     };
 
-    const handleDeleteMessage = async (msg: Message) => {
+    // Prepares a message for deletion
+    const handleDeleteMessage = (msg: Message) => {
         setMessageToDelete(msg);
         setShowDeleteConfirm(true);
         setShowMessageOptions(false);
     };
 
-    useEffect(() => {
-        const handleVoteCreated = (data: { conversationId: string, vote: any }) => {
-            if (data.conversationId === selectedChat?.id) {
-                // Add the new vote message to the list
-                setMessages((prev) => [...prev, data.vote]);
-            }
-        };
-
-        socketService.onVoteCreated(handleVoteCreated);
-
-        return () => {
-            socketService.removeVoteCreatedListener(handleVoteCreated);
-        };
-    }, [selectedChat?.id]);
-
+    // Confirms and executes message deletion
     const confirmDeleteMessage = async () => {
         if (!messageToDelete) return;
 
         try {
-            console.log("messageToDelete: ", messageToDelete.id);
             const response = await MessageService.deleteMessage(messageToDelete.id);
-            console.log("response delete message: ", response);
             socketService.sendDeleteMessage(messageToDelete);
+
             if (response.success) {
                 setMessages((prev) => prev.filter((m) => m.id !== messageToDelete.id));
                 setShowDeleteConfirm(false);
@@ -442,22 +400,73 @@ export default function ChatArea(
         }
     };
 
-    const [pinnedMessages, setPinnedMessages] = useState<Message[]>([]);
-    const [showPinnedMessagesList, setShowPinnedMessagesList] = useState(false);
-    const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
-    const messageRefs = useRef<{ [key: string]: number }>({});
+    // Toggles reaction picker for a specific message
+    const handleReactionToggle = (messageId: string) => {
+        if (activeReactionId === messageId) {
+            setActiveReactionId(null);
+        } else {
+            setActiveReactionId(messageId);
+        }
+    };
 
+    // Handles adding a reaction to a message
+    const handleReaction = (messageId: string, reactionId: string) => {
+        console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
+
+        const reactionData = {
+            messageId: messageId,
+            userId: user?.id || "",
+            emoji: reactionId,
+        };
+
+        try {
+            console.log("Reaction data:", reactionData);
+        } catch (err) {
+            console.error("Error sending reaction:", err);
+            setError("Failed to send reaction");
+        }
+
+        setActiveReactionId(null);
+    };
+
+    // Forwards a message to multiple conversations
+    const handleForward = async (selectedConversations: string[]) => {
+        if (!replyingTo || !user?.id) return;
+
+        try {
+            for (const conversationId of selectedConversations) {
+                const newMessage: Message = {
+                    id: new Date().getTime().toString(),
+                    conversationId: conversationId,
+                    senderId: user.id,
+                    content: replyingTo.content,
+                    type: MessageType.TEXT,
+                    repliedToId: replyingTo.id,
+                    readBy: [],
+                    sentAt: new Date().toISOString(),
+                };
+
+                socketService.sendMessage(newMessage);
+            }
+
+            setShowForwardModal(false);
+            setReplyingTo(null);
+        } catch (err) {
+            console.error("Error forwarding message:", err);
+            setError("Failed to forward message");
+        }
+    };
+
+    // Pins a message in the conversation
     const handlePinMessage = (message: Message) => {
         if (!selectedChat) return;
 
         try {
-            // Send pin message request to server
             socketService.pinMessage({
                 conversationId: selectedChat.id,
                 messageId: message.id,
             });
 
-            // Close message options modal
             setShowMessageOptions(false);
         } catch (error) {
             console.error("Error pinning message:", error);
@@ -465,50 +474,21 @@ export default function ChatArea(
         }
     };
 
-// Add listener for pinned messages
-    useEffect(() => {
-        const handlePinnedMessage = (data: { conversationId: string, pinnedMessages: Message[] }) => {
-            if (data.conversationId === selectedChat?.id) {
-                setPinnedMessages(data.pinnedMessages);
-            }
-        };
-
-        socketService.onPinnedMessage(handlePinnedMessage);
-
-        return () => {
-            socketService.removePinnedMessageListener(handlePinnedMessage);
-        };
-    }, [selectedChat?.id]);
-
-// Load initial pinned messages when conversation is selected
-    useEffect(() => {
-        if (selectedChat?.pinMessages) {
-            setPinnedMessages(selectedChat.pinMessages);
-        } else {
-            setPinnedMessages([]);
-        }
-    }, [selectedChat]);
-
+    // Scrolls to a specific message and highlights it
     const scrollToMessage = (messageId: string) => {
-        // Find the message index in the messages array
         const messageIndex = messages.findIndex(msg => msg.id === messageId);
         if (messageIndex === -1) return;
 
-        // Get the position from refs or calculate approximate position
         const yOffset = messageRefs.current[messageId] || messageIndex * 80;
-
         scrollViewRef.current?.scrollTo({y: yOffset, animated: true});
 
-        // Highlight the message briefly
         setHighlightedMessageId(messageId);
         setTimeout(() => {
             setHighlightedMessageId(null);
         }, 1500);
 
-        // Close the pinned messages list
         setShowPinnedMessagesList(false);
     };
-
 
     if (loading) {
         return (
@@ -522,7 +502,6 @@ export default function ChatArea(
             </View>
         );
     }
-
 
     if (loading) {
         return (
