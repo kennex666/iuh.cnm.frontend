@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
+import {Platform, ScrollView} from 'react-native';
 import {Message} from "@/src/models/Message";
 import {Conversation} from "@/src/models/Conversation";
 import ChatNewer from "../misc/ChatNewer";
@@ -43,6 +43,7 @@ const MessageList: React.FC<MessageListProps> = (
     return (
         <ScrollView
             ref={scrollViewRef}
+            contentContainerStyle={{paddingBottom: Platform.OS === "web" ? 0 : 80}}
             className={`flex-1 p-4 ${pinnedMessages.length > 0 ? "pt-16" : "pt-4"}`}
         >
             {messages.length === 0 && selectedChat && <ChatNewer selectedChat={selectedChat}/>}
