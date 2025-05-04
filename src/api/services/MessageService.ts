@@ -1,11 +1,8 @@
-import axios from "axios";
-import { Message, MessageType } from "@/src/models/Message";
-import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { AuthStorage } from "@/src/storage/AuthStorage";
-import { useUser } from "@/src/contexts/user/UserContext";
-import { Alert } from "react-native";
+import {ApiEndpoints} from "@/src/constants/ApiConstant";
+import {Message} from "@/src/models/Message";
+import {BaseService} from "@/src/api/services/BaseService";
 
-interface MessageService {
+export interface MessageService {
     getMessages: (conversationId: string) => Promise<{
         success: boolean;
         messages: Message[];
@@ -29,309 +26,201 @@ interface MessageService {
     makeACall: (conversationId: string) => Promise<{
         success: boolean;
         messages: Message[];
+        statusMessage: string;
     }>;
     rejectCall: (conversationId: string) => Promise<{
         success: boolean;
         messages: Message[];
+        statusMessage: string;
     }>;
 }
 
 export const MessageService: MessageService = {
-	async getMessages(conversationId: string) {
-		try {
-			const token = await AuthStorage.getAccessToken();
-			if (!token) {
-				return {
-					success: false,
-					messages: [],
-					isNewer: false,
-					statusMessage: "No token found",
-				};
-			}
+    async getMessages(conversationId: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_MESSAGE}/conversation/${conversationId}`
+            );
 
-			const url = `${ApiEndpoints.API_MESSAGE}/conversation/${conversationId}`;
+            if (!response.success) {
+                return {
+                    success: false,
+                    messages: [],
+                    isNewer: false,
+                    statusMessage: response.message
+                };
+            }
 
-			const response = await axios.get(url, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+            if (!response.data) {
+                return {
+                    success: true,
+                    messages: [],
+                    isNewer: true,
+                    statusMessage: response.message || "Hãy làm quen với người dùng này"
+                };
+            }
 
-			if (response.data.data == null) {
-				return {
-					success: true,
-					messages: [],
-					isNewer: true,
-					statusMessage:
-						response.data.message ||
-						"Hãy làm quen với người dùng này",
-				};
-			}
-			if (response.data.success) {
-				const messages = response.data.data.map((msg: Message) => ({
-					id: msg.id,
-					conversationId: msg.conversationId,
-					senderId: msg.senderId,
-					content: msg.content,
-					type: msg.type,
-					repliedToId: msg.repliedToId || msg.repliedTold,
-					sentAt: msg.sentAt,
-					readBy: msg.readBy || [],
-				}));
+            const messages = response.data.map(mapApiMessageToModel);
 
-				return {
-					success: true,
-					messages,
-					isNewer: false,
-					statusMessage:
-						response.data.message ||
-						"Successfully fetched messages",
-				};
-			}
+            return {
+                success: true,
+                messages,
+                isNewer: false,
+                statusMessage: response.message || "Successfully fetched messages"
+            };
+        } catch (error: any) {
+            console.error("Error fetching messages:", error);
+            return {
+                success: false,
+                messages: [],
+                isNewer: false,
+                statusMessage: error.message || "Failed to fetch messages"
+            };
+        }
+    },
 
-			return {
-				success: false,
-				messages: [],
-				isNewer: false,
-				statusMessage:
-					response.data.message || "Failed to fetch messages",
-			};
-		} catch (error: any) {
-			console.error("Get messages error:", error);
-			console.error("Error response:", error.response?.data);
-			console.error("Error status:", error.response?.status);
-			console.error("Error headers:", error.response?.headers);
-			return {
-				success: false,
-				messages: [],
-				isNewer: false,
-				statusMessage:
-					error.response?.data?.message ||
-					error.message ||
-					"Failed to get messages",
-			};
-		}
-	},
+    async sendMessage(message: Partial<Message>) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'post',
+                ApiEndpoints.API_MESSAGE,
+                message
+            );
 
-	async makeACall(conversationId: string) {
-		try {
-			const token = await AuthStorage.getAccessToken();
-			if (!token) {
-				return {
-					success: false,
-					messages: [],
-					isNewer: false,
-					statusMessage: "No token found",
-				};
-			}
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    message: {} as Message,
+                    statusMessage: response.message || "Failed to send message"
+                };
+            }
 
-			const url = `${ApiEndpoints.API_WEBRTC}/create-call/${conversationId}`;
+            const sentMessage = mapApiMessageToModel(response.data);
 
-			const response = await axios.get(url, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+            return {
+                success: true,
+                message: sentMessage,
+                statusMessage: response.message || "Message sent successfully"
+            };
+        } catch (error: any) {
+            console.error("Error sending message:", error);
+            return {
+                success: false,
+                message: {} as Message,
+                statusMessage: error.message || "Failed to send message"
+            };
+        }
+    },
 
-			return {
-				success: false,
-				messages: [],
-				isNewer: false,
-				statusMessage:
-					response.data.message || "Failed to fetch messages",
-			};
-		} catch (error: any) {
-			console.error("Get messages error:", error);
-			console.error("Error response:", error.response?.data);
-			console.error("Error status:", error.response?.status);
-			console.error("Error headers:", error.response?.headers);
-			return {
-				success: false,
-				messages: [],
-				isNewer: false,
-				statusMessage:
-					error.response?.data?.message ||
-					error.message ||
-					"Failed to get messages",
-			};
-		}
-	},
+    async updateMessage(messageId: string, content: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
+                `${ApiEndpoints.API_MESSAGE}/${messageId}`,
+                {content}
+            );
 
-	async rejectCall(conversationId: string) {
-		try {
-			const token = await AuthStorage.getAccessToken();
-			if (!token) {
-				return {
-					success: false,
-					messages: [],
-					isNewer: false,
-					statusMessage: "No token found",
-				};
-			}
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    message: {} as Message,
+                    statusMessage: response.message || "Failed to update message"
+                };
+            }
 
-			const url = `${ApiEndpoints.API_WEBRTC}/end-call/${conversationId}`;
+            const updatedMessage = mapApiMessageToModel(response.data);
 
-			const response = await axios.get(url, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+            return {
+                success: true,
+                message: updatedMessage,
+                statusMessage: response.message || "Message updated successfully"
+            };
+        } catch (error: any) {
+            console.error("Error updating message:", error);
+            return {
+                success: false,
+                message: {} as Message,
+                statusMessage: error.message || "Failed to update message"
+            };
+        }
+    },
 
-			return {
-				success: false,
-				messages: [],
-				isNewer: false,
-				statusMessage:
-					response.data.message || "Failed to fetch messages",
-			};
-		} catch (error: any) {
-			console.error("Get messages error:", error);
-			console.error("Error response:", error.response?.data);
-			console.error("Error status:", error.response?.status);
-			console.error("Error headers:", error.response?.headers);
-			return {
-				success: false,
-				messages: [],
-				isNewer: false,
-				statusMessage:
-					error.response?.data?.message ||
-					error.message ||
-					"Failed to get messages",
-			};
-		}
-	},
+    async deleteMessage(messageId: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<void>(
+                'delete',
+                `${ApiEndpoints.API_MESSAGE}/${messageId}`
+            );
 
-	async sendMessage(message: Partial<Message>) {
-		try {
-			const token = await AuthStorage.getAccessToken();
-			if (!token) {
-				throw new Error("No token found");
-			}
+            return {
+                success: response.success,
+                statusMessage: response.message || (response.success ?
+                    "Message deleted successfully" : "Failed to delete message")
+            };
+        } catch (error: any) {
+            console.error("Error deleting message:", error);
+            return {
+                success: false,
+                statusMessage: error.message || "Failed to delete message"
+            };
+        }
+    },
 
-			const url = ApiEndpoints.API_MESSAGE;
+    async makeACall(conversationId: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_WEBRTC}/create-call/${conversationId}`
+            );
 
-			const response = await axios.post(url, message, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+            return {
+                success: response.success,
+                messages: response.data || [],
+                statusMessage: response.message || "Call operation completed"
+            };
+        } catch (error: any) {
+            console.error("Error making call:", error);
+            return {
+                success: false,
+                messages: [],
+                statusMessage: error.message || "Failed to make call"
+            };
+        }
+    },
 
-			if (response.data.success) {
-				const msg = response.data.data;
-				return {
-					success: true,
-					message: {
-						id: msg.id || msg._id,
-						conversationId: msg.conversationId,
-						senderId: msg.senderId,
-						content: msg.content,
-						type: msg.type,
-						repliedToId: msg.repliedToId,
-						sentAt: msg.sentAt,
-						readBy: msg.readBy || [],
-					},
-					statusMessage:
-						response.data.message || "Message sent successfully",
-				};
-			}
+    async rejectCall(conversationId: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_WEBRTC}/end-call/${conversationId}`
+            );
 
-			throw new Error(response.data.message || "Failed to send message");
-		} catch (error: any) {
-			console.error("Send message error:", error);
-			throw error;
-		}
-	},
-
-	async updateMessage(messageId: string, content: string) {
-		try {
-			const token = await AuthStorage.getAccessToken();
-			if (!token) {
-				throw new Error("No token found");
-			}
-
-			const url = `${ApiEndpoints.API_MESSAGE}/${messageId}`;
-
-			const response = await axios.put(
-				url,
-				{ content },
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
-
-			if (response.data.status === "200") {
-				const msg = response.data.data;
-				return {
-					success: true,
-					message: {
-						id: msg._id || msg.id,
-						conversationId: msg.conversationId,
-						senderId: msg.senderId,
-						content: msg.content,
-						type: msg.type,
-						repliedToId: msg.repliedToId,
-						sentAt: msg.sentAt,
-						readBy: msg.readBy || [],
-					},
-					statusMessage:
-						response.data.message || "Message updated successfully",
-				};
-			}
-
-			throw new Error(
-				response.data.message || "Failed to update message"
-			);
-		} catch (error: any) {
-			console.error("Update message error:", error);
-			throw error;
-		}
-	},
-
-	async deleteMessage(messageId: string) {
-		try {
-			const token = await AuthStorage.getAccessToken();
-			if (!token) {
-				throw new Error("No token found");
-			}
-
-			const url = `http://localhost:8087/api/messages/${messageId}`;
-
-			const response = await axios.delete(url, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			console.log("response delete message: ", response);
-
-			if (
-				response.data.success ||
-				response.data.status === "200" ||
-				response.status === 200
-			) {
-				return {
-					success: true,
-					statusMessage:
-						response.data.message || "Message deleted successfully",
-				};
-			}
-
-			return {
-				success: false,
-				statusMessage:
-					response.data.message || "Failed to delete message",
-			};
-		} catch (error: any) {
-			console.error("Delete message error:", error);
-			return {
-				success: false,
-				statusMessage:
-					error.response?.data?.message ||
-					error.message ||
-					"Failed to delete message",
-			};
-		}
-	},
+            return {
+                success: response.success,
+                messages: response.data || [],
+                statusMessage: response.message || "Call operation completed"
+            };
+        } catch (error: any) {
+            console.error("Error rejecting call:", error);
+            return {
+                success: false,
+                messages: [],
+                statusMessage: error.message || "Failed to reject call"
+            };
+        }
+    }
 };
+
+function mapApiMessageToModel(msg: any): Message {
+    return {
+        id: msg.id || msg._id,
+        conversationId: msg.conversationId,
+        senderId: msg.senderId,
+        content: msg.content,
+        type: msg.type,
+        repliedToId: msg.repliedToId || msg.repliedTold,
+        sentAt: msg.sentAt,
+        readBy: msg.readBy || []
+    };
+}

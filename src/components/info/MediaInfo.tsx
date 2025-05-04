@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import {Image, Text, TouchableOpacity, View} from 'react-native';
 
 interface MediaInfoProps {
     images: string[];
     onViewAll?: () => void;
 }
 
-export default function MediaInfo({ images, onViewAll }: MediaInfoProps) {
+export default function MediaInfo({images, onViewAll}: MediaInfoProps) {
     return (
         <View className="px-4 pt-6 pb-4">
             <View className="flex-row justify-between items-center mb-4">
                 <Text className="text-base font-medium text-blue-950">Ảnh/Video đã chia sẻ</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                     className="py-1 px-3 rounded-lg bg-blue-50 active:bg-blue-100"
                     onPress={onViewAll}
                 >
@@ -25,7 +25,7 @@ export default function MediaInfo({ images, onViewAll }: MediaInfoProps) {
                         className="w-[32%] aspect-square p-1"
                     >
                         <Image
-                            source={{ uri }}
+                            source={{uri}}
                             className="w-full h-full rounded-xl border border-blue-100"
                         />
                     </TouchableOpacity>

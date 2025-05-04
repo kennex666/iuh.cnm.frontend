@@ -3,6 +3,6 @@ export interface Reaction {
     messageId: string;
     userId: string;
     emoji: string;
-    createdAt?: Date;
-    updatedAt?: Date;
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
 }

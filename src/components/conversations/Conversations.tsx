@@ -1,17 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
-import { ConversationService } from '@/src/api/services/ConversationService';
-import { Conversation } from "@/src/models/Conversation";
-import { useUser } from '@/src/contexts/user/UserContext';
-import { UserService } from '@/src/api/services/UserService';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Text, View} from 'react-native';
+import {ConversationService} from '@/src/api/services/ConversationService';
+import {Conversation} from "@/src/models/Conversation";
+import {useUser} from '@/src/contexts/user/UserContext';
+import {UserService} from '@/src/api/services/UserService';
 import SocketService from '@/src/api/services/SocketService';
-import { Message, MessageType } from '@/src/models/Message';
-import { useFocusEffect } from 'expo-router';
-import { MessageService } from '@/src/api/services/MessageService';
-import { ConversationList } from './ConversationList';
-import { IncomingCallModal } from './IncomingCallModal';
-import { SearchBar } from './SearchBar';
-import { QRScannerModal } from './QRScannerModal';
+import {Message, MessageType} from '@/src/models/Message';
+import {useFocusEffect} from 'expo-router';
+import {MessageService} from '@/src/api/services/MessageService';
+import {ConversationList} from './ConversationList';
+import {IncomingCallModal} from './IncomingCallModal';
+import {SearchBar} from './SearchBar';
+import {QRScannerModal} from './QRScannerModal';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -23,7 +23,7 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { user } = useUser();
+    const {user} = useUser();
     const [participantAvatars, setParticipantAvatars] = useState<Record<string, string>>({});
     const [participantNames, setParticipantNames] = useState<Record<string, string>>({});
     const socketService = useRef(SocketService.getInstance()).current;
@@ -103,14 +103,13 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
         const handleNewMessage = (message: Message) => {
             if (message?.type == MessageType.CALL) {
                 console.log("Incoming call message: ", message);
-                if (message.content == 'start'){
+                if (message.content == 'start') {
                     setLinkCall(
-                    `https://601d1a1e408f6c86223929f5e67de511.loophole.site/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
-                );
+                        `https://601d1a1e408f6c86223929f5e67de511.loophole.site/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
+                    );
                     setIsComingCall(true);
                     setDataCall(message);
-                }
-                else {
+                } else {
                     setLinkCall("");
                     setIsComingCall(false);
                     setDataCall(null);
@@ -198,7 +197,7 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
         if (conversation.name) {
             return conversation.name;
         }
-        
+
         if (conversation.isGroup) {
             const otherParticipants = conversation.participantIds
                 .filter(id => id !== user?.id)
@@ -206,7 +205,7 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
             const names = otherParticipants.map(id => participantNames[id] || 'Unknown');
             return names.join(', ');
         }
-        
+
         const otherParticipantId = conversation.participantIds.find(id => id !== user?.id);
         return otherParticipantId ? participantNames[otherParticipantId] || 'Unknown' : 'Unknown';
     };

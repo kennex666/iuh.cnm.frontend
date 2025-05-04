@@ -25,7 +25,7 @@ const Divider = ({
     }
 
     if (!text) {
-        return <View className={`w-full h-[${thickness}px] ${color} ${className}`} />;
+        return <View className={`w-full h-[${thickness}px] ${color} ${className}`}/>;
     }
 
     return (

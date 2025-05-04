@@ -1,6 +1,6 @@
-import axios from 'axios';
-import {Attachment} from '@/src/models/Attachment';
 import {ApiEndpoints} from "@/src/constants/ApiConstant";
+import {Attachment} from '@/src/models/Attachment';
+import {BaseService} from "./BaseService";
 
 interface AttachmentService {
     getAttachmentByMessageId: (messageId: string) => Promise<{
@@ -13,26 +13,30 @@ interface AttachmentService {
 export const AttachmentService: AttachmentService = {
     async getAttachmentByMessageId(messageId: string) {
         try {
-            const response = await axios.get(`${ApiEndpoints.API_ATTACHMENTS}/message/${messageId}`);
+            const response = await BaseService.authenticatedRequest<Attachment[]>(
+                'get',
+                `${ApiEndpoints.API_ATTACHMENTS}/message/${messageId}`
+            );
 
-            if (response.data.success) {
-                return {
-                    success: true,
-                    data: response.data.data as Attachment[],
-                    statusMessage: response.data.message,
-                };
-            } else {
+            if (!response.success) {
                 return {
                     success: false,
-                    statusMessage: response.data.message || 'Failed to fetch attachment',
+                    statusMessage: response.message || 'Failed to fetch attachment'
                 };
             }
-        } catch (error) {
+
+            return {
+                success: true,
+                data: response.data || [],
+                statusMessage: response.message || 'Successfully fetched attachments'
+            };
+        } catch (error: any) {
             console.error('Error fetching attachment:', error);
             return {
                 success: false,
-                statusMessage: 'Không thể lấy thông tin file. Vui lòng thử lại sau.',
+                data: [],
+                statusMessage: error.message || 'Không thể lấy thông tin file. Vui lòng thử lại sau.'
             };
         }
     }
-}
+};

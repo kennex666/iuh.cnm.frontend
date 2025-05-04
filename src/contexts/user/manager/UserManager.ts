@@ -1,9 +1,9 @@
-import {UserService as ApiUserService} from '@/src/api/services/UserService';
+import {UserService} from '@/src/api/services/UserService';
 import {UserStorage} from '@/src/storage/UserStorage';
 import {isUserComplete, User} from '@/src/models/User';
 import {Profile} from '@/src/models/Profile';
 import {AuthStorage} from '@/src/storage/AuthStorage';
-import {ApiResponse} from '@/src/contexts/user/ApiResponse';
+import {ApiResponse} from '@/src/contexts/user/manager/ApiResponse';
 import SocketService from '@/src/api/services/SocketService';
 
 class UserManager {
@@ -28,7 +28,7 @@ class UserManager {
                 };
             }
 
-            const result = await ApiUserService.me();
+            const result = await UserService.me();
 
             if (result.success && result.user) {
                 await UserStorage.saveUser(result.user);
@@ -76,7 +76,7 @@ class UserManager {
                 };
             }
 
-            const result = await ApiUserService.update(updatedUser);
+            const result = await UserService.update(updatedUser);
 
             if (!result.success) {
                 return {

@@ -1,9 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Alert, Linking, StyleSheet, Text, View} from 'react-native';
+import {Alert, StyleSheet, Text, View} from 'react-native';
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from "expo-camera";
-import { navigate } from 'expo-router/build/global-state/routing';
-import { router } from 'expo-router';
-import { ConversationService } from '@/src/api/services/ConversationService';
+import {router} from 'expo-router';
+import {ConversationService} from '@/src/api/services/ConversationService';
 
 interface QrScannerProps {
     onScan?: (data: string) => void;
@@ -76,7 +75,7 @@ export default function QRScanner({
                                             setShowQRScanner && setShowQRScanner(false)
                                             router.replace("/(main)");
                                         } else {
-                                            Alert.alert("Error", `Không tìm thấy nhóm ${data}`, );
+                                            Alert.alert("Error", `Không tìm thấy nhóm ${data}`,);
                                             qrLock.current = false;
                                         }
                                         qrLock.current = false;

@@ -9,8 +9,8 @@ export interface User {
     coverURL: string;
     dob: string;
     isOnline: boolean;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date | string;
+    updatedAt: Date | string;
 }
 
 const requiredFields: (keyof User)[] = [

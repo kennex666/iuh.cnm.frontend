@@ -1,19 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    Image,
-    TouchableOpacity,
-    ScrollView,
-    Alert,
-    ActivityIndicator,
-    TextInput
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { FriendRequestService } from '@/src/api/services/FriendRequestService';
-import { UserService } from '@/src/api/services/UserService';
-import FriendRequest from '@/src/models/FriendRequest';
-import { useUser } from '@/src/contexts/user/UserContext';
+import React, {useEffect, useState} from 'react';
+import {ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {FriendRequestService} from '@/src/api/services/FriendRequestService';
+import {UserService} from '@/src/api/services/UserService';
+import {FriendRequest} from '@/src/models/FriendRequest';
+import {useUser} from '@/src/contexts/user/UserContext';
 import SocketService from '@/src/api/services/SocketService';
 
 export default function FriendRequestList() {
@@ -23,7 +14,7 @@ export default function FriendRequestList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
-    const { user } = useUser();
+    const {user} = useUser();
     const [friendAccepted, setFriendAccepted] = useState<FriendRequest[]>([]);
     const [friendSent, setFriendSent] = useState<FriendRequest[]>([]);
     const [senderNames, setSenderNames] = useState<Record<string, string>>({});
@@ -65,7 +56,7 @@ export default function FriendRequestList() {
         loadFriendRequests();
         // Set up socket listeners
         const socketService = SocketService.getInstance();
-        
+
         // Listen for new friend requests
         const handleNewFriendRequest = (friendRequest: FriendRequest) => {
             console.log('New friend request received:', friendRequest);
@@ -84,7 +75,7 @@ export default function FriendRequestList() {
 
         socketService.onFriendRequest(handleNewFriendRequest);
         socketService.onDeleteFriendRequest(handleDeleteFriendRequest);
-        
+
         // Cleanup socket listeners
         return () => {
             socketService.removeFriendRequestListener(handleNewFriendRequest);
@@ -137,8 +128,8 @@ export default function FriendRequestList() {
                     id: user.id,
                     name: user.name,
                     phone: user.phone,
-                    avatar: user.avatarURL === "default" ? 
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0068FF&color=fff` 
+                    avatar: user.avatarURL === "default" ?
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=0068FF&color=fff`
                         : user.avatarURL
                 }));
                 setSearchResults(results);
@@ -180,11 +171,11 @@ export default function FriendRequestList() {
                     createAt: response.friendRequest._doc.createAt,
                     updateAt: response.friendRequest._doc.updateAt
                 };
-                
+
                 // Send friend request through socket
                 const socketService = SocketService.getInstance();
                 socketService.sendFriendRequest(friendRequest);
-                
+
                 // Cập nhật UI
                 setFriendSent(prev => [...prev, friendRequest]);
             } else {
@@ -252,7 +243,7 @@ export default function FriendRequestList() {
     if (loading) {
         return (
             <View className="flex-1 items-center justify-center">
-                <ActivityIndicator size="large" color="#0068FF" />
+                <ActivityIndicator size="large" color="#0068FF"/>
                 <Text className="mt-2 text-gray-500">Đang tải...</Text>
             </View>
         );
@@ -261,7 +252,7 @@ export default function FriendRequestList() {
     if (error) {
         return (
             <View className="flex-1 items-center justify-center p-4">
-                <Ionicons name="alert-circle-outline" size={48} color="#FF3B30" />
+                <Ionicons name="alert-circle-outline" size={48} color="#FF3B30"/>
                 <Text className="text-red-500 mt-2 text-center">{error}</Text>
                 <TouchableOpacity
                     className="mt-4 bg-blue-500 px-4 py-2 rounded-full"
@@ -278,7 +269,7 @@ export default function FriendRequestList() {
             {/* Search Section */}
             <View className="p-4 border-b border-gray-200">
                 <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-                    <Ionicons name="search" size={20} color="#666" />
+                    <Ionicons name="search" size={20} color="#666"/>
                     <TextInput
                         className="flex-1 ml-2 text-base text-gray-800"
                         placeholder="Tìm kiếm theo số điện thoại..."
@@ -288,7 +279,7 @@ export default function FriendRequestList() {
                         keyboardType="phone-pad"
                     />
                     {isSearching && (
-                        <ActivityIndicator size="small" color="#0068FF" />
+                        <ActivityIndicator size="small" color="#0068FF"/>
                     )}
                 </View>
             </View>
@@ -323,7 +314,7 @@ export default function FriendRequestList() {
                                 >
                                     <Image
                                         key={`search-image-${result.id}`}
-                                        source={{ uri: result.avatar }}
+                                        source={{uri: result.avatar}}
                                         className="w-12 h-12 rounded-full"
                                     />
                                     <View key={`search-info-${result.id}`} className="flex-1 ml-3">
@@ -335,12 +326,14 @@ export default function FriendRequestList() {
                                         </Text>
                                     </View>
                                     {isFriend ? (
-                                        <View key={`search-friend-${result.id}`} className="bg-gray-100 px-4 py-2 rounded-full">
+                                        <View key={`search-friend-${result.id}`}
+                                              className="bg-gray-100 px-4 py-2 rounded-full">
                                             <Text className="text-gray-700 font-medium">Bạn bè</Text>
                                         </View>
                                     ) : pendingRequestSent ? (
                                         pendingRequestSent.status === "declined" ? (
-                                            <View key={`search-declined-${result.id}`} className="bg-red-100 px-4 py-2 rounded-full">
+                                            <View key={`search-declined-${result.id}`}
+                                                  className="bg-red-100 px-4 py-2 rounded-full">
                                                 <Text className="text-red-600 font-medium">Đã từ chối</Text>
                                             </View>
                                         ) : (
@@ -382,7 +375,7 @@ export default function FriendRequestList() {
                 <Text className="px-4 py-2 text-sm font-semibold text-gray-500">Lời mời kết bạn</Text>
                 {requests.length === 0 ? (
                     <View key="no-requests" className="items-center justify-center p-4">
-                        <Ionicons name="people-outline" size={48} color="#666" />
+                        <Ionicons name="people-outline" size={48} color="#666"/>
                         <Text className="text-gray-500 mt-2">Không có lời mời kết bạn nào</Text>
                     </View>
                 ) : (
@@ -393,7 +386,7 @@ export default function FriendRequestList() {
                         >
                             <Image
                                 key={`request-image-${request.id}`}
-                                source={{ uri: senderAvatars[request.senderId] || `https://ui-avatars.com/api/?name=${encodeURIComponent(senderNames[request.senderId] || 'User')}&background=0068FF&color=fff` }}
+                                source={{uri: senderAvatars[request.senderId] || `https://ui-avatars.com/api/?name=${encodeURIComponent(senderNames[request.senderId] || 'User')}&background=0068FF&color=fff`}}
                                 className="w-12 h-12 rounded-full"
                                 onError={(e) => {
                                     console.log('Avatar load error:', e.nativeEvent.error);
