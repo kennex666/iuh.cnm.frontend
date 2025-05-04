@@ -7,7 +7,7 @@ import FileMessage from './FileMessage';
 import VoteMessage from './VoteMessage';
 import CallMessage from './CallMessage';
 import ReplyPreview from './ReplyPreview';
-import MessageReaction from "../MessageReaction";
+import MessageReaction from "./MessageReaction";
 
 interface MessageItemProps {
     message: Message;

@@ -1,16 +1,13 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Ionicons} from "@expo/vector-icons";
-import {Animated, Easing, ScrollView, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import {Animated, Easing, ScrollView, Text, View,} from "react-native";
 import {Conversation} from "@/src/models/Conversation";
-import EmojiPicker from "./input/EmojiPicker";
-import StickerPicker from "./input/StickerPicker";
-import {Shadows} from "@/src/styles/Shadow";
 import {Message, MessageType} from "@/src/models/Message";
 import {MessageService} from "@/src/api/services/MessageService";
 import {useUser} from "@/src/contexts/user/UserContext";
 import {UserService} from "@/src/api/services/UserService";
 import SocketService from "@/src/api/services/SocketService";
-import ForwardMessageModal from "./ForwardMessageModal";
+import ForwardMessageModal from "./modal/ForwardMessageModal";
 import {AttachmentService} from "@/src/api/services/AttachmentService";
 import {Attachment} from "@/src/models/Attachment";
 import ChatHeader from "./misc/ChatHeader";
@@ -617,12 +614,12 @@ export default function ChatArea(
             )}
 
             <ChatInputArea
-              message={newMessage}
-              onChangeMessage={setNewMessage}
-              onSendMessage={handleSendMessage}
-              onSelectFile={handleSelectFileWithClose}
-              onToggleVoteModal={toggleVoteModal}
-              openFileSelection={toggleModalChecked}
+                message={newMessage}
+                onChangeMessage={setNewMessage}
+                onSendMessage={handleSendMessage}
+                onSelectFile={handleSelectFileWithClose}
+                onToggleVoteModal={toggleVoteModal}
+                openFileSelection={toggleModalChecked}
             />
 
             {fullScreenImage && (
