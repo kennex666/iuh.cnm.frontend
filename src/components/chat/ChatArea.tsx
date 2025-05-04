@@ -33,6 +33,9 @@ import FileMessageContent from "./FileMessageContent";
 import ChatHeader from "../chat-area/ChatHeader";
 import ChatNewer from "../chat-area/ChatNewer";
 import VoteMessageContent from "./VoteMessageContent";
+import {useFileUpload} from "@/src/hooks/chat/useFileUpload";
+import FileSelectionModal from "@/src/components/chat/modal/FileSelectionModal";
+import UploadProgressModal from "@/src/components/chat/modal/UploadProgressModal";
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -75,181 +78,11 @@ export default function ChatArea({
         isOnline: boolean;
     } | null>(null);
 
-    // Thêm vào danh sách state trong ChatArea
-    const [fileUploading, setFileUploading] = useState(false);
     const [attachments, setAttachments] = useState<{ [key: string]: Attachment }>(
         {}
     );
     const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
-    // Add these to your state variables at the top of the component
-    const [uploadProgress, setUploadProgress] = useState(0);
-    const [uploadStatusMessage, setUploadStatusMessage] = useState(
-        "Preparing to upload..."
-    );
-    const [showUploadModal, setShowUploadModal] = useState(false);
-
-    // Thêm hàm xử lý chọn file
-    const handleSelectFile = async () => {
-        try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: "*/*", // Cho phép chọn mọi loại file
-                copyToCacheDirectory: true,
-            });
-
-            if (result.canceled) {
-                console.log("User cancelled file picker");
-                return;
-            }
-
-            await uploadAndSendFile(result.assets[0]);
-        } catch (error) {
-            console.error("Error picking document:", error);
-            setError("Không thể chọn file. Vui lòng thử lại.");
-        }
-    };
-
-    const uploadAndSendFile = async (
-        fileAsset: DocumentPicker.DocumentPickerAsset
-    ) => {
-        if (!selectedChat?.id || !user?.id) return;
-
-        const isLargeFile = (fileAsset.size || 0) > 10 * 1024 * 1024;
-
-        try {
-            // Show upload modal
-            setShowUploadModal(true);
-            setFileUploading(true);
-            setError(null);
-            setUploadProgress(0);
-            setUploadStatusMessage("Preparing file...");
-
-            if (isLargeFile) {
-                setUploadStatusMessage("File too large. Please try again.");
-                // setShowUploadModal(false);
-                // setError('Tệp quá lớn. Vui lòng thử lại.');
-                return;
-            }
-
-            // Chuẩn bị fileData để gửi qua socket
-            let fileBuffer: ArrayBuffer;
-
-            setUploadStatusMessage("Reading file content...");
-            setUploadProgress(10);
-
-            // Đọc nội dung file theo cách phù hợp với platform
-            if (Platform.OS === "web") {
-                // Web platform handling
-                const response = await fetch(fileAsset.uri);
-                const blob = await response.blob();
-                fileBuffer = await blob.arrayBuffer();
-            } else {
-                // Mobile platform handling
-                const base64 = await FileSystem.readAsStringAsync(fileAsset.uri, {
-                    encoding: FileSystem.EncodingType.Base64,
-                });
-                // Chuyển Base64 thành ArrayBuffer
-                const binaryString = atob(base64);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                fileBuffer = bytes.buffer;
-            }
-
-            setUploadProgress(40);
-            setUploadStatusMessage("Preparing to send file...");
-
-            // Cấu trúc dữ liệu file để gửi qua socket
-            const fileData = {
-                buffer: fileBuffer,
-                fileName: fileAsset.name,
-                contentType: fileAsset.mimeType || "application/octet-stream",
-            };
-
-            setUploadProgress(50);
-            setUploadStatusMessage("Setting up connection...");
-
-            // Lắng nghe phản hồi từ socket về việc gửi attachment thành công
-            const attachmentSentHandler = (data: {
-                success: boolean;
-                messageId: string;
-            }) => {
-                console.log("Attachment sent successfully:", data);
-                if (data.success) {
-                    setUploadProgress(100);
-                    setUploadStatusMessage("File sent successfully!");
-
-                    // Sau khi gửi thành công, cập nhật danh sách tin nhắn
-                    fetchMessages();
-
-                    // Reset reply state nếu có
-                    if (replyingTo) {
-                        setReplyingTo(null);
-                    }
-
-                    // Close modal after short delay to show success
-                    setTimeout(() => {
-                        setShowUploadModal(false);
-                    }, 800);
-                }
-                // Gỡ bỏ event listener sau khi nhận được phản hồi
-                socketService.removeAttachmentSentListener(attachmentSentHandler);
-            };
-
-            // Lắng nghe lỗi từ socket (nếu có)
-            const attachmentErrorHandler = (error: { message: string }) => {
-                console.error("Attachment error:", error.message);
-                setUploadStatusMessage(`Error: ${error.message}`);
-                setError(`Không thể gửi tệp đính kèm: ${error.message}`);
-
-                // Close modal after showing error
-                setTimeout(() => {
-                    setShowUploadModal(false);
-                }, 2000);
-
-                // Gỡ bỏ event listener sau khi nhận được lỗi
-                socketService.removeAttachmentErrorListener(attachmentErrorHandler);
-            };
-
-            // Đăng ký các event handlers
-            socketService.onAttachmentSent(attachmentSentHandler);
-            socketService.onAttachmentError(attachmentErrorHandler);
-
-            setUploadProgress(70);
-            setUploadStatusMessage("Sending file via socket...");
-
-            // Gửi file thông qua socket
-            socketService.sendAttachment(
-                selectedChat.id,
-                fileData,
-                replyingTo?.id // Truyền repliedTold nếu có
-            );
-
-            setUploadProgress(80);
-            setUploadStatusMessage("Waiting for server confirmation...");
-
-            console.log(`Sending file via socket: ${fileAsset.name}`);
-        } catch (error) {
-            console.error("Error uploading file:", error);
-            setUploadStatusMessage("Upload failed");
-            setError(
-                typeof error === "string"
-                    ? error
-                    : error instanceof Error
-                        ? error.message
-                        : "Không thể gửi file. Vui lòng thử lại."
-            );
-
-            // Close modal after showing error
-            setTimeout(() => {
-                setShowUploadModal(false);
-            }, 2000);
-        } finally {
-            setFileUploading(false);
-            toggleModelChecked(); // Đóng modal chọn loại file
-        }
-    };
 
     // Update the getAttachmentByMessageId function
     const getAttachmentByMessageId = async (messageId: string) => {
@@ -318,6 +151,28 @@ export default function ChatArea({
         } finally {
             setLoading(false);
         }
+    };
+
+    // Refactoring: File Upload
+    const {
+        fileUploading,
+        uploadProgress,
+        uploadStatusMessage,
+        showUploadModal,
+        error: uploadError,
+        handleSelectFile,
+        closeUploadModal,
+        resetUploadState
+    } = useFileUpload(selectedChat?.id, user?.id, fetchMessages);
+
+    const handleSelectImageWithClose = () => {
+        handleSelectFile();
+        toggleModelChecked();
+    };
+
+    const handleSelectFileWithClose = () => {
+        handleSelectFile();
+        toggleModelChecked();
     };
 
     // Join conversation when component mounts
@@ -1216,59 +1071,6 @@ export default function ChatArea({
                         <Ionicons name="add-circle-outline" size={24} color="#666"/>
                     </TouchableOpacity>
 
-                    {isModelChecked && (
-                        <View className="absolute bottom-full left-0 bg-white z-50">
-                            <Animated.View
-                                style={{
-                                    transform: [
-                                        {
-                                            translateX: scaleAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [0, 0],
-                                            }),
-                                        },
-                                        {
-                                            translateY: scaleAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [30, 0],
-                                            }),
-                                        },
-                                    ],
-                                    opacity: scaleAnimation.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [0, 1],
-                                    }),
-                                }}
-                            >
-                                <View
-                                    className="bg-white rounded-lg p-4 w-[300px]"
-                                    style={Shadows.md}
-                                >
-                                    <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
-
-                                    <TouchableOpacity
-                                        className="flex-row items-center mb-2"
-                                        onPress={handleSelectFile}
-                                    >
-                                        <Ionicons name="image-outline" size={24} color="#666"/>
-                                        <Text className="ml-2 text-gray-800">Hình ảnh/Video</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        className="flex-row items-center mb-2"
-                                        onPress={handleSelectFile}
-                                    >
-                                        <Ionicons
-                                            name="file-tray-full-outline"
-                                            size={24}
-                                            color="#666"
-                                        />
-                                        <Text className="ml-2 text-gray-800">File</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </Animated.View>
-                        </View>
-                    )}
-
                     <View className="relative">
                         <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
                             <Ionicons name="gift-outline" size={24} color="#666"/>
@@ -1377,52 +1179,6 @@ export default function ChatArea({
                 </View>
             )}
 
-            {/* Upload Modal */}
-            {showUploadModal && (
-                <View className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center">
-                    <View className="bg-white rounded-2xl p-5 w-[85%] max-w-md">
-                        <View className="items-center">
-                            <View className="w-16 h-16 rounded-full bg-blue-50 items-center justify-center mb-4">
-                                {uploadProgress < 100 ? (
-                                    <Ionicons
-                                        name="cloud-upload-outline"
-                                        size={32}
-                                        color="#3B82F6"
-                                    />
-                                ) : (
-                                    <Ionicons name="checkmark-circle" size={32} color="#10B981"/>
-                                )}
-                            </View>
-                            <Text className="text-lg font-medium text-gray-900 mb-2">
-                                {uploadProgress < 100 ? "Uploading File" : "Upload Complete"}
-                            </Text>
-                            <Text className="text-gray-600 text-center mb-4">
-                                {uploadStatusMessage}
-                            </Text>
-                        </View>
-
-                        {/* Progress Bar */}
-                        <View className="bg-gray-200 h-2 rounded-full mb-4 overflow-hidden">
-                            <View
-                                className="bg-blue-500 h-full rounded-full"
-                                style={{width: `${uploadProgress}%`}}
-                            />
-                        </View>
-
-                        {/* Cancel button - only show during active upload */}
-                        {uploadProgress < 100 && (
-                            <TouchableOpacity
-                                className="mt-2 py-3 px-4 rounded-lg bg-gray-100 items-center"
-                                onPress={() => {
-                                    setShowUploadModal(false);
-                                }}
-                            >
-                                <Text className="text-gray-700 font-medium">Cancel</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-            )}
             {pinnedMessages.length > 0 && (
                 <View className="absolute top-[70px] left-2 right-2 z-10 items-center">
                     <TouchableOpacity
@@ -1483,7 +1239,20 @@ export default function ChatArea({
                 </View>
             )}
 
+            <FileSelectionModal
+                visible={isModelChecked}
+                onClose={toggleModelChecked}
+                onSelectImage={handleSelectImageWithClose}
+                onSelectFile={handleSelectFileWithClose}
+                scaleAnimation={scaleAnimation}
+            />
 
+            <UploadProgressModal
+                visible={showUploadModal}
+                progress={uploadProgress}
+                statusMessage={uploadStatusMessage}
+                onCancel={closeUploadModal}
+            />
         </View>
     );
 
