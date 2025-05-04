@@ -252,21 +252,21 @@ export default function ChatArea(
     // ================================================== Handlers
     // ================================================== Handlers
 
-// Handles image selection and closes file selection modal
+    // Handles image selection and closes file selection modal
     const handleSelectImageWithClose = () => {
         handleSelectFile().then(() => {
         });
         toggleModalChecked();
     };
 
-// Handles file selection and closes file selection modal
+    // Handles file selection and closes file selection modal
     const handleSelectFileWithClose = () => {
         handleSelectFile().then(() => {
         });
         toggleModalChecked();
     };
 
-// Retrieves attachment for a specific message, using cache when available
+    // Retrieves attachment for a specific message, using cache when available
     const getAttachmentByMessageId = async (messageId: string) => {
         try {
             if (attachments[messageId]) {
@@ -289,7 +289,7 @@ export default function ChatArea(
         }
     };
 
-// Fetches user information and updates message users state
+    // Fetches user information and updates message users state
     const fetchUserInfo = async (userId: string) => {
         try {
             const response = await UserService.getUserById(userId);
@@ -304,7 +304,7 @@ export default function ChatArea(
         }
     };
 
-// Toggles the file selection modal with animation
+    // Toggles the file selection modal with animation
     const toggleModalChecked = () => {
         if (isModalChecked) {
             Animated.timing(scaleAnimation, {
@@ -324,13 +324,13 @@ export default function ChatArea(
         }
     };
 
-// Toggle modal visibility functions
+    // Toggle modal visibility functions
     const toggleModelImage = () => setIsModelImage(!isModelImage);
     const toggleModelEmoji = () => setIsModelEmoji(!isModelEmoji);
     const toggleModelSticker = () => setIsModelSticker(!isModelSticker);
     const toggleModelGift = () => setIsModelGift(!isModelGift);
 
-// Sends a new message to the current conversation
+    // Sends a new message to the current conversation
     const handleSendMessage = async () => {
         if (!selectedChat?.id || !newMessage.trim() || !user?.id) return;
 
