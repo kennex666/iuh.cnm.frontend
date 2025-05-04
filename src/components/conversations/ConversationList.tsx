@@ -41,10 +41,10 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                     <TouchableOpacity
                         key={conversation.id}
                         onPress={() => onSelectChat(conversation)}
-                        className={`flex-row items-center px-4 py-2 ${
+                        className={`flex-row items-center px-2 py-2 rounded-lg ${
                             selectedChat?.id === conversation.id
-                                ? 'bg-[#F0F2F5]'
-                                : 'hover:bg-gray-50'
+                                ? 'bg-blue-50'
+                                : 'hover:bg-blue-50'
                         }`}
                     >
                         <View className="relative">
@@ -55,14 +55,14 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                                         : conversation.avatarUrl,
                                     headers: { Accept: "image/*" },
                                 }}
-                                className="w-12 h-12 rounded-full border-2 border-white"
+                                className="w-12 h-12 rounded-full border-2 border-gray-200"
                             />
                             {!conversation.isGroup && conversation.participantIds.length > 0 && (
                                 <View className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
                             )}
                         </View>
 
-                        <View className="flex-1 ml-3 border-b border-gray-100 py-2">
+                        <View className="flex-1 ml-3 py-2">
                             <View className="flex-row items-center justify-between">
                                 <Text 
                                     className={`text-[15px] ${

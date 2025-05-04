@@ -227,7 +227,7 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
     }
 
     return (
-        <View className="flex-1 border-r border-gray-200 px-4">
+        <View className="flex-1 px-2">
             <IncomingCallModal
                 isVisible={isComingCall && !!linkCall}
                 linkCall={linkCall || ''}

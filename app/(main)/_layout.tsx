@@ -82,7 +82,7 @@ export default function AppLayout() {
     <View className="flex-1 flex-row">
       {isDesktop && (
         <View
-          className="w-20 bg-gradient-to-b from-blue-50 to-white items-center border-r border-blue-100"
+          className="w-16 bg-gradient-to-b from-blue-50 to-white items-center border-r border-blue-100"
           style={{ paddingTop: insets.top + 16 }}
         >
           <View className="flex-1 flex-col items-center justify-between">
@@ -96,10 +96,9 @@ export default function AppLayout() {
                 <Image
                   source={avatar}
                   resizeMode="cover"
-                  className="w-12 h-12 rounded-full border-2 border-blue-100"
-                  style={{ width: 48, height: 48 }}
+                  className="w-10 h-10 rounded-full border-2 border-blue-100"
+                  style={{ width: 40, height: 40 }}
                 />
-                <View className="absolute -right-0.5 -bottom-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white" />
               </TouchableOpacity>
 
               <View className="w-4/5 h-px bg-blue-100 mb-6" />
@@ -110,14 +109,14 @@ export default function AppLayout() {
                   <Link
                     key={route.name}
                     href={getHref(route.name)}
-                    className={`w-14 h-14 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${
+                    className={`w-12 h-12 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${
                       active ? "bg-blue-500 shadow-sm" : "hover:bg-blue-50"
                     }`}
                   >
                     <View className="w-full h-full justify-center items-center">
                       <FontAwesome
                         name={route.icon}
-                        size={22}
+                        size={20}
                         color={active ? "#FFFFFF" : "#3B82F6"}
                       />
                     </View>
