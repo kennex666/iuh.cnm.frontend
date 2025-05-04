@@ -5,7 +5,6 @@ import {
     Easing,
     Image,
     ScrollView,
-    Switch,
     Text,
     TextInput,
     TouchableOpacity,
@@ -26,8 +25,8 @@ import ForwardMessageModal from "./ForwardMessageModal";
 import {AttachmentService} from "@/src/api/services/AttachmentService";
 import {Attachment} from "@/src/models/Attachment";
 import FileMessageContent from "./FileMessageContent";
-import ChatHeader from "../chat-area/ChatHeader";
-import ChatNewer from "../chat-area/ChatNewer";
+import ChatHeader from "./misc/ChatHeader";
+import ChatNewer from "./misc/ChatNewer";
 import VoteMessageContent from "./VoteMessageContent";
 import {useFileUpload} from "@/src/hooks/chat/useFileUpload";
 import FileSelectionModal from "@/src/components/chat/modal/FileSelectionModal";
@@ -177,7 +176,7 @@ export default function ChatArea(
 
     // Refactoring: Vote Creation
 
-    const { showVoteModal, toggleVoteModal, handleCreateVote } = useVoteCreation(selectedChat?.id);
+    const {showVoteModal, toggleVoteModal, handleCreateVote} = useVoteCreation(selectedChat?.id);
 
     //// End Refactoring: Vote Creation
 
@@ -353,7 +352,6 @@ export default function ChatArea(
         }
     };
 
-    // Toggle models
     const toggleModalChecked = () => {
         if (isModalChecked) {
             Animated.timing(scaleAnimation, {
@@ -562,31 +560,24 @@ export default function ChatArea(
 
     return (
         <View className="flex-1 flex-col">
-            {/* Chat Header */}
             <ChatHeader
                 selectedChat={selectedChat}
                 onBackPress={onBackPress}
                 onInfoPress={onInfoPress}
             />
 
-            {/* Messages Area */}
-            {/* Messages Area */}
             <ScrollView
                 ref={scrollViewRef}
-                // className="flex-1 p-4 pt-12"
                 className={`flex-1 p-4 ${pinnedMessages.length > 0 ? "pt-16" : "pt-4"}`}
             >
                 {messages.length === 0 && <ChatNewer selectedChat={selectedChat}/>}
 
-                {/* Render messages */}
                 {messages.map((msg, index) => {
-                    // Store position for scrolling to messages
-                    const onLayout = (event) => {
+                    const onLayout = (event: any) => {
                         const layout = event.nativeEvent.layout;
                         messageRefs.current[msg.id] = layout.y;
                     };
 
-                    // Check if this message is currently highlighted
                     const isHighlighted = msg.id === highlightedMessageId;
 
                     const repliedToMessage =
@@ -594,7 +585,6 @@ export default function ChatArea(
                             ? messages.find((m) => m.id === msg.repliedToId || m.id === msg.repliedTold)
                             : null;
 
-                    // Special rendering for SYSTEM type messages (pinned messages)
                     if (msg.type === MessageType.SYSTEM) {
                         return (
                             <View
