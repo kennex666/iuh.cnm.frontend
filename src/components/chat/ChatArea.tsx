@@ -1,28 +1,30 @@
 import React, {useEffect, useRef, useState} from "react";
+import {Animated, Easing, ScrollView, Text, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
-import {Animated, Easing, ScrollView, Text, View,} from "react-native";
 import {Conversation} from "@/src/models/Conversation";
 import {Message, MessageType} from "@/src/models/Message";
 import {MessageService} from "@/src/api/services/MessageService";
 import {useUser} from "@/src/contexts/user/UserContext";
 import {UserService} from "@/src/api/services/UserService";
 import SocketService from "@/src/api/services/SocketService";
-import ForwardMessageModal from "./modal/ForwardMessageModal";
 import {AttachmentService} from "@/src/api/services/AttachmentService";
 import {Attachment} from "@/src/models/Attachment";
-import ChatHeader from "./misc/ChatHeader";
 import {useFileUpload} from "@/src/hooks/chat/useFileUpload";
+import {useVoteCreation} from "@/src/hooks/chat/useVoteCreation";
+
+// Component imports
+import ChatHeader from "@/src/components/chat/misc/ChatHeader";
+import MessageList from "@/src/components/chat/message/MessageList";
+import ChatInputArea from "@/src/components/chat/input/ChatInputArea";
+import ReplyPreviewBar from "@/src/components/chat/message/ReplyPreviewBar";
+import PinnedMessagesPanel from "@/src/components/chat/message/PinnedMessagesPanel";
+import ForwardMessageModal from "@/src/components/chat/modal/ForwardMessageModal";
 import FileSelectionModal from "@/src/components/chat/modal/FileSelectionModal";
 import UploadProgressModal from "@/src/components/chat/modal/UploadProgressModal";
 import VoteCreationModal from "@/src/components/chat/modal/VoteCreationModal";
-import {useVoteCreation} from "@/src/hooks/chat/useVoteCreation";
-import MessageList from "@/src/components/chat/message/MessageList";
 import FullScreenImageViewer from "@/src/components/chat/message/FullScreenImageViewer";
-import PinnedMessagesPanel from "@/src/components/chat/message/PinnedMessagesPanel";
 import MessageOptionsModal from "@/src/components/chat/modal/MessageOptionsModal";
 import DeleteConfirmationModal from "@/src/components/chat/modal/DeleteConfirmationModal";
-import ReplyPreviewBar from "@/src/components/chat/message/ReplyPreviewBar";
-import ChatInputArea from "@/src/components/chat/input/ChatInputArea";
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
