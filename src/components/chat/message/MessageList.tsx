@@ -1,4 +1,3 @@
-// src/components/chat/message/MessageList.tsx
 import React from 'react';
 import {ScrollView} from 'react-native';
 import {Message} from "@/src/models/Message";

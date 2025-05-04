@@ -26,7 +26,7 @@ const VoteMessage: React.FC<VoteMessageProps> = (
                 <VoteMessageContent
                     messageId={messageId}
                     voteData={voteData}
-                    userId={userId}
+                    userId={userId || ""}
                     conversationId={conversationId}
                 />
             </View>
