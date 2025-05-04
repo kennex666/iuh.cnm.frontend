@@ -13,7 +13,7 @@ const TextMessage: React.FC<TextMessageProps> = (
         isSender
     }) => {
     return (
-        <Text className={isSender ? "text-white" : "text-gray-900"}>
+        <Text className={`${isSender ? "text-white" : "text-gray-800"} text-[15px] font-normal`}>
             {message.content}
         </Text>
     );

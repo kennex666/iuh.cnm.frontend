@@ -76,7 +76,6 @@ export default function MessagesScreen() {
 
             {selectedChat && !showInfo && (
                 <View className='flex-1'>
-                    <View className='h-12'></View>
                     <ChatArea
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}

@@ -49,15 +49,15 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = (
     };
 
     return (
-        <View className="border-t border-gray-200 p-4">
+        <View className="border-t border-gray-200 p-2.5">
             <View className="flex-row items-center position-relative">
-                <TouchableOpacity className="p-2" onPress={openFileSelection}>
-                    <Ionicons name="add-circle-outline" size={24} color="#666"/>
+                <TouchableOpacity className="p-1.5" onPress={openFileSelection}>
+                    <Ionicons name="add-circle-outline" size={20} color="#0084ff"/>
                 </TouchableOpacity>
 
                 <View className="relative">
-                    <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
-                        <Ionicons name="gift-outline" size={24} color="#666"/>
+                    <TouchableOpacity className="p-1.5" onPress={toggleModelSticker}>
+                        <Ionicons name="image-outline" size={20} color="#0084ff"/>
                     </TouchableOpacity>
                     {isModelSticker && (
                         <View
@@ -73,20 +73,20 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = (
                 </View>
 
                 <View className="relative">
-                    <TouchableOpacity className="p-2" onPress={onToggleVoteModal}>
-                        <Ionicons name="bar-chart-outline" size={24} color="#666"/>
+                    <TouchableOpacity className="p-1.5" onPress={onToggleVoteModal}>
+                        <Ionicons name="gift-outline" size={20} color="#0084ff"/>
                     </TouchableOpacity>
                 </View>
 
-                <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
+                <View className="flex-1 bg-[#f0f2f5] rounded-full mx-2 px-3 py-1.5">
                     <TextInput
                         className="min-h-[26px] text-base text-gray-800"
-                        placeholder="Nhập tin nhắn..."
+                        placeholder="Aa"
                         value={message}
                         onChangeText={onChangeMessage}
                         multiline
                         numberOfLines={1}
-                        placeholderTextColor="#666"
+                        placeholderTextColor="#65676b"
                         style={{
                             borderWidth: 0,
                             outline: "none",
@@ -97,19 +97,19 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = (
                             setInputHeight(height > 26 ? height : 26);
                         }}
                         onBlur={() => {
-                            if (inputHeight < 28) {
-                                setInputHeight(28);
+                            if (inputHeight < 26) {
+                                setInputHeight(26);
                             }
                         }}
                         onFocus={() => {
-                            setInputHeight(28);
+                            setInputHeight(26);
                         }}
                     />
                 </View>
 
                 <View className="relative">
-                    <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
-                        <Ionicons name="happy-outline" size={24} color="#666"/>
+                    <TouchableOpacity className="p-1.5" onPress={toggleModelEmoji}>
+                        <Ionicons name="happy" size={20} color="#0084ff"/>
                     </TouchableOpacity>
                     {isModelEmoji && (
                         <View
@@ -125,8 +125,8 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = (
                 </View>
 
                 <TouchableOpacity
-                    className={`p-3 rounded-full ${
-                        message.trim() ? "bg-blue-500" : "bg-gray-200"
+                    className={`p-2 rounded-full ${
+                        message.trim() ? "bg-[#0084ff]" : "bg-gray-200"
                     }`}
                     onPress={onSendMessage}
                     disabled={!message.trim()}
@@ -139,7 +139,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = (
                 >
                     <Ionicons
                         name="send"
-                        size={20}
+                        size={16}
                         color={message.trim() ? "#FFF" : "#999"}
                     />
                 </TouchableOpacity>

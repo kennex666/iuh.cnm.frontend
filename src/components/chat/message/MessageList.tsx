@@ -47,7 +47,7 @@ const MessageList: React.FC<MessageListProps> = (
         >
             {messages.length === 0 && selectedChat && <ChatNewer selectedChat={selectedChat}/>}
 
-            {messages.map((msg) => {
+            {messages.map((msg, index) => {
                 const onLayout = (event: any) => {
                     const layout = event.nativeEvent.layout;
                     messageRefs.current[msg.id] = layout.y;
@@ -58,6 +58,7 @@ const MessageList: React.FC<MessageListProps> = (
                     msg.repliedToId || msg.repliedTold,
                     messages
                 );
+                const previousMessage = index > 0 ? messages[index - 1] : null;
 
                 return (
                     <MessageItem
@@ -75,6 +76,7 @@ const MessageList: React.FC<MessageListProps> = (
                         getAttachmentByMessageId={getAttachmentByMessageId}
                         setFullScreenImage={setFullScreenImage}
                         selectedChatId={selectedChat?.id || ""}
+                        previousMessage={previousMessage}
                     />
                 );
             })}
