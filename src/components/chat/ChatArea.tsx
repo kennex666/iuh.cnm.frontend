@@ -1,20 +1,9 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Ionicons} from "@expo/vector-icons";
-import {
-    Animated,
-    Easing,
-    Image,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
-} from "react-native";
+import {Animated, Easing, Image, ScrollView, Text, TextInput, TouchableOpacity, View,} from "react-native";
 import {Conversation} from "@/src/models/Conversation";
 import EmojiPicker from "./EmojiPicker";
 import StickerPicker from "./StickerPicker";
-import MessageReaction from "./MessageReaction";
 import {Shadows} from "@/src/styles/Shadow";
 import {Message, MessageType} from "@/src/models/Message";
 import {MessageService} from "@/src/api/services/MessageService";
@@ -24,15 +13,13 @@ import SocketService from "@/src/api/services/SocketService";
 import ForwardMessageModal from "./ForwardMessageModal";
 import {AttachmentService} from "@/src/api/services/AttachmentService";
 import {Attachment} from "@/src/models/Attachment";
-import FileMessageContent from "./FileMessageContent";
 import ChatHeader from "./misc/ChatHeader";
-import ChatNewer from "./misc/ChatNewer";
-import VoteMessageContent from "./VoteMessageContent";
 import {useFileUpload} from "@/src/hooks/chat/useFileUpload";
 import FileSelectionModal from "@/src/components/chat/modal/FileSelectionModal";
 import UploadProgressModal from "@/src/components/chat/modal/UploadProgressModal";
 import VoteCreationModal from "@/src/components/chat/modal/VoteCreationModal";
 import {useVoteCreation} from "@/src/hooks/chat/useVoteCreation";
+import MessageList from "@/src/components/chat/message/MessageList";
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -566,208 +553,22 @@ export default function ChatArea(
                 onInfoPress={onInfoPress}
             />
 
-            <ScrollView
-                ref={scrollViewRef}
-                className={`flex-1 p-4 ${pinnedMessages.length > 0 ? "pt-16" : "pt-4"}`}
-            >
-                {messages.length === 0 && <ChatNewer selectedChat={selectedChat}/>}
-
-                {messages.map((msg, index) => {
-                    const onLayout = (event: any) => {
-                        const layout = event.nativeEvent.layout;
-                        messageRefs.current[msg.id] = layout.y;
-                    };
-
-                    const isHighlighted = msg.id === highlightedMessageId;
-
-                    const repliedToMessage =
-                        msg.repliedToId || msg.repliedTold
-                            ? messages.find((m) => m.id === msg.repliedToId || m.id === msg.repliedTold)
-                            : null;
-
-                    if (msg.type === MessageType.SYSTEM) {
-                        return (
-                            <View
-                                key={msg.id}
-                                className="flex-row justify-center mb-4"
-                                onLayout={onLayout}
-                            >
-                                <View className={`bg-gray-100 rounded-lg px-4 py-2 max-w-[80%] items-center ${
-                                    isHighlighted ? "bg-yellow-100 border border-yellow-300" : ""
-                                }`}>
-                                    <Text className="text-gray-500 text-xs mb-1">
-                                        System Message
-                                    </Text>
-                                    <Text className="text-gray-800 text-center">
-                                        {msg.content}
-                                    </Text>
-                                </View>
-                            </View>
-                        );
-                    }
-
-                    // Regular message rendering
-                    return (
-                        <View
-                            key={msg.id}
-                            className={`flex-row items-end mb-4 ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}
-                            onLayout={onLayout}
-                        >
-                            <View
-                                className={`relative max-w-[70%] mt-2 flex flex-row ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
-                                {msg.senderId !== user?.id && (
-                                    <Image
-                                        source={{
-                                            uri: messageUsers[msg.senderId]?.avatarURL ||
-                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                                    messageUsers[msg.senderId]?.name || "User"
-                                                )}&background=0068FF&color=fff`
-                                        }}
-                                        className="w-8 h-8 rounded-full mr-2 mt-3"
-                                        resizeMode="cover"
-                                    />
-                                )}
-
-                                <View
-                                    className={`flex-col mt-2 ${msg.senderId === user?.id ? "items-end" : "items-start"}`}>
-                                    {/* Replied message reference */}
-                                    {(msg.repliedToId || msg.repliedTold) && (
-                                        <View
-                                            className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500 mb-1">
-                                            <Text className="text-xs text-gray-500">
-                                                Trả
-                                                lời {messageUsers[repliedToMessage?.senderId ?? ""]?.name || "Người dùng"}
-                                            </Text>
-                                            <Text className="text-sm text-gray-700" numberOfLines={1}>
-                                                {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
-                                            </Text>
-                                        </View>
-                                    )}
-
-                                    {/* Message content */}
-                                    <View className="flex-row items-center relative">
-                                        {msg.type === MessageType.VOTE ? (
-                                            <TouchableOpacity
-                                                onLongPress={() => handleLongPressMessage(msg)}
-                                                onPress={() => {
-                                                    setSelectedMessage(msg);
-                                                    setShowMessageOptions(true);
-                                                }}
-                                                delayLongPress={200}
-                                                activeOpacity={0.7}
-                                            >
-                                                <View className={`rounded-2xl p-2 ${
-                                                    msg.senderId === user?.id
-                                                        ? isHighlighted ? "bg-blue-400" : "bg-blue-500"
-                                                        : isHighlighted ? "bg-yellow-50 border border-yellow-300" : "bg-gray-100"
-                                                }`}>
-                                                    {msg.senderId !== user?.id && (
-                                                        <Text className="text-gray-500 text-xs mb-1">
-                                                            {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
-                                                        </Text>
-                                                    )}
-
-                                                    <TouchableWithoutFeedback
-                                                        onPress={(e) => {
-                                                            e.stopPropagation();
-                                                        }}
-                                                    >
-                                                        <View
-                                                            className="self-center w-full min-w-[300px] pointer-events-auto">
-                                                            <VoteMessageContent
-                                                                messageId={msg.id}
-                                                                voteData={msg.content}
-                                                                userId={user?.id}
-                                                                conversationId={selectedChat.id}
-                                                            />
-                                                        </View>
-                                                    </TouchableWithoutFeedback>
-                                                </View>
-                                            </TouchableOpacity>
-                                        ) : (
-                                            <TouchableOpacity
-                                                onLongPress={() => handleLongPressMessage(msg)}
-                                                onPress={() => {
-                                                    setSelectedMessage(msg);
-                                                    setShowMessageOptions(true);
-                                                }}
-                                                delayLongPress={200}
-                                                activeOpacity={0.7}
-                                            >
-                                                <View className={`rounded-2xl p-2 ${
-                                                    msg.senderId === user?.id
-                                                        ? isHighlighted ? "bg-blue-400" : "bg-blue-500"
-                                                        : isHighlighted ? "bg-yellow-50 border border-yellow-300" : "bg-gray-100"
-                                                }`}>
-                                                    {msg.senderId !== user?.id && (
-                                                        <Text className="text-gray-500 text-xs mb-1">
-                                                            {messageUsers[msg.senderId]?.name || "Người dùng không xác định"}
-                                                        </Text>
-                                                    )}
-
-                                                    {msg.type === MessageType.TEXT ? (
-                                                        <Text
-                                                            className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-                                                            {msg.content}
-                                                        </Text>
-                                                    ) : msg.type === MessageType.FILE ? (
-                                                        <View className="flex-row items-center">
-                                                            <FileMessageContent
-                                                                messageId={msg.id}
-                                                                fileName={msg.content}
-                                                                isSender={msg.senderId === user?.id}
-                                                                getAttachment={getAttachmentByMessageId}
-                                                                onImagePress={setFullScreenImage}
-                                                            />
-                                                        </View>
-                                                    ) : (
-                                                        msg.type === MessageType.CALL && (
-                                                            <Text
-                                                                className={msg.senderId === user?.id ? "text-white" : "text-gray-900"}>
-                                                                {msg.content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
-                                                            </Text>
-                                                        )
-                                                    )}
-                                                    <MessageReaction
-                                                        messageId={msg.id}
-                                                        isVisible={activeReactionId === msg.id}
-                                                        onReact={handleReaction}
-                                                        onToggle={() => handleReactionToggle(msg.id)}
-                                                        isSender={msg.senderId === user?.id}
-                                                    />
-                                                </View>
-                                            </TouchableOpacity>
-                                        )}
-                                    </View>
-
-                                    {/* Timestamp below message */}
-                                    {isHighlighted && (
-                                        <Text className="text-xs text-gray-500 mt-1">
-                                            {new Date(msg.sentAt).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </Text>
-                                    )}
-                                </View>
-
-                                {msg.senderId === user?.id && (
-                                    <Image
-                                        source={{
-                                            uri: messageUsers[msg.senderId]?.avatarURL ||
-                                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                                    messageUsers[msg.senderId]?.name || "User"
-                                                )}&background=0068FF&color=fff`
-                                        }}
-                                        className="w-8 h-8 rounded-full ml-2 mt-3"
-                                        resizeMode="cover"
-                                    />
-                                )}
-                            </View>
-                        </View>
-                    );
-                })}
-            </ScrollView>
+            <MessageList
+                scrollViewRef={scrollViewRef}
+                messages={messages}
+                messageUsers={messageUsers}
+                currentUserId={user?.id}
+                selectedChat={selectedChat}
+                messageRefs={messageRefs}
+                highlightedMessageId={highlightedMessageId}
+                activeReactionId={activeReactionId}
+                handleLongPressMessage={handleLongPressMessage}
+                handleReactionToggle={handleReactionToggle}
+                handleReaction={handleReaction}
+                getAttachmentByMessageId={getAttachmentByMessageId}
+                setFullScreenImage={setFullScreenImage}
+                pinnedMessages={pinnedMessages}
+            />
 
             {/* Message Options Modal */}
             {showMessageOptions && selectedMessage && (
