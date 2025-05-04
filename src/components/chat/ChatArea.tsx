@@ -39,11 +39,12 @@ export interface ChatAreaProps {
     onInfoPress?: () => void;
 }
 
-export default function ChatArea({
-                                     selectedChat,
-                                     onBackPress,
-                                     onInfoPress,
-                                 }: ChatAreaProps) {
+export default function ChatArea(
+    {
+        selectedChat,
+        onBackPress,
+        onInfoPress,
+    }: ChatAreaProps) {
     const {user} = useUser();
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
@@ -159,13 +160,15 @@ export default function ChatArea({
     } = useFileUpload(selectedChat?.id, user?.id, fetchMessages);
 
     const handleSelectImageWithClose = () => {
-        handleSelectFile().then(() => {});
-        toggleModelChecked();
+        handleSelectFile().then(() => {
+        });
+        toggleModalChecked();
     };
 
     const handleSelectFileWithClose = () => {
-        handleSelectFile().then(() => {});
-        toggleModelChecked();
+        handleSelectFile().then(() => {
+        });
+        toggleModalChecked();
     };
 
     //// End Refactoring: File Upload
@@ -343,7 +346,7 @@ export default function ChatArea({
     };
 
     // Toggle models
-    const toggleModelChecked = () => {
+    const toggleModalChecked = () => {
         if (isModalChecked) {
             Animated.timing(scaleAnimation, {
                 toValue: 0,
@@ -1062,7 +1065,7 @@ export default function ChatArea({
             {/* Input Area */}
             <View className="border-t border-gray-200 p-4">
                 <View className="flex-row items-center position-relative">
-                    <TouchableOpacity className="p-2" onPress={toggleModelChecked}>
+                    <TouchableOpacity className="p-2" onPress={toggleModalChecked}>
                         <Ionicons name="add-circle-outline" size={24} color="#666"/>
                     </TouchableOpacity>
 
@@ -1236,7 +1239,7 @@ export default function ChatArea({
 
             <FileSelectionModal
                 visible={isModalChecked}
-                onClose={toggleModelChecked}
+                onClose={toggleModalChecked}
                 onSelectImage={handleSelectImageWithClose}
                 onSelectFile={handleSelectFileWithClose}
                 scaleAnimation={scaleAnimation}
