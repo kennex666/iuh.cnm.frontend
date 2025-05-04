@@ -1,24 +1,59 @@
 import React from 'react';
 import {Text, View} from 'react-native';
-import {Message} from "@/src/models/Message";
+import {Message, MessageType} from "@/src/models/Message";
 
 interface ReplyPreviewProps {
-    repliedToMessage: Message;
+    repliedMessage: Message;
+    isSender: boolean;
     userName: string;
 }
 
-const ReplyPreview: React.FC<ReplyPreviewProps> = (
-    {
-        repliedToMessage,
-        userName
-    }) => {
+const ReplyPreview: React.FC<ReplyPreviewProps> = ({
+    repliedMessage,
+    isSender,
+    userName
+}) => {
+    const getPreviewContent = () => {
+        switch (repliedMessage.type) {
+            case MessageType.TEXT:
+                return repliedMessage.content;
+            case MessageType.FILE:
+                return "Đã gửi một tệp tin";
+            case MessageType.VOTE:
+                return "Đã tạo một cuộc bình chọn";
+            case MessageType.CALL:
+                return "Cuộc gọi";
+            default:
+                return "Tin nhắn";
+        }
+    };
+
     return (
-        <View className="bg-gray-100 rounded-lg px-3 py-2 border-l-2 border-blue-500 mb-1">
-            <Text className="text-xs text-gray-500">
-                Trả lời {userName}
+        <View 
+            className={`border-l-2 pl-2 ${
+                isSender 
+                    ? "border-white/70 bg-black/20" 
+                    : "border-[#0084ff]"
+            }`}
+        >
+            <Text 
+                className={`text-xs font-medium ${
+                    isSender 
+                        ? "text-white" 
+                        : "text-[#0084ff]"
+                }`}
+            >
+                {userName}
             </Text>
-            <Text className="text-sm text-gray-700" numberOfLines={1}>
-                {repliedToMessage?.content || "Tin nhắn đã bị xoá"}
+            <Text 
+                className={`text-xs ${
+                    isSender 
+                        ? "text-white/90" 
+                        : "text-gray-600"
+                }`}
+                numberOfLines={1}
+            >
+                {getPreviewContent()}
             </Text>
         </View>
     );
