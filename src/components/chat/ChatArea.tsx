@@ -25,6 +25,7 @@ import PinnedMessagesPanel from "@/src/components/chat/message/PinnedMessagesPan
 import MessageOptionsModal from "@/src/components/chat/modal/MessageOptionsModal";
 import DeleteConfirmationModal from "@/src/components/chat/modal/DeleteConfirmationModal";
 import ReplyPreviewBar from "@/src/components/chat/message/ReplyPreviewBar";
+import ChatInputArea from "@/src/components/chat/input/ChatInputArea";
 
 export interface ChatAreaProps {
     selectedChat: Conversation | null;
@@ -607,7 +608,6 @@ export default function ChatArea(
                 />
             )}
 
-            {/* Forward Message Modal */}
             {showForwardModal && replyingTo && (
                 <ForwardMessageModal
                     message={replyingTo}
@@ -616,103 +616,14 @@ export default function ChatArea(
                 />
             )}
 
-            {/* Input Area */}
-            <View className="border-t border-gray-200 p-4">
-                <View className="flex-row items-center position-relative">
-                    <TouchableOpacity className="p-2" onPress={toggleModalChecked}>
-                        <Ionicons name="add-circle-outline" size={24} color="#666"/>
-                    </TouchableOpacity>
-
-                    <View className="relative">
-                        <TouchableOpacity className="p-2" onPress={toggleModelSticker}>
-                            <Ionicons name="gift-outline" size={24} color="#666"/>
-                        </TouchableOpacity>
-                        {isModelSticker && (
-                            <View
-                                className="absolute bottom-full bg-white z-50 left-0 rounded-lg overflow-hidden border border-gray-200"
-                                style={Shadows.xl}
-                            >
-                                <StickerPicker
-                                    setMessage={setNewMessage}
-                                    toggleModelSticker={toggleModelSticker}
-                                />
-                            </View>
-                        )}
-                    </View>
-
-                    <View className="relative">
-                        <TouchableOpacity className="p-2" onPress={toggleVoteModal}>
-                            <Ionicons name="bar-chart-outline" size={24} color="#666"/>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View className="flex-1 bg-gray-100 rounded-full mx-2 px-4 py-2">
-                        <TextInput
-                            className="min-h-[26px] text-base text-gray-800"
-                            placeholder="Nhập tin nhắn..."
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                            multiline
-                            numberOfLines={1}
-                            placeholderTextColor="#666"
-                            style={{
-                                borderWidth: 0,
-                                outline: "none",
-                                height: Math.min(inputHeight, 26 * 3),
-                            }}
-                            onContentSizeChange={(event) => {
-                                const {height} = event.nativeEvent.contentSize;
-                                setInputHeight(height > 26 ? height : 26);
-                            }}
-                            onBlur={() => {
-                                if (inputHeight < 28) {
-                                    setInputHeight(28);
-                                }
-                            }}
-                            onFocus={() => {
-                                setInputHeight(28);
-                            }}
-                        />
-                    </View>
-
-                    <View className="relative">
-                        <TouchableOpacity className="p-2" onPress={toggleModelEmoji}>
-                            <Ionicons name="happy-outline" size={24} color="#666"/>
-                        </TouchableOpacity>
-                        {isModelEmoji && (
-                            <View
-                                className="absolute bottom-full bg-white z-50 right-0 w-[300px] rounded-lg overflow-hidden border border-gray-200"
-                                style={Shadows.xl}
-                            >
-                                <EmojiPicker
-                                    setMessage={setNewMessage}
-                                    toggleModelEmoji={toggleModelEmoji}
-                                />
-                            </View>
-                        )}
-                    </View>
-
-                    <TouchableOpacity
-                        className={`p-3 rounded-full ${
-                            newMessage.trim() ? "bg-blue-500" : "bg-gray-200"
-                        }`}
-                        onPress={handleSendMessage}
-                        disabled={!newMessage.trim()}
-                        style={[
-                            newMessage.trim() && Shadows.md,
-                            {
-                                transform: [{scale: newMessage.trim() ? 1 : 0.95}],
-                            },
-                        ]}
-                    >
-                        <Ionicons
-                            name="send"
-                            size={20}
-                            color={newMessage.trim() ? "#FFF" : "#999"}
-                        />
-                    </TouchableOpacity>
-                </View>
-            </View>
+            <ChatInputArea
+              message={newMessage}
+              onChangeMessage={setNewMessage}
+              onSendMessage={handleSendMessage}
+              onSelectFile={handleSelectFileWithClose}
+              onToggleVoteModal={toggleVoteModal}
+              openFileSelection={toggleModalChecked}
+            />
 
             {fullScreenImage && (
                 <FullScreenImageViewer
@@ -749,5 +660,4 @@ export default function ChatArea(
             />
         </View>
     );
-
 }
