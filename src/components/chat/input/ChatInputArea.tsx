@@ -2,8 +2,8 @@
 import React, {useState} from 'react';
 import {TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
-import EmojiPicker from "../EmojiPicker";
-import StickerPicker from "../StickerPicker";
+import EmojiPicker from "./EmojiPicker";
+import StickerPicker from "./StickerPicker";
 import {Shadows} from "@/src/styles/Shadow";
 
 interface ChatInputAreaProps {
