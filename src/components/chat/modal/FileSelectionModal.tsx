@@ -24,7 +24,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = (
     return (
         <TouchableWithoutFeedback onPress={onClose}>
             <View className="absolute inset-0 z-40">
-                <View className="absolute bottom-20 left-2 bg-white z-50">
+                <View className="absolute bottom-20 left-2 bg-white z-50 mb-2">
                     <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                         <Animated.View
                             style={{
@@ -43,11 +43,9 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = (
                             }}
                         >
                             <View
-                                className="bg-white rounded-lg p-4 w-[300px]"
+                                className="bg-white rounded-lg p-4 w-[200px]"
                                 style={Shadows.md}
                             >
-                                <Text className="text-gray-800 mb-2">Chọn loại tệp</Text>
-
                                 <TouchableOpacity
                                     className="flex-row items-center mb-2"
                                     onPress={onSelectImage}
@@ -57,7 +55,7 @@ const FileSelectionModal: React.FC<FileSelectionModalProps> = (
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    className="flex-row items-center mb-2"
+                                    className="flex-row items-center"
                                     onPress={onSelectFile}
                                 >
                                     <Ionicons
