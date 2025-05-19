@@ -1,7 +1,10 @@
+import { useUser } from '@/src/contexts/user/UserContext';
+import { Conversation } from '@/src/models/Conversation';
 import React from 'react';
 import {Image, Text, View} from 'react-native';
 
 interface ProfileInfoProps {
+    loadConversation: Conversation;
     avatar?: string;
     name?: string;
     isGroup: boolean;
@@ -10,14 +13,24 @@ interface ProfileInfoProps {
 }
 
 export default function ProfileInfo({
-                                        avatar,
-                                        name,
+                                        loadConversation,
                                         isGroup,
                                         memberCount,
                                         isOnline
                                     }: ProfileInfoProps) {
     // listen to socket events to update online status
+    const {user} = useUser();
 
+    const name = loadConversation?.isGroup 
+        ? loadConversation?.name 
+        : loadConversation?.participantInfo && loadConversation.participantInfo.length > 0 
+        ? loadConversation.participantInfo.find(p => p.id !== user?.id)?.name || "Người dùng"
+            : "Người dùng";
+    const avatar = loadConversation?.isGroup 
+        ? loadConversation?.avatarUrl 
+        : loadConversation?.participantInfo && loadConversation.participantInfo.length > 0 
+        ? loadConversation.participantInfo.find(p => p.id !== user?.id)?.avatar
+        : null;
     return (
         <View className="items-center pt-8 pb-6 border-b-4 border-gray-200">
             <View className="mb-4 relative">
@@ -34,7 +47,7 @@ export default function ProfileInfo({
                 )}
             </View>
             <Text className="text-[17px] font-semibold text-blue-950">
-                {name || 'Chưa có tên'}
+                {name }
             </Text>
             <Text className="text-sm text-blue-500 mt-1">
                 {isGroup

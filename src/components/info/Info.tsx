@@ -62,11 +62,10 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     const {user} = useUser(); // Get the current user
 
     useEffect(() => {
-            if (selectedChat) {
-                setLoadConversation(selectedChat);
-            }
+        if (selectedChat) {
+            setLoadConversation(selectedChat);
         }
-        , [selectedChat?.id]);
+    },[selectedChat?.id]);
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
@@ -141,6 +140,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
             </View>
             <ScrollView className="flex-1">
                 <ProfileInfo
+                    loadConversation={loadConversation}
                     avatar={loadConversation?.avatarUrl}
                     name={loadConversation?.name}
                     isGroup={loadConversation?.isGroup ?? false}
