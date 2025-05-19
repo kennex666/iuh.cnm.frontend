@@ -7,7 +7,7 @@ import FileMessage from './FileMessage';
 import VoteMessage from './VoteMessage';
 import CallMessage from './CallMessage';
 import ReplyPreview from './ReplyPreview';
-import MessageReaction from "../MessageReaction";
+import MessageReaction from "./MessageReaction";
 
 interface MessageItemProps {
     message: Message;
@@ -93,7 +93,7 @@ const MessageItem: React.FC<MessageItemProps> = (
                 >
                     <View className={`relative px-3 py-2 ${
                         isSender
-                            ? isHighlighted ? "bg-blue-400" : "bg-[#0084ff]"
+                            ? isHighlighted ? "bg-blue-100" : "bg-gray-100"
                             : isHighlighted ? "bg-gray-50" : "bg-gray-100"
                     } ${
                         isSender 

@@ -32,14 +32,14 @@ const ReplyPreview: React.FC<ReplyPreviewProps> = ({
         <View 
             className={`border-l-2 pl-2 ${
                 isSender 
-                    ? "border-white/70 bg-black/20" 
+                    ? "border-[#0084ff]" 
                     : "border-[#0084ff]"
             }`}
         >
             <Text 
                 className={`text-xs font-medium ${
                     isSender 
-                        ? "text-white" 
+                        ? "text-[#0084ff]" 
                         : "text-[#0084ff]"
                 }`}
             >
@@ -48,7 +48,7 @@ const ReplyPreview: React.FC<ReplyPreviewProps> = ({
             <Text 
                 className={`text-xs ${
                     isSender 
-                        ? "text-white/90" 
+                        ? "text-gray-600" 
                         : "text-gray-600"
                 }`}
                 numberOfLines={1}

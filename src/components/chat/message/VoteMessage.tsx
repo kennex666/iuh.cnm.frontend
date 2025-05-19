@@ -1,6 +1,6 @@
 import React from 'react';
 import {TouchableWithoutFeedback, View} from 'react-native';
-import VoteMessageContent from '../VoteMessageContent';
+import VoteMessageContent from './VoteMessageContent';
 
 interface VoteMessageProps {
     messageId: string;
