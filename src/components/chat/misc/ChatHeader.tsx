@@ -4,6 +4,7 @@ import {Image, Text, TouchableOpacity, View} from "react-native";
 import {MessageService} from "@/src/api/services/MessageService";
 import {Conversation} from "@/src/models/Conversation";
 import SocketService from "@/src/api/services/SocketService";
+import { useUser } from "@/src/contexts/user/UserContext";
 
 interface ChatHeaderProps {
     selectedChat: Conversation;
@@ -32,8 +33,18 @@ export default function ChatHeader({
             };
         }, [selectedChat]);
 
-        const name = groups?.isGroup ? groups?.name : groups?.participantInfo[0].name;
-        const avatar = groups?.isGroup ? groups?.avatarUrl : groups?.participantInfo[0].avatar;
+        const {user} = useUser();
+
+        const name = groups?.isGroup 
+            ? groups?.name 
+            : groups?.participantInfo && groups.participantInfo.length > 0 
+                ? groups.participantInfo.find(p => p.id !== user?.id)?.name || "Người dùng"
+                : "Người dùng";
+        const avatar = groups?.isGroup 
+            ? groups?.avatarUrl 
+            : groups?.participantInfo && groups.participantInfo.length > 0 
+                ? groups.participantInfo.find(p => p.id !== user?.id)?.avatar
+                : null;
 
         return (
             <View className="h-14 px-3 border-b border-gray-200 flex-row items-center justify-between">
