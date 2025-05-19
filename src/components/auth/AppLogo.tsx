@@ -6,14 +6,17 @@ import {Shadows} from '@/src/styles/Shadow';
 interface AppLogoProps {
     size?: number;
     logoSource?: ImageSourcePropType;
+    className?: string;
 }
 
-const AppLogo = ({
-                     size = 80,
-                     logoSource = ImageConstants.logo,
-                 }: AppLogoProps) => {
+const AppLogo = (
+    {
+        size = 80,
+        logoSource = ImageConstants.logo,
+        className = ''
+    }: AppLogoProps) => {
     return (
-        <View className="items-center mb-6">
+        <View className={`items-center mb-6 ${className}`}>
             <View
                 className="bg-white rounded-2xl p-2"
                 style={Shadows.sm}>
@@ -21,6 +24,8 @@ const AppLogo = ({
                     source={logoSource}
                     style={{width: size, height: size}}
                     resizeMode="contain"
+                    accessible={true}
+                    accessibilityLabel="Application logo"
                 />
             </View>
         </View>

@@ -1,7 +1,6 @@
-import axios from "axios";
-import { ApiEndpoints } from "@/src/constants/ApiConstant";
-import { AuthStorage } from "@/src/storage/AuthStorage";
-import { Conversation } from "@/src/models/Conversation";
+import {ApiEndpoints} from "@/src/constants/ApiConstant";
+import {Conversation} from "@/src/models/Conversation";
+import {BaseService} from "@/src/api/services/BaseService";
 
 interface ConversationService {
     getConversations: () => Promise<{
@@ -66,814 +65,403 @@ interface ConversationService {
 }
 
 export const ConversationService: ConversationService = {
-    async getConversations(): Promise<{
-        success: boolean;
-        conversations: Conversation[];
-        message: string;
-    }> {
+    async getConversations() {
         try {
-            const token = await AuthStorage.getAccessToken();
-            console.log("Token:", token ? "Found" : "Not found");
-            
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any[]>('get', ApiEndpoints.API_CONVERSATION);
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     conversations: [],
-                    message: "No token found",
+                    message: response.message
                 };
             }
 
-            const url = ApiEndpoints.API_CONVERSATION;
-            
-            const response = await axios.get(url, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const conversations = response.data.map(mapApiConversationToModel);
 
-            if (response.data.success) {
-                if (!response.data.data) {
-                    console.warn("No conversations data found in response");
-                    return {
-                        success: false,
-                        conversations: [],
-                        message: "No conversations data found",
-                    };
-                }
-                
-                const conversations = response.data.data.map((apiConv: any) => ({
-                    id: apiConv.id,
-                    isGroup: apiConv.isGroup || false,
-                    name: apiConv.name || '',
-                    avatarUrl: apiConv.avatarUrl || '',
-                    avatarGroup: apiConv.avatarGroup || '',
-                    type: apiConv.type || '1vs1',
-                    participantIds: apiConv.participantIds || [],
-                    participantInfo: apiConv.participantInfo || [],
-                    url: apiConv.url || '',
-                    pinMessages: apiConv.pinMessages || [],
-                    settings: apiConv.settings || {
-                        isReviewNewParticipant: false,
-                        isAllowReadNewMessage: true,
-                        isAllowMessaging: true,
-                        pendingList: [],
-                    },
-                    lastMessage: apiConv.lastMessage || null,
-                    createdAt: apiConv.createdAt || new Date(),
-                    updatedAt: apiConv.updatedAt || new Date(),
-                }));
-                
-                return { 
-                    success: true, 
-                    conversations, 
-                    message: response.data.message || "Successfully fetched conversations" 
-                };
-            }
-            return { 
-                success: false, 
-                conversations: [], 
-                message: response.data.message || "Failed to fetch conversations"
+            return {
+                success: true,
+                conversations,
+                message: response.message
             };
         } catch (error: any) {
-            console.error("Get conversations error:", error);
-            console.error("Error response:", error.response?.data);
-            console.error("Error status:", error.response?.status);
-            console.error("Error headers:", error.response?.headers);
+            console.error("Error fetching conversations:", error);
             return {
                 success: false,
                 conversations: [],
-                message: error.response?.data?.message || error.message || "Failed to get conversations",
+                message: error.message || "Failed to fetch conversations"
             };
         }
     },
 
-    async getConversationById(id: string): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async getConversationById(id: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any>('get', `${ApiEndpoints.API_CONVERSATION}/${id}`);
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     conversation: {} as Conversation,
-                    message: "No token found",
+                    message: response.message
                 };
             }
 
-                const response = await axios.get(`${ApiEndpoints.API_CONVERSATION}/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            console.log("Response data1212121   :", response.data);
-            if (response.data.success) {
-                const apiConv = response.data.data._doc;
-                const conversation: Conversation = {
-                    id: apiConv.id,
-                    isGroup: apiConv.isGroup,
-                    name: apiConv.name,
-                    avatarUrl: apiConv.avatar || '',
-                    type: apiConv.isGroup ? 'group' : '1vs1',
-                    participantIds: apiConv.participantIds || [],
-                    participantInfo: apiConv.participantInfo || [],
-                    url: apiConv.url || '',
-                    pinMessages: apiConv.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
-                        pendingList: apiConv.settings?.pendingList || []
-                    },
-                    lastMessage: apiConv.lastMessage || null,
-                    createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt
-                };
+            const apiConv = response.data._doc || response.data;
+            const conversation = mapApiConversationToModel(apiConv);
 
-                return { 
-                    success: true, 
-                    conversation, 
-                    message: response.data.message || "Successfully fetched conversation" 
-                };
-            }
-            return { 
-                success: false, 
-                conversation: {} as Conversation, 
-                message: response.data.message || "Failed to fetch conversation" 
+            return {
+                success: true,
+                conversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Get conversation error:", error);
+        } catch (error: any) {
+            console.error(`Error fetching conversation ${id}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to get conversation",
+                message: error.message || "Failed to fetch conversation"
             };
         }
     },
 
-    async createConversation(conversation: Conversation): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async createConversation(conversation: Conversation) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any>(
+                'post',
+                ApiEndpoints.API_CONVERSATION,
+                conversation
+            );
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     conversation: {} as Conversation,
-                    message: "No token found",
+                    message: response.message
                 };
             }
 
-            const response = await axios.post(`${ApiEndpoints.API_CONVERSATION}`, conversation, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const newConversation = mapApiConversationToModel(response.data);
 
-            console.log("ada", response);
-            if (response.data.success) {
-                const apiConv = response.data.data;
-                const newConversation: Conversation = {
-                    id: apiConv.id,
-                    isGroup: apiConv.isGroup,
-                    name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl || '',
-                    avatarGroup: apiConv.avatarGroup || '',
-                    type: apiConv.isGroup ? 'group' : '1vs1',
-                    participantIds: apiConv.participantIds || [],
-                    participantInfo: apiConv.participantInfo || [],
-                    url: apiConv.url || '',
-                    pinMessages: apiConv.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
-                        pendingList: apiConv.settings?.pendingList || []
-                    },
-                    lastMessage: apiConv.lastMessage || null,
-                    createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt
-                };
-
-                return { 
-                    success: true, 
-                    conversation: newConversation, 
-                    message: response.data.message || "Successfully created conversation" 
-                };
-            }
-            return { 
-                success: false, 
-                conversation: {} as Conversation, 
-                message: response.data.message || "Failed to create conversation" 
+            return {
+                success: true,
+                conversation: newConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Create conversation error:", error);
+        } catch (error: any) {
+            console.error("Error creating conversation:", error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to create conversation",
+                message: error.message || "Failed to create conversation"
             };
         }
     },
 
-    async updateConversation(id: string, conversation: Conversation): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async updateConversation(id: string, conversation: Conversation) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
+                `${ApiEndpoints.API_CONVERSATION}/${id}`,
+                conversation
+            );
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     conversation: {} as Conversation,
-                    message: "No token found",
+                    message: response.message
                 };
             }
 
-            const response = await axios.put(`${ApiEndpoints.API_CONVERSATION}/${id}`, conversation, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const updatedConversation = mapApiConversationToModel(response.data);
 
-            if (response.data.success) {
-                const apiConv = response.data.data;
-                const updatedConversation: Conversation = {
-                    id: apiConv.id,
-                    isGroup: apiConv.isGroup,
-                    name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl || '',
-                    avatarGroup: apiConv.avatarGroup || '',
-                    type: apiConv.isGroup ? 'group' : '1vs1',
-                    participantIds: apiConv.participantIds || [],
-                    participantInfo: apiConv.participantInfo || [],
-                    url: apiConv.url || '',
-                    pinMessages: apiConv.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
-                        pendingList: apiConv.settings?.pendingList || []
-                    },
-                    lastMessage: apiConv.lastMessage || null,
-                    createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt
-                };
-
-                return { 
-                    success: true, 
-                    conversation: updatedConversation, 
-                    message: response.data.message || "Successfully updated conversation" 
-                };
-            }
-            return { 
-                success: false, 
-                conversation: {} as Conversation, 
-                message: response.data.message || "Failed to update conversation" 
+            return {
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Update conversation error:", error);
+        } catch (error: any) {
+            console.error(`Error updating conversation ${id}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to update conversation",
+                message: error.message || "Failed to update conversation"
             };
         }
     },
 
-    async deleteConversation(id: string): Promise<{
-        success: boolean;
-        message: string;
-    }> {
+    async deleteConversation(id: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No token found",
-                };
-            }
+            const response = await BaseService.authenticatedRequest<void>(
+                'delete',
+                `${ApiEndpoints.API_CONVERSATION}/${id}`
+            );
 
-            const response = await axios.delete(`${ApiEndpoints.API_CONVERSATION}/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.data.success) {
-                return { 
-                    success: true, 
-                    message: response.data.message || "Successfully deleted conversation" 
-                };
-            }
-            return { 
-                success: false, 
-                message: response.data.message || "Failed to delete conversation" 
+            return {
+                success: response.success,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Delete conversation error:", error);
+        } catch (error: any) {
+            console.error(`Error deleting conversation ${id}:`, error);
             return {
                 success: false,
-                message: "Failed to delete conversation",
+                message: error.message || "Failed to delete conversation"
             };
         }
     },
 
-    // Add more methods as needed
-    async addParticipants(conversationId: string, participantIds: string[]): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async addParticipants(conversationId: string, participantIds: string[]) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: "No token found",
-                };
-            }
-    
-            console.log("Adding participants:", participantIds);
-            console.log("Conversation ID:", conversationId);
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_CONVERSATION}/add-participants/${conversationId}`,
-                { participantIds },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {participantIds}
             );
-    
-            if (response.data.success) {
-                const updatedConversation: Conversation = {
-                    id: response.data.data.id,
-                    isGroup: response.data.data.isGroup,
-                    name: response.data.data.name,
-                    avatarUrl: response.data.data.avatarUrl || '',
-                    avatarGroup: response.data.data.avatarGroup || '',
-                    type: response.data.data.isGroup ? 'group' : '1vs1',
-                    participantIds: response.data.data.participantIds || [],
-                    participantInfo: response.data.data.participantInfo || [],
-                    url: response.data.data.url || '',
-                    pinMessages: response.data.data.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
-                        pendingList: response.data.data.settings?.pendingList || [],
-                    },
-                    lastMessage: response.data.data.lastMessage || null,
-                    createdAt: response.data.data.createdAt,
-                    updatedAt: response.data.data.updatedAt,
-                };
-    
+
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    conversation: updatedConversation,
-                    message: response.data.message || "Successfully added participants",
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
                 };
             }
-    
+
+            const updatedConversation = mapApiConversationToModel(response.data);
+
             return {
-                success: false,
-                conversation: {} as Conversation,
-                message: response.data.message || "Failed to add participants",
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Add participants error:", error);
+        } catch (error: any) {
+            console.error(`Error adding participants to conversation ${conversationId}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to add participants",
+                message: error.message || "Failed to add participants"
             };
         }
     },
 
-    async removeParticipants(conversationId: string, participantIds: string[]): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async removeParticipants(conversationId: string, participantIds: string[]) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: "No token found",
-                };
-            }
-
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_CONVERSATION}/remove-participants/${conversationId}`,
-                { participantIds },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {participantIds}
             );
 
-            if (response.data.success) {
-                const updatedConversation: Conversation = {
-                    id: response.data.data.id,
-                    isGroup: response.data.data.isGroup,
-                    name: response.data.data.name,
-                    avatarUrl: response.data.data.avatarUrl || '',
-                    avatarGroup: response.data.data.avatarGroup || '',
-                    type: response.data.data.isGroup ? 'group' : '1vs1',
-                    participantIds: response.data.data.participantIds || [],
-                    participantInfo: response.data.data.participantInfo || [],
-                    url: response.data.data.url || '',
-                    pinMessages: response.data.data.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
-                        pendingList: response.data.data.settings?.pendingList || [],
-                    },
-                    lastMessage: response.data.data.lastMessage || null,
-                    createdAt: response.data.data.createdAt,
-                    updatedAt: response.data.data.updatedAt,
-                };
-
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    conversation: updatedConversation,
-                    message: response.data.message || "Successfully removed participants",
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
                 };
             }
 
+            const updatedConversation = mapApiConversationToModel(response.data);
+
             return {
-                success: false,
-                conversation: {} as Conversation,
-                message: response.data.message || "Failed to remove participants",
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Remove participants error:", error);
+        } catch (error: any) {
+            console.error(`Error removing participants from conversation ${conversationId}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to remove participants",
+                message: error.message || "Failed to remove participants"
             };
         }
     },
 
-    async transferAdmin(conversationId: string, newAdminId: string): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async transferAdmin(conversationId: string, newAdminId: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: "No token found",
-                };
-            }
-
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_CONVERSATION}/transfer-admin/${conversationId}`,
-                { toUserId: newAdminId },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {toUserId: newAdminId}
             );
 
-            if (response.data.success) {
-                const updatedConversation: Conversation = {
-                    id: response.data.data.id,
-                    isGroup: response.data.data.isGroup,
-                    name: response.data.data.name,
-                    avatarUrl: response.data.data.avatarUrl || '',
-                    avatarGroup: response.data.data.avatarGroup || '',
-                    type: response.data.data.isGroup ? 'group' : '1vs1',
-                    participantIds: response.data.data.participantIds || [],
-                    participantInfo: response.data.data.participantInfo || [],
-                    url: response.data.data.url || '',
-                    pinMessages: response.data.data.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
-                        pendingList: response.data.data.settings?.pendingList || [],
-                    },
-                    lastMessage: response.data.data.lastMessage || null,
-                    createdAt: response.data.data.createdAt,
-                    updatedAt: response.data.data.updatedAt,
-                };
-
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    conversation: updatedConversation,
-                    message: response.data.message || "Successfully transferred admin role",
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
                 };
             }
 
+            const updatedConversation = mapApiConversationToModel(response.data);
+
             return {
-                success: false,
-                conversation: {} as Conversation,
-                message: response.data.message || "Failed to transfer admin role",
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Transfer admin error:", error);
+        } catch (error: any) {
+            console.error(`Error transferring admin role in conversation ${conversationId}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to transfer admin role",
+                message: error.message || "Failed to transfer admin role"
             };
         }
     },
 
-    async grantModRole(conversationId: string, userId: string): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async grantModRole(conversationId: string, userId: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: "No token found",
-                };
-            }
-
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_CONVERSATION}/grant-mod-role/${conversationId}`,
-                { toUserId: userId },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {toUserId: userId}
             );
 
-            if (response.data.success) {
-                const updatedConversation: Conversation = {
-                    id: response.data.data.id,
-                    isGroup: response.data.data.isGroup,
-                    name: response.data.data.name,
-                    avatarUrl: response.data.data.avatarUrl || '',
-                    avatarGroup: response.data.data.avatarGroup || '',
-                    type: response.data.data.isGroup ? 'group' : '1vs1',
-                    participantIds: response.data.data.participantIds || [],
-                    participantInfo: response.data.data.participantInfo || [],
-                    url: response.data.data.url || '',
-                    pinMessages: response.data.data.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
-                        pendingList: response.data.data.settings?.pendingList || [],
-                    },
-                    lastMessage: response.data.data.lastMessage || null,
-                    createdAt: response.data.data.createdAt,
-                    updatedAt: response.data.data.updatedAt,
-                };
-
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    conversation: updatedConversation,
-                    message: response.data.message || "Successfully granted mod role",
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
                 };
             }
 
+            const updatedConversation = mapApiConversationToModel(response.data);
+
             return {
-                success: false,
-                conversation: {} as Conversation,
-                message: response.data.message || "Failed to grant mod role",
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Grant mod role error:", error);
+        } catch (error: any) {
+            console.error(`Error granting mod role in conversation ${conversationId}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to grant mod role",
+                message: error.message || "Failed to grant mod role"
             };
         }
     },
 
-    async updateAllowMessaging(conversationId: string): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async updateAllowMessaging(conversationId: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: "No token found",
-                };
-            }
-
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_CONVERSATION}/update-allow-messaging/${conversationId}`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {}
             );
 
-            if (response.data.success) {
-                const updatedConversation: Conversation = {
-                    id: response.data.data.id,
-                    isGroup: response.data.data.isGroup,
-                    name: response.data.data.name,
-                    avatarUrl: response.data.data.avatarUrl || '',
-                    avatarGroup: response.data.data.avatarGroup || '',
-                    type: response.data.data.isGroup ? 'group' : '1vs1',
-                    participantIds: response.data.data.participantIds || [],
-                    participantInfo: response.data.data.participantInfo || [],
-                    url: response.data.data.url || '',
-                    pinMessages: response.data.data.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
-                        pendingList: response.data.data.settings?.pendingList || [],
-                    },
-                    lastMessage: response.data.data.lastMessage || null,
-                    createdAt: response.data.data.createdAt,
-                    updatedAt: response.data.data.updatedAt,
-                };
-
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    conversation: updatedConversation,
-                    message: response.data.message || "Successfully updated allow messaging",
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
                 };
             }
 
+            const updatedConversation = mapApiConversationToModel(response.data);
+
             return {
-                success: false,
-                conversation: {} as Conversation,
-                message: response.data.message || "Failed to update allow messaging",
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Update allow messaging error:", error);
+        } catch (error: any) {
+            console.error(`Error updating messaging permission in conversation ${conversationId}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to update allow messaging",
+                message: error.message || "Failed to update messaging permission"
             };
         }
     },
 
-    async pinMessage(conversationId: string, messageId: string): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async pinMessage(conversationId: string, messageId: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: "No token found",
-                };
-            }
-
-            const response = await axios.put(
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
                 `${ApiEndpoints.API_CONVERSATION}/pin-message/${conversationId}`,
-                { messageId },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
+                {messageId}
             );
 
-            if (response.data.success) {
-                const updatedConversation: Conversation = {
-                    id: response.data.data.id,
-                    isGroup: response.data.data.isGroup,
-                    name: response.data.data.name,
-                    avatarUrl: response.data.data.avatarUrl || '',
-                    avatarGroup: response.data.data.avatarGroup || '',
-                    type: response.data.data.isGroup ? 'group' : '1vs1',
-                    participantIds: response.data.data.participantIds || [],
-                    participantInfo: response.data.data.participantInfo || [],
-                    url: response.data.data.url || '',
-                    pinMessages: response.data.data.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: response.data.data.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: response.data.data.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: response.data.data.settings?.isAllowMessaging || true,
-                        pendingList: response.data.data.settings?.pendingList || [],
-                    },
-                    lastMessage: response.data.data.lastMessage || null,
-                    createdAt: response.data.data.createdAt,
-                    updatedAt: response.data.data.updatedAt,
-                };
-
+            if (!response.success || !response.data) {
                 return {
-                    success: true,
-                    conversation: updatedConversation,
-                    message: response.data.message || "Successfully pinned message",
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
                 };
             }
 
+            const updatedConversation = mapApiConversationToModel(response.data);
+
             return {
-                success: false,
-                conversation: {} as Conversation,
-                message: response.data.message || "Failed to pin message",
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Pin message error:", error);
+        } catch (error: any) {
+            console.error(`Error pinning message in conversation ${conversationId}:`, error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to pin message",
+                message: error.message || "Failed to pin message"
             };
         }
     },
 
-    async joinGroupByUrl(url: string): Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }> {
+    async joinGroupByUrl(url: string) {
         try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
+                `${ApiEndpoints.API_CONVERSATION}/join-group-by-url`,
+                {url}
+            );
+
+            if (!response.success || !response.data) {
                 return {
                     success: false,
                     conversation: {} as Conversation,
-                    message: "No token found",
+                    message: response.message
                 };
             }
 
-            const response = await axios.put(
-                `${ApiEndpoints.API_CONVERSATION}/join-group-by-url`,
-                { url },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const conversation = mapApiConversationToModel(response.data);
 
-            if (response.data.success) {
-                const apiConv = response.data.data;
-                const newConversation: Conversation = {
-                    id: apiConv.id,
-                    isGroup: apiConv.isGroup,
-                    name: apiConv.name,
-                    avatarUrl: apiConv.avatarUrl || '',
-                    avatarGroup: apiConv.avatarGroup || '',
-                    type: apiConv.isGroup ? 'group' : '1vs1',
-                    participantIds: apiConv.participantIds || [],
-                    participantInfo: apiConv.participantInfo || [],
-                    url: apiConv.url || '',
-                    pinMessages: apiConv.pinMessages || [],
-                    settings: {
-                        isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
-                        isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
-                        isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
-                        pendingList: apiConv.settings?.pendingList || [],
-                    },
-                    lastMessage: apiConv.lastMessage || null,
-                    createdAt: apiConv.createdAt,
-                    updatedAt: apiConv.updatedAt
-                };
-
-                return { 
-                    success: true, 
-                    conversation: newConversation, 
-                    message: response.data.message || "Successfully joined group" 
-                };
-            }
-
-            return { 
-                success: false, 
-                conversation: {} as Conversation, 
-                message: response.data.message || "Failed to join group" 
+            return {
+                success: true,
+                conversation,
+                message: response.message
             };
-        } catch (error) {
-            console.error("Join group by URL error:", error);
+        } catch (error: any) {
+            console.error("Error joining group by URL:", error);
             return {
                 success: false,
                 conversation: {} as Conversation,
-                message: "Failed to join group",
+                message: error.message || "Failed to join group"
             };
         }
     }
 };
+
+function mapApiConversationToModel(apiConv: any): Conversation {
+    return {
+        id: apiConv.id,
+        isGroup: apiConv.isGroup || false,
+        name: apiConv.name || '',
+        avatarUrl: apiConv.avatarUrl || apiConv.avatar || '',
+        avatarGroup: apiConv.avatarGroup || '',
+        type: apiConv.isGroup ? 'group' : '1vs1',
+        participantIds: apiConv.participantIds || [],
+        participantInfo: apiConv.participantInfo || [],
+        url: apiConv.url || '',
+        pinMessages: apiConv.pinMessages || [],
+        settings: {
+            isReviewNewParticipant: apiConv.settings?.isReviewNewParticipant || false,
+            isAllowReadNewMessage: apiConv.settings?.isAllowReadNewMessage || true,
+            isAllowMessaging: apiConv.settings?.isAllowMessaging || true,
+            pendingList: apiConv.settings?.pendingList || []
+        },
+        lastMessage: apiConv.lastMessage || null,
+        createdAt: apiConv.createdAt || new Date(),
+        updatedAt: apiConv.updatedAt || new Date()
+    };
+}

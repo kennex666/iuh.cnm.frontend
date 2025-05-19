@@ -1,4 +1,4 @@
-import { Message } from '@/src/models/Message';
+import {Message} from '@/src/models/Message';
 
 export interface ParticipantInfo {
     id: string;

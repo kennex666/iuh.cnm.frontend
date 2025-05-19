@@ -1,31 +1,32 @@
 import {ImageSourcePropType} from "react-native";
 import axios from "axios";
+import {ImageConstants} from "@/src/constants/ImageConstant";
 
-type URI = string | null | undefined;
+type ImageURL = string | null | undefined;
 
-const validateImageURL = async (uri: URI, fallbackImage: any): Promise<ImageSourcePropType> => {
+const validateImageURL = async (url: ImageURL, fallbackImage: any): Promise<ImageSourcePropType> => {
     try {
-        if (!uri || !uri.startsWith("http")) return fallbackImage;
+        if (!url || !url.startsWith("http")) return fallbackImage;
 
-        const response = await axios.head(uri);
-        if (response.status === 200) return {uri};
+        const response = await axios.head(url);
+        if (response.status === 200) return {uri: url};
         else return fallbackImage;
     } catch (error) {
-        if (__DEV__) console.warn("Failed to validate image URL:", uri);
+        if (__DEV__) console.warn("Failed to validate image URL:", url, error);
         return fallbackImage;
     }
 };
 
-const validateAvatar = async (uri: string | null | undefined): Promise<ImageSourcePropType> => {
-    return validateImageURL(uri, require("@/resources/assets/profile/avatar.png"));
+const validateAvatar = async (url: string | null | undefined): Promise<ImageSourcePropType> => {
+    return validateImageURL(url, ImageConstants.profile.avatar);
 };
 
-const validateCover = async (uri: string | null | undefined): Promise<ImageSourcePropType> => {
-    return validateImageURL(uri, require("@/resources/assets/profile/cover.png"));
+const validateCover = async (url: string | null | undefined): Promise<ImageSourcePropType> => {
+    return validateImageURL(url, ImageConstants.profile.cover);
 };
 
-const validateGroupAvatar = async (uri: string | null | undefined): Promise<ImageSourcePropType> => {
-    return validateImageURL(uri, require("@/resources/assets/profile/cover.png"));
+const validateGroupAvatar = async (url: string | null | undefined): Promise<ImageSourcePropType> => {
+    return validateImageURL(url, ImageConstants.profile.group);
 };
 
 export {validateAvatar, validateCover, validateGroupAvatar};

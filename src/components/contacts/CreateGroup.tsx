@@ -1,25 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-    View,
+    Alert,
+    Dimensions,
+    Image,
+    Modal,
+    Platform,
+    ScrollView,
     Text,
     TextInput,
-    Image,
     TouchableOpacity,
-    ScrollView,
-    Modal,
-    Dimensions,
-    Alert,
-    Platform,
+    View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { FriendRequestService } from '@/src/api/services/FriendRequestService';
-import { UserService } from '@/src/api/services/UserService';
-import { User } from '@/src/models/User';
-import FriendRequest from '@/src/models/FriendRequest';
-import { ConversationService } from '@/src/api/services/ConversationService';
+import {Ionicons} from '@expo/vector-icons';
+import {FriendRequestService} from '@/src/api/services/FriendRequestService';
+import {UserService} from '@/src/api/services/UserService';
+import {User} from '@/src/models/User';
+import {FriendRequest} from '@/src/models/FriendRequest';
+import {ConversationService} from '@/src/api/services/ConversationService';
 import {Conversation} from '@/src/models/Conversation';
 import Toast from '../ui/Toast';
-import { UserProvider, useUser } from '@/src/contexts/user/UserContext';
+import {useUser} from '@/src/contexts/user/UserContext';
 import * as ImagePicker from 'expo-image-picker';
 import SocketService from '@/src/api/services/SocketService';
 
@@ -28,8 +28,8 @@ interface CreateGroupProps {
     onClose: () => void;
 }
 
-export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
-    const windowWidth = Dimensions.get('window').width; 
+export default function CreateGroup({visible, onClose}: CreateGroupProps) {
+    const windowWidth = Dimensions.get('window').width;
     const [groupName, setGroupName] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [contacts, setContacts] = useState([] as User[]);
@@ -37,14 +37,14 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
     const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
     const [groupAvatar, setGroupAvatar] = useState('');
     const [toast, setToast] = useState({
-            visible: false,
-            message: '',
-            type: 'success' as 'success' | 'error'
+        visible: false,
+        message: '',
+        type: 'success' as 'success' | 'error'
     }); // Assuming you have a way to get the current user's ID
-    const { user } = useUser(); // Assuming you have a way to get the current user's ID
+    const {user} = useUser(); // Assuming you have a way to get the current user's ID
 
     const toggleContact = (contactId: string) => {
-        setSelectedContacts(prev => 
+        setSelectedContacts(prev =>
             prev.includes(contactId)
                 ? prev.filter(id => id !== contactId)
                 : [...prev, contactId]
@@ -106,7 +106,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                             },
                         },
                     ],
-                    { cancelable: true }
+                    {cancelable: true}
                 );
             }
         } catch (error) {
@@ -122,7 +122,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 // Simulate fetching contacts
                 const response = await FriendRequestService.getAllAcceptedFriendRequests("");
                 console.log('Fetched friend requests 12122:', response);
-                setFriendRequests(response.friendRequests || []); 
+                setFriendRequests(response.friendRequests || []);
             } catch (error) {
                 setFriendRequests([]);
                 console.error('Error fetching friend requests:', error);
@@ -143,7 +143,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                         ids.push(request.receiverId);
                     }
                 }
-    
+
                 const uniqueIds = Array.from(new Set(ids)); // Loại bỏ trùng lặp
                 const contactsList = [] as User[];
                 for (const id of uniqueIds) {
@@ -159,7 +159,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 console.error('Error fetching contacts:', error);
             }
         };
-    
+
         if (Array.isArray(friendRequests) && friendRequests.length > 0) {
             fetchContacts();
         }
@@ -175,7 +175,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
             return;
         }
         try {
-            if( selectedContacts.length < 2) {
+            if (selectedContacts.length < 2) {
                 setToast({
                     visible: true,
                     message: 'Chọn ít nhất 2 thành viên',
@@ -194,12 +194,12 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 participantInfo: [user?.id ?? '', ...selectedContacts]
                     .filter(id => id !== '')
                     .map(id => ({
-                    id,
-                    name: contacts.find(contact => contact.id === id)?.name || '',
-                    avatar: contacts.find(contact => contact.id === id)?.avatarURL || '',
-                    nickname: '',
-                    role: id === user?.id ? 'admin' : 'member',
-                })),
+                        id,
+                        name: contacts.find(contact => contact.id === id)?.name || '',
+                        avatar: contacts.find(contact => contact.id === id)?.avatarURL || '',
+                        nickname: '',
+                        role: id === user?.id ? 'admin' : 'member',
+                    })),
                 url: `${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`,
                 pinMessages: [],
                 settings: {
@@ -224,14 +224,17 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                 });
                 return;
             }
-            socketService.actionParticipantsAdded({conversationId: response.conversation.id, participantIds: response.conversation.participantIds});
+            socketService.actionParticipantsAdded({
+                conversationId: response.conversation.id,
+                participantIds: response.conversation.participantIds
+            });
             if (response.success) {
                 console.log('Group created successfully:', response.conversation);
                 onClose(); // Close the modal after creating the group
             } else {
                 console.error('Error creating group:', response.message);
             }
-            onClose(); 
+            onClose();
         } catch (error) {
             console.error('Error creating group:', error);
         }
@@ -244,14 +247,15 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
             transparent={true}
         >
             <View className={`flex-1 bg-black/30 items-center justify-center ${windowWidth > 768 ? '' : 'mt-12'}`}>
-                <View className="w-full md:w-1/3 md:max-w-[90%] md:rounded-2xl md:max-h-[90%] h-full md:h-auto bg-white overflow-hidden">
+                <View
+                    className="w-full md:w-1/3 md:max-w-[90%] md:rounded-2xl md:max-h-[90%] h-full md:h-auto bg-white overflow-hidden">
                     {/* Header */}
                     <View className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200">
                         <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color="#666" />
+                            <Ionicons name="close" size={24} color="#666"/>
                         </TouchableOpacity>
                         <Text className="text-lg font-semibold">Tạo nhóm</Text>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             className={`px-4 py-2 rounded-full ${selectedContacts.length > 0 ? 'bg-blue-500' : 'bg-gray-300'}`}
                             disabled={selectedContacts.length === 0}
                             onPress={handleCreateGroup}
@@ -268,12 +272,12 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                                 <View className="w-14 h-14 rounded-full bg-gray-100 items-center justify-center">
                                     {groupAvatar ? (
                                         <Image
-                                            source={{ uri: groupAvatar }}
+                                            source={{uri: groupAvatar}}
                                             resizeMode="cover"
                                             className="w-14 h-14 rounded-full"
                                         />
                                     ) : (
-                                        <Ionicons name="camera" size={24} color="#666" />
+                                        <Ionicons name="camera" size={24} color="#666"/>
                                     )}
                                 </View>
                             </TouchableOpacity>
@@ -293,7 +297,7 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                     {/* Search Bar */}
                     <View className="px-4 py-2 border-b border-gray-200">
                         <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-2">
-                            <Ionicons name="search" size={20} color="#666" />
+                            <Ionicons name="search" size={20} color="#666"/>
                             <TextInput
                                 className="flex-1 ml-2 text-base"
                                 placeholder="Nhập tên, số điện thoại, hoặc danh sách số điện thoại"
@@ -308,19 +312,20 @@ export default function CreateGroup({ visible, onClose }: CreateGroupProps) {
                     <ScrollView className="flex-1">
                         {contacts.map((contact, index) => (
                             <TouchableOpacity
-                                key={`${contact.id}-${index}`} 
+                                key={`${contact.id}-${index}`}
                                 className="flex-row items-center px-4 py-3 border-b border-gray-100"
                                 onPress={() => toggleContact(contact.id)}
                             >
                                 <Image
-                                    source={{ uri: contact.avatarURL || 'https://placehold.co/400' }}
+                                    source={{uri: contact.avatarURL || 'https://placehold.co/400'}}
                                     resizeMode="cover"
                                     className="w-12 h-12 rounded-full"
                                 />
                                 <Text className="flex-1 ml-3 text-base">{contact.name}</Text>
-                                <View className={`w-6 h-6 rounded-full border-2 items-center justify-center ${selectedContacts.includes(contact.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-200'}`}>
+                                <View
+                                    className={`w-6 h-6 rounded-full border-2 items-center justify-center ${selectedContacts.includes(contact.id) ? 'bg-blue-500 border-blue-500' : 'border-gray-200'}`}>
                                     {selectedContacts.includes(contact.id) && (
-                                        <Ionicons name="checkmark" size={16} color="white" />
+                                        <Ionicons name="checkmark" size={16} color="white"/>
                                     )}
                                 </View>
                             </TouchableOpacity>

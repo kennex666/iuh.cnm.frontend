@@ -2,10 +2,10 @@ import React, {useEffect, useState} from 'react';
 import {useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/conversations/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
-import Info from '@/src/components/chat/Info';
+import Info from '@/src/components/info/Info';
 import {Conversation} from '@/src/models/Conversation';
 import { useNavigation } from 'expo-router';
-import { useTabBar } from '@/src/contexts/TabBarContext';
+import { useTabBar } from '@/src/contexts/tabbar/TabBarContext';
 
 export default function MessagesScreen() {
     // slectedChat state to manage the currently selected chat
@@ -76,7 +76,6 @@ export default function MessagesScreen() {
 
             {selectedChat && !showInfo && (
                 <View className='flex-1'>
-                    <View className='h-12'></View>
                     <ChatArea
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}

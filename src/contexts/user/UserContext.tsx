@@ -2,9 +2,9 @@ import React, {createContext, ReactNode, useContext, useEffect, useState} from '
 import {User} from '@/src/models/User';
 import {Profile} from '@/src/models/Profile';
 import {useRouter} from 'expo-router';
-import {ApiResponse} from "@/src/contexts/user/ApiResponse";
-import UserManager from "@/src/contexts/user/UserManager";
-import AuthManager from "@/src/contexts/user/AuthManager";
+import {ApiResponse} from "@/src/contexts/user/manager/ApiResponse";
+import UserManager from "@/src/contexts/user/manager/UserManager";
+import AuthManager from "@/src/contexts/user/manager/AuthManager";
 
 interface LoginCredentials {
     phone: string;
@@ -39,7 +39,6 @@ const UserContext = createContext<UserContextType>({
     update: async () => ({success: false}),
     refreshUserData: async () => false,
 });
-
 
 export const useUser = () => useContext(UserContext);
 

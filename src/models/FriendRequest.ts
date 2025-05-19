@@ -1,11 +1,8 @@
-interface FriendRequest {
+export interface FriendRequest {
     id: string;
     senderId: string;
     receiverId: string;
     status: 'pending' | 'accepted' | 'declined';
-    createAt: Date;
-    updateAt: Date;
+    createAt: Date | string;
+    updateAt: Date | string;
 }
-
-export default FriendRequest;
-

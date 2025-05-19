@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View, TouchableOpacity } from 'react-native';
-import { Conversation } from '@/src/models/Conversation';
+import React, {useEffect, useState} from 'react';
+import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {Conversation} from '@/src/models/Conversation';
 import Search from './Search';
-import HeaderInfo from '../info/HeaderInfo';
-import ProfileInfo from '../info/ProfileInfo';
-import ActionsInfo from '../info/ActionsInfo';
-import MediaInfo from '../info/MediaInfo';
-import FilesInfo from '../info/FilesInfo';
-import { Ionicons } from '@expo/vector-icons';
-import GroupInfo from '../info/GroupInfo';
-import { ConversationService } from '@/src/api/services/ConversationService';
-import Conversations from '../conversations/Conversations';
-import QRScanner from '../ui/QRScanner';
-import { useUser } from '@/src/contexts/user/UserContext';
+import HeaderInfo from './HeaderInfo';
+import ProfileInfo from './ProfileInfo';
+import ActionsInfo from './ActionsInfo';
+import MediaInfo from './MediaInfo';
+import FilesInfo from './FilesInfo';
+import {Ionicons} from '@expo/vector-icons';
+import GroupInfo from './GroupInfo';
+import {ConversationService} from '@/src/api/services/ConversationService';
+import {useUser} from '@/src/contexts/user/UserContext';
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -56,19 +54,19 @@ const MOCK_FILES = [
 export interface InfoProps {
     selectedChat: Conversation | null;
     onBackPress?: () => void;
-}   
+}
 
-export default function Info({ selectedChat, onBackPress }: InfoProps) {
+export default function Info({selectedChat, onBackPress}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [loadConversation, setLoadConversation] = useState<Conversation | null>(selectedChat);
-    const { user } = useUser(); // Get the current user
+    const {user} = useUser(); // Get the current user
 
     useEffect(() => {
-        if (selectedChat) {
-            setLoadConversation(selectedChat);
+            if (selectedChat) {
+                setLoadConversation(selectedChat);
+            }
         }
-    }
-    , [selectedChat?.id]);
+        , [selectedChat?.id]);
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
@@ -76,23 +74,23 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
 
     const isAdmin = React.useMemo(() => {
         if (!loadConversation || !user) return false;
-        
+
         const currentParticipant = loadConversation.participantInfo?.find(
             participant => participant.id === user.id
         );
-        
+
         return currentParticipant?.role === 'admin';
     }, [loadConversation, user]);
 
     const handleDisbandGroup = async () => {
         console.log('Disband group:', selectedChat?.id);
         try {
-            if(!selectedChat?.id) {
+            if (!selectedChat?.id) {
                 console.error('Conversation ID is undefined');
                 return;
             }
             const response = await ConversationService.deleteConversation(selectedChat?.id);
-            if(response.success) {
+            if (response.success) {
                 console.log('Group disbanded successfully');
             } else {
                 console.error('Error disbanding group:', response.message);
@@ -123,7 +121,7 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
         return (
             <View className="flex-1 items-center justify-center bg-blue-50/50 rounded-2xl m-4">
                 <View className="bg-white p-6 rounded-2xl shadow-sm items-center">
-                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
+                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6"/>
                     <Text className="text-blue-900 mt-4 text-center">
                         Chọn một cuộc trò chuyện để xem thông tin chi tiết
                     </Text>
@@ -137,7 +135,7 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
             <View className="z-10">
                 <HeaderInfo
                     selectedChat={selectedChat}
-                    isGroup={selectedChat.isGroup} 
+                    isGroup={selectedChat.isGroup}
                     onBackPress={onBackPress}
                 />
             </View>
@@ -167,11 +165,11 @@ export default function Info({ selectedChat, onBackPress }: InfoProps) {
                 />
                 {selectedChat.isGroup && isAdmin && (
                     <View className="mb-2 pt-2 border-t border-gray-200">
-                        <TouchableOpacity 
-                            className="flex-row items-center px-4 py-2 rounded-xl" 
+                        <TouchableOpacity
+                            className="flex-row items-center px-4 py-2 rounded-xl"
                             onPress={handleDisbandGroup}
                         >
-                            <Ionicons name="trash-outline" size={18} color="red" className="mr-2" />
+                            <Ionicons name="trash-outline" size={18} color="red" className="mr-2"/>
                             <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>
                         </TouchableOpacity>
                     </View>

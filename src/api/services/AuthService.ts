@@ -1,7 +1,7 @@
 import {ApiEndpoints} from '@/src/constants/ApiConstant';
-import axios from 'axios';
 import {User} from '@/src/models/User';
-import {AuthStorage} from '@/src/storage/AuthStorage';
+import {BaseService} from './BaseService';
+import axios from 'axios';
 
 export interface LoginResponse {
     data: {
@@ -40,17 +40,14 @@ export const AuthService = {
         try {
             console.log("Calling login API with:", {phone, password});
 
-            const response = otp
-                ? await axios.post<LoginResponse>(
-                    `${ApiEndpoints.API_AUTH}/login-2fa`,
-                    {phone, password, otp}
-                )
-                : await axios.post<LoginResponse>(
-                    `${ApiEndpoints.API_AUTH}/login`,
-                    {phone, password}
-                );
+            const endpoint = otp
+                ? `${ApiEndpoints.API_AUTH}/login-2fa`
+                : `${ApiEndpoints.API_AUTH}/login`;
 
-            console.log("API response status:", response.status);
+            const response = await axios.post<LoginResponse>(
+                endpoint,
+                otp ? {phone, password, otp} : {phone, password}
+            );
 
             if (response.data.success) {
                 const {accessToken, refreshToken, user} = response.data.data;
@@ -95,7 +92,11 @@ export const AuthService = {
             };
         }
     },
-    async forgotPassword({phone = "", otp = "", password = ""}: any): Promise<{ success: boolean; message?: string; }> {
+
+    async forgotPassword({phone = "", otp = "", password = ""}: any): Promise<{
+        success: boolean;
+        message?: string;
+    }> {
         try {
             const response = await axios.post(
                 `${ApiEndpoints.API_AUTH}/forgot-password`,
@@ -112,6 +113,7 @@ export const AuthService = {
             };
         }
     },
+
     async register({name, phone, gender, password, dob}: any): Promise<{
         success: boolean;
         message?: string;
@@ -162,6 +164,7 @@ export const AuthService = {
             };
         }
     },
+
     async resendOtp({phone}: any): Promise<{
         success: boolean;
         message?: string;
@@ -191,176 +194,79 @@ export const AuthService = {
         data?: any[];
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<any[]>(
+            'get',
+            `${ApiEndpoints.API_AUTH}/devices`
+        );
 
-            const response = await axios.get(
-                `${ApiEndpoints.API_AUTH}/devices`,
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    data: response.data.data
-                }
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Get devices error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
+        return {
+            success: response.success,
+            data: response.data,
+            message: response.message
+        };
     },
 
     async logoutAll(): Promise<{
         success: boolean;
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<void>(
+            'get',
+            `${ApiEndpoints.API_AUTH}/logout-all`
+        );
 
-            const response = await axios.get(
-                `${ApiEndpoints.API_AUTH}/logout-all`,
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {success: true};
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Logout all error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
+        return {
+            success: response.success,
+            message: response.message
+        };
     },
 
     async logoutDevice({deviceId}: any): Promise<{
         success: boolean;
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<void>(
+            'post',
+            `${ApiEndpoints.API_AUTH}/logout-device`,
+            {deviceId}
+        );
 
-            const response = await axios.post(
-                `${ApiEndpoints.API_AUTH}/logout-device`,
-                {deviceId},
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {success: true};
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Logout device error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
+        return {
+            success: response.success,
+            message: response.message
+        };
     },
 
     async enable2FA({secret, otp}: any): Promise<{
         success: boolean;
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<void>(
+            'post',
+            `${ApiEndpoints.API_AUTH}/2fa/enable`,
+            {secret, otp}
+        );
 
-            const response = await axios.post(
-                `${ApiEndpoints.API_AUTH}/2fa/enable`,
-                {secret, otp},
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {success: true};
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Enable 2FA error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
+        return {
+            success: response.success,
+            message: response.message
+        };
     },
 
     async disable2FA({otp}: any): Promise<{
         success: boolean;
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<void>(
+            'post',
+            `${ApiEndpoints.API_AUTH}/2fa/disable`,
+            {otp}
+        );
 
-            const response = await axios.post(
-                `${ApiEndpoints.API_AUTH}/2fa/disable`,
-                {otp},
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {success: true};
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Disable 2FA error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
+        return {
+            success: response.success,
+            message: response.message
+        };
     },
 
     async get2FAStatus(): Promise<{
@@ -368,72 +274,31 @@ export const AuthService = {
         data?: { isEnabled: boolean; };
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<{ isEnabled: boolean }>(
+            'get',
+            `${ApiEndpoints.API_AUTH}/2fa/status`
+        );
 
-            const response = await axios.get(
-                `${ApiEndpoints.API_AUTH}/2fa/status`,
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {
-                    success: true,
-                    data: response.data.data
-                };
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Get 2FA status error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
+        return {
+            success: response.success,
+            data: response.data,
+            message: response.message
+        };
     },
 
     async changePassword({oldPassword, newPassword}: any): Promise<{
         success: boolean;
         message?: string;
     }> {
-        try {
-            const token = await AuthStorage.getAccessToken();
-            if (!token) {
-                return {
-                    success: false,
-                    message: "No access token found"
-                };
-            }
+        const response = await BaseService.authenticatedRequest<void>(
+            'post',
+            `${ApiEndpoints.API_AUTH}/change-password`,
+            {oldPassword, newPassword}
+        );
 
-            const response = await axios.post(
-                `${ApiEndpoints.API_AUTH}/change-password`,
-                {oldPassword, newPassword},
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-
-            if (response.data.success) {
-                return {success: true};
-            }
-            return {
-                success: false,
-                message: response.data.errorMessage
-            };
-        } catch (error: any) {
-            console.error("Change password error:", error);
-            return {
-                success: false,
-                message: error.message || "Network error occurred",
-            };
-        }
-    },
-
+        return {
+            success: response.success,
+            message: response.message
+        };
+    }
 };
