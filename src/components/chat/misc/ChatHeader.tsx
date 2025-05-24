@@ -23,7 +23,6 @@ export default function ChatHeader({
         const [groups, setGroups] = useState<Conversation | null>(selectedChat);
         useEffect(() => {
             const handleAddParticipant = (updatedConversation: Conversation) => {
-                console.log("Add participant event received:", updatedConversation);
                 setGroups(updatedConversation);
             };
             const socketService = SocketService.getInstance();

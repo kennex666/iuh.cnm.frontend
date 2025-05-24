@@ -134,7 +134,9 @@ import {io, Socket} from 'socket.io-client';
         public onParticipantsAddedServer(callback: (updatedConversation: Conversation) => void): void {
             if (this.socket) {
                 console.log('Listening for participants added event from server');
-                this.socket.on('conversation:participants_added', callback);
+                this.socket.on('conversation:participants_added', (data: any) => {
+                    callback(data.updatedConversation); 
+                });
             }
         }
 
