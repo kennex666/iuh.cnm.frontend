@@ -64,6 +64,12 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
             const response = await ConversationService.transferAdmin(conversation.id, memberId);
             if (response.success) {
                 console.log('Admin role transferred successfully');
+                setMembers(prevMembers => prevMembers.map(member => 
+                    member.id === memberId ? {...member, role: 'admin'} : member
+                ));
+                setMembers(prevMembers => prevMembers.map(member =>
+                    member.id === user?.id ? {...member, role: 'member'} : member
+                ));
             } else {
                 console.error('Failed to transfer admin role:', response.message);
             }
@@ -77,6 +83,9 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
             const response = await ConversationService.grantModRole(conversation.id, memberId);
             if (response.success) {
                 console.log('Mod role granted successfully');
+                setMembers(prevMembers => prevMembers.map(member => 
+                    member.id === memberId ? {...member, role: 'mod'} : member
+                ));
             } else {
                 console.error('Failed to grant mod role:', response.message);
             }
@@ -90,6 +99,9 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
             const response = await ConversationService.removeParticipants(conversation.id, [memberId]);
             if (response.success) {
                 console.log('Admin role removed successfully');
+                setMembers(prevMembers => prevMembers.map(member => 
+                    member.id === memberId ? {...member, role: 'member'} : member
+                ));
             } else {
                 console.error('Failed to remove admin role:', response.message);
             }
