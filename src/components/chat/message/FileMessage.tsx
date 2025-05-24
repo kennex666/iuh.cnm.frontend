@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import FileMessageContent from '../FileMessageContent';
+import FileMessageContent from './FileMessageContent';
 
 interface FileMessageProps {
     messageId: string;
