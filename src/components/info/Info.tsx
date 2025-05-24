@@ -150,7 +150,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                 />
                 {selectedChat.isGroup && conversation && conversation.participantIds && (
                     <GroupInfo
-                        group={conversation}
+                        conversation={conversation}
                     />
                 )}
                 <MediaInfo
