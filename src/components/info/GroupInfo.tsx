@@ -183,9 +183,6 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
 
     const ShowDetail = () => {
         const [openMenuForMember, setOpenMenuForMember] = useState<string | null>(null);
-
-
-
         return (
             <View className="flex-1">
                 {/* Admins Section */}
@@ -221,7 +218,7 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
                                                 <Text className="text-sm text-gray-500 ml-1"> (Bạn)</Text>
                                             )
                                         }
-                                    </View>}
+                                </View>}
                             </View>
                         </View>
                         <View className="relative flex-1 items-end">

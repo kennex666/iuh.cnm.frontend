@@ -192,7 +192,7 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
                 type: 'group',
                 participantIds: [user?.id ?? '', ...selectedContacts].filter(id => id !== ''),
                 participantInfo: [user?.id ?? '', ...selectedContacts]
-                    .filter(id => id !== '')
+                    .filter(id => id !== '' && id !== user?.id)
                     .map(id => ({
                         id,
                         name: contacts.find(contact => contact.id === id)?.name || '',
@@ -229,7 +229,6 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
                 participantIds: response.conversation.participantIds
             });
             if (response.success) {
-                console.log('Group created successfully:', response.conversation);
                 onClose(); // Close the modal after creating the group
             } else {
                 console.error('Error creating group:', response.message);
