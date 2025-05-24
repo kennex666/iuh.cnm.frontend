@@ -174,6 +174,14 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
             });
             return;
         }
+        if (groupName.length < 3) {
+            setToast({
+                visible: true,
+                message: 'Tên nhóm phải có ít nhất 3 ký tự',
+                type: 'error'
+            });
+            return;
+        }
         try {
             if (selectedContacts.length < 2) {
                 setToast({

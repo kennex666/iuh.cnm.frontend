@@ -118,7 +118,7 @@ export default function ContactList() {
                                     }}
                                     className="w-12 h-12 rounded-full"
                                 />
-                                <View className="flex-1 ml-3">
+                                <View className="ml-3">
                                     <Text className="text-base font-medium text-gray-800">
                                         {friend.name}
                                     </Text>
@@ -140,11 +140,11 @@ export default function ContactList() {
                                     color="#0068FF"
                                     style={{}}
                                     onPress={() => {
-                                        // TODO: Điều hướng sang màn hình chat với friend
+                                        // TODO: Navigate to chat screen with this friend
                                         router.push({
                                             pathname: '/(main)',
                                             params: {
-                                                conversationId: "305322850577810432", // Thay bằng ID cuộc trò chuyện thực tế với friend
+                                                conversationId: "305322850577810432", // Replace with the actual conversation ID for this friend
                                             }
                                         });
                                     }}
