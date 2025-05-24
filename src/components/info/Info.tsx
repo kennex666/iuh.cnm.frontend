@@ -11,6 +11,7 @@ import {Ionicons} from '@expo/vector-icons';
 import GroupInfo from './GroupInfo';
 import {ConversationService} from '@/src/api/services/ConversationService';
 import {useUser} from '@/src/contexts/user/UserContext';
+import { MessageService } from '@/src/api/services/MessageService';
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -60,11 +61,26 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [loadConversation, setLoadConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
+    const [messages, setMessages] = useState<any[]>([]);
+
+    const fetchMessages = async (conversationId: string) => {
+        try {
+            const response = await MessageService.getMessages(conversationId);
+            if (response.success){
+                setMessages(response.statusMessage);
+            }
+        }
+        catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    }
+    
 
     useEffect(() => {
         if (selectedChat) {
             setLoadConversation(selectedChat);
         }
+        fetchMessages(selectedChat?.id || '');
     },[selectedChat?.id]);
 
     const handleSearchPress = () => {
