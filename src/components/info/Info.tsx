@@ -12,6 +12,7 @@ import GroupInfo from './GroupInfo';
 import {ConversationService} from '@/src/api/services/ConversationService';
 import {useUser} from '@/src/contexts/user/UserContext';
 import { MessageService } from '@/src/api/services/MessageService';
+const { Alert } = require('react-native');
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -163,7 +164,30 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                     <View className="mb-2 pt-2 border-t border-gray-200">
                         <TouchableOpacity
                             className="flex-row items-center px-4 py-2 rounded-xl"
-                            onPress={handleDisbandGroup}
+                            onPress={async () => {
+                                let confirmed = false;
+                                if (typeof window !== 'undefined' && window.confirm) {
+                                    // Web: dùng window.confirm
+                                    confirmed = window.confirm('Bạn có chắc chắn muốn giải tán nhóm này không?');
+                                } else {
+                                    // Mobile: dùng Alert
+                                    // @ts-ignore
+                                    await new Promise<void>((resolve) => {
+                                        Alert.alert(
+                                            'Xác nhận',
+                                            'Bạn có chắc chắn muốn giải tán nhóm này không?',
+                                            [
+                                                { text: 'Không', style: 'cancel', onPress: () => { confirmed = false; resolve(); } },
+                                                { text: 'Có', style: 'destructive', onPress: () => { confirmed = true; resolve(); } },
+                                            ],
+                                            { cancelable: true }
+                                        );
+                                    });
+                                }
+                                if (confirmed) {
+                                    await handleDisbandGroup();
+                                }
+                            }}
                         >
                             <Ionicons name="trash-outline" size={18} color="red" className="mr-2"/>
                             <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>
