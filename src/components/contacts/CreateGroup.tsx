@@ -226,7 +226,7 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
             }
             socketService.actionParticipantsAdded({
                 conversationId: response.conversation.id,
-                participantIds: response.conversation.participantIds
+                participantIds: response.conversation.participantIds.filter(id => id !== user?.id)
             });
             if (response.success) {
                 onClose(); // Close the modal after creating the group
