@@ -11,13 +11,14 @@ import {useTabBar} from "@/src/contexts/tabbar/TabBarContext";
 type Route = {
     name: string;
     title: string;
-    icon: "comments" | "address-book" | "gear" | "user";
+    icon: "comments" | "address-book" | "gear" | "user" | "th-large"   ;
 };
 
 const routes: Route[] = [
-    {name: "index", title: "Tin nhắn", icon: "comments"},
-    {name: "contacts", title: "Danh bạ", icon: "address-book"},
-    {name: "settings", title: "Cài đặt", icon: "gear"},
+    {name: "index", title: "Tin nhắn", icon: "comments"},        
+    {name: "contacts", title: "Danh bạ", icon: "address-book"},  
+    {name: "miniapps", title: "Ứng dụng", icon: "th-large"},     
+    {name: "settings", title: "Cài đặt", icon: "gear"},          
 ];
 
 export default function AppLayout() {
@@ -91,7 +92,7 @@ export default function AppLayout() {
 
                             <View className="w-4/5 h-px bg-blue-100 mb-6"/>
 
-              {routes.map((route) => {
+              {routes.filter((route) => route.name !== "miniapps").map((route) => {
                 const active = isActive(route.name);
                 return (
                   <Link
