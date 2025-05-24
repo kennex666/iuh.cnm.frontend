@@ -96,7 +96,7 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
 
     const handleRemoveAdmin = async (memberId: string) => {
         try {
-            const response = await ConversationService.removeParticipants(conversation.id, [memberId]);
+            const response = await ConversationService.removeModRole(conversation.id, memberId);
             if (response.success) {
                 console.log('Admin role removed successfully');
                 setMembers(prevMembers => prevMembers.map(member => 
@@ -204,7 +204,7 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
                         <View className="flex-row items-center">
                             <View className="flex-row items-center">
                                 <Image
-                                    source={{uri: (member.avatar?.trim() || '') == 'default' ? `https://picsum.photos/id/${index}/200/300` : member.avatar}}
+                                    source={{uri: member.avatar ? member.avatar : `https://placehold.co/200x200`}}
                                     className="w-10 h-10 rounded-full"
                                 />
                                 <Text>
@@ -262,7 +262,7 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
                     <View key={member.id} className="flex-row py-2">
                         <View className="flex-row">
                             <Image
-                                source={{uri: (member.avatar?.trim() || '') == 'default' ? `https://picsum.photos/id/${index}/200/300` : member.avatar}}
+                                source={{uri: member.avatar ? member.avatar : `https://placehold.co/200x200`}}
                                 className="w-10 h-10 rounded-full"
                             />
                         </View>

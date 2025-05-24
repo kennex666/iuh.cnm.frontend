@@ -37,6 +37,11 @@ interface ConversationService {
         conversation: Conversation;
         message: string;
     }>;
+    removeModRole: (conversationId: string, userId: string) => Promise<{
+        success: boolean;
+        conversation: Conversation;
+        message: string;
+    }>;
     transferAdmin: (conversationId: string, newAdminId: string) => Promise<{
         success: boolean;
         conversation: Conversation;
@@ -272,6 +277,39 @@ export const ConversationService: ConversationService = {
                 success: false,
                 conversation: {} as Conversation,
                 message: error.message || "Failed to remove participants"
+            };
+        }
+    },
+
+    async removeModRole(conversationId: string, userId: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'put',
+                `${ApiEndpoints.API_CONVERSATION}/remove-mod-role/${conversationId}`,
+                {toUserId: userId}
+            );
+
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    conversation: {} as Conversation,
+                    message: response.message
+                };
+            }
+
+            const updatedConversation = mapApiConversationToModel(response.data);
+
+            return {
+                success: true,
+                conversation: updatedConversation,
+                message: response.message
+            };
+        } catch (error: any) {
+            console.error(`Error removing mod role in conversation ${conversationId}:`, error);
+            return {
+                success: false,
+                conversation: {} as Conversation,
+                message: error.message || "Failed to remove mod role"
             };
         }
     },
