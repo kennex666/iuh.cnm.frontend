@@ -4,6 +4,7 @@ import {Ionicons} from "@expo/vector-icons";
 import {Conversation} from "@/src/models/Conversation";
 import {useUser} from "@/src/contexts/user/UserContext";
 import {ConversationService} from "@/src/api/services/ConversationService";
+import SocketService from "@/src/api/services/SocketService";
 
 interface GroupInfoProps {
     conversation: Conversation;
@@ -36,20 +37,35 @@ export default function GroupInfo({conversation}: GroupInfoProps) {
     const [showDetail, setShowDetail] = useState(false);
     const [members, setMembers] = useState<Conversation['participantInfo']>(conversation.participantInfo || []);
     const {user} = useUser();
+    const socketService = SocketService.getInstance();
     useEffect(() => {
         const fetchParticipantInfo = () => {
             const info = conversation.participantInfo || [];
             setMembers(info);
-            };
-
-            fetchParticipantInfo();
+        };
+        fetchParticipantInfo();
     }, [conversation]);
+
+    useEffect(() => {
+        const socketRemoved = (data: { conversationId: string, removedParticipants: string[] }) => {
+            if (data.conversationId === conversation.id) {
+            setMembers(prevMembers =>
+                prevMembers.filter(member => !data.removedParticipants.includes(member.id))
+            );
+            }
+        };
+        socketService.onParticipantsRemovedServer(socketRemoved);
+        return () => {
+            socketService.removeParticipantsRemovedServer(socketRemoved);
+        };
+    }, [conversation.id, socketService]);
 
     const handleRemoveMember = async (memberId: string) => {
         try {
             const response = await ConversationService.removeParticipants(conversation.id, [memberId]);
             if (response.success) {
                 console.log('Member removed successfully');
+                socketService.actionParticipantsRemoved({ conversationId: conversation.id, participantIds: [memberId] });
                 setMembers(prevMembers => prevMembers.filter(member => member.id !== memberId));
             } else {
                 console.error('Failed to remove member:', response.message);

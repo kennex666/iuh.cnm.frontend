@@ -86,20 +86,8 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
         }, [user?.id, showQRScanner])
     );
 
-    // Socket listeners
-    useEffect(() => {
-        const handleAddParticipant = (updatedConversation: Conversation) => {
-            fetchConversations();
-        };
-        console.log("Socket listener added for add participant", conversations);
-        socketService.onParticipantsAddedServer(handleAddParticipant);
-        return () => {
-            socketService.removeParticipantsAddedServer(handleAddParticipant);
-        };
-    }, [socketService]);
 
     useEffect(() => {
-        console.log("Socket listener added for new messages");
         const handleNewMessage = (message: Message) => {
             if (message?.type == MessageType.CALL) {
                 console.log("Incoming call message: ", message);
@@ -175,7 +163,7 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
                 return conv;
             })
         );
-    }, [selectedChat?.id]);
+    }, [selectedChat?.id, socketService, user?.id]);
 
     const formatTime = (dateString: string | undefined) => {
         if (!dateString) return '';
@@ -209,6 +197,27 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
         const otherParticipantId = conversation.participantIds.find(id => id !== user?.id);
         return otherParticipantId ? participantNames[otherParticipantId] || 'Unknown' : 'Unknown';
     };
+
+    
+    // Socket listeners
+    useEffect(() => {
+        const handleAddParticipant = (updatedConversation: Conversation) => {
+            fetchConversations();
+        };
+        function handleRemoveParticipant(data: { conversationId: string; removedParticipants: string[]; }) {
+            setConversations((prev) =>
+                prev.filter((conv) => conv.id != data.conversationId)
+            );
+            fetchConversations();
+            console.log("Conversation removed: 11", data.conversationId);
+        }
+        socketService.onParticipantsAddedServer(handleAddParticipant);
+        socketService.onParticipantsRemovedServer(handleRemoveParticipant);
+        return () => {
+            socketService.removeParticipantsAddedServer(handleAddParticipant);
+            socketService.removeParticipantsRemovedServer(handleRemoveParticipant);
+        };
+    }, [socketService]);
 
     if (loading) {
         return (

@@ -25,6 +25,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     isReadByMe,
     getConversationName
 }) => {
+    console.log("Rendering ConversationList with conversations:", conversations);
+    console.log("Selected chat:", selectedChat);
     return (
         <ScrollView 
             className="flex-1 bg-white"
@@ -33,7 +35,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             {conversations.length === 0 ? (
                 <View className="p-4">
                     <Text className="text-gray-500 text-center text-sm">
-                        Thiếu lịch sử chat. Khởi phục ngay
+                        Không có cuộc trò chuyện nào. Bắt đầu một cuộc trò chuyện mới!
                     </Text>
                 </View>
             ) : (
