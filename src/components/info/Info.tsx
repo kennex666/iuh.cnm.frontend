@@ -59,28 +59,13 @@ export interface InfoProps {
 
 export default function Info({selectedChat, onBackPress}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
-    const [loadConversation, setLoadConversation] = useState<Conversation | null>(selectedChat);
+    const [conversation, setConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
-    const [messages, setMessages] = useState<any[]>([]);
-
-    const fetchMessages = async (conversationId: string) => {
-        try {
-            const response = await MessageService.getMessages(conversationId);
-            if (response.success){
-                setMessages(response.statusMessage);
-            }
-        }
-        catch (error) {
-            console.error('Error fetching messages:', error);
-        }
-    }
     
-
     useEffect(() => {
         if (selectedChat) {
-            setLoadConversation(selectedChat);
+            setConversation(selectedChat);
         }
-        fetchMessages(selectedChat?.id || '');
     },[selectedChat?.id]);
 
     const handleSearchPress = () => {
@@ -88,14 +73,14 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     };
 
     const isAdmin = React.useMemo(() => {
-        if (!loadConversation || !user) return false;
+        if (!conversation || !user) return false;
 
-        const currentParticipant = loadConversation.participantInfo?.find(
+        const currentParticipant = conversation.participantInfo?.find(
             participant => participant.id === user.id
         );
 
         return currentParticipant?.role === 'admin';
-    }, [loadConversation, user]);
+    }, [conversation, user]);
 
     const handleDisbandGroup = async () => {
         console.log('Disband group:', selectedChat?.id);
@@ -156,21 +141,16 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
             </View>
             <ScrollView className="flex-1">
                 <ProfileInfo
-                    loadConversation={loadConversation}
-                    avatar={loadConversation?.avatarUrl}
-                    name={loadConversation?.name}
-                    isGroup={loadConversation?.isGroup ?? false}
-                    memberCount={loadConversation?.participantIds?.length ?? 0}
-                    isOnline={!selectedChat.isGroup}
+                    conversation={conversation}
                 />
                 <ActionsInfo
                     selectChat={selectedChat}
-                    setLoadConversation={setLoadConversation}
+                    setConversation={setConversation}
                     onSearchPress={handleSearchPress}
                 />
-                {selectedChat.isGroup && loadConversation && loadConversation.participantIds && (
+                {selectedChat.isGroup && conversation && conversation.participantIds && (
                     <GroupInfo
-                        group={loadConversation}
+                        group={conversation}
                     />
                 )}
                 <MediaInfo
