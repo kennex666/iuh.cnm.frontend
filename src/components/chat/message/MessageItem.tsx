@@ -71,6 +71,7 @@ const MessageItem: React.FC<MessageItemProps> = (
     }
 
     if (message.type === MessageType.JOIN_CONVERSATION) {
+        
     }
 
     return  (
