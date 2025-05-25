@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MessageService } from '@/src/api/services/MessageService';
 import { AttachmentService } from '@/src/api/services/AttachmentService';
-import { MessageType } from '@/src/models/Message';
+import { MessageType, Message } from '@/src/models/Message';
 import formatFileSize from '@/src/utils/formatFileSize';
 import { Attachment } from '@/src/models/Attachment';
+import SocketService from '@/src/api/services/SocketService';
 
 interface File {
     id: string;
@@ -25,11 +26,77 @@ export default function FilesInfo({ conversationId, onViewAll }: FilesInfoProps)
     const [files, setFiles] = useState<File[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const socketService = useRef(SocketService.getInstance()).current;
 
     useEffect(() => {
         if (conversationId) {
             console.log("Fetching files for conversation:", conversationId);
             fetchFiles();
+            
+            // Setup socket listener for new messages
+            const handleNewMessage = async (message: Message) => {
+                // Only process messages for this conversation that are files
+                if (message.conversationId === conversationId && message.type === MessageType.FILE) {
+                    try {
+                        const attachmentResponse = await AttachmentService.getAttachmentByMessageId(message.id);
+                        
+                        if (attachmentResponse.success && attachmentResponse.data && attachmentResponse.data.length > 0) {
+                            const attachment = attachmentResponse.data[0];
+                            
+                            // Skip images and videos
+                            if (attachment.fileType && (
+                                attachment.fileType.startsWith('image/') || 
+                                attachment.fileType.startsWith('video/')
+                            )) {
+                                return;
+                            }
+                            
+                            // Create new file object
+                            const fileExtension = attachment.fileName.split('.').pop()?.toLowerCase() || '';
+                            const newFile: File = {
+                                id: attachment.id,
+                                name: attachment.fileName,
+                                size: formatFileSize(attachment.size),
+                                type: fileExtension,
+                                date: new Date(message.sentAt).toLocaleDateString('vi-VN'),
+                                url: attachment.url
+                            };
+                            
+                            // Add the new file to the list
+                            setFiles(prevFiles => [newFile, ...prevFiles]);
+                        }
+                    } catch (error) {
+                        console.error("Error processing new file message:", error);
+                    }
+                }
+            };
+            
+            // Also listen for attachment sent event
+            const handleAttachmentSent = async (data: { success: boolean, messageId: string }) => {
+                if (data.success) {
+                    try {
+                        const messageResponse = await MessageService.getMessages(conversationId);
+                        if (messageResponse.success) {
+                            const message = messageResponse.messages.find(m => m.id === data.messageId);
+                            if (message) {
+                                handleNewMessage(message);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error fetching message after attachment sent:", error);
+                    }
+                }
+            };
+            
+            // Register socket listeners
+            socketService.onNewMessage(handleNewMessage);
+            // socketService.onAttachmentSent(handleAttachmentSent);
+            
+            // Cleanup function to remove listeners
+            return () => {
+                socketService.removeMessageListener(handleNewMessage);
+                // socketService.removeAttachmentSentListener(handleAttachmentSent);
+            };
         }
     }, [conversationId]);
 

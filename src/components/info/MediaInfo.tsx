@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Image, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MessageService } from '@/src/api/services/MessageService';
 import { AttachmentService } from '@/src/api/services/AttachmentService';
-import { MessageType } from '@/src/models/Message';
+import { MessageType, Message } from '@/src/models/Message';
 import { Attachment } from '@/src/models/Attachment';
+import SocketService from '@/src/api/services/SocketService';
 
 interface MediaItem {
     id: string;
@@ -24,10 +25,71 @@ export default function MediaInfo({ conversationId, onViewAll, onPreviewMedia }:
     const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const socketService = useRef(SocketService.getInstance()).current;
 
     useEffect(() => {
         if (conversationId) {
             fetchMediaItems();
+            
+            // Setup socket listener for new messages
+            const handleNewMessage = async (message: Message) => {
+                // Only process messages for this conversation that might contain media
+                if (message.conversationId === conversationId && message.type === MessageType.FILE) {
+                    try {
+                        const attachmentResponse = await AttachmentService.getAttachmentByMessageId(message.id);
+                        
+                        if (attachmentResponse.success && attachmentResponse.data && attachmentResponse.data.length > 0) {
+                            const attachment = attachmentResponse.data[0];
+                            
+                            // Check if this is an image or video
+                            if (attachment.fileType && (
+                                attachment.fileType.startsWith('image/') || 
+                                attachment.fileType.startsWith('video/')
+                            )) {
+                                const newMediaItem: MediaItem = {
+                                    id: attachment.id,
+                                    url: attachment.url,
+                                    type: attachment.fileType.startsWith('image/') ? 'image' : 'video',
+                                    date: new Date(message.sentAt).toLocaleDateString('vi-VN'),
+                                    fileName: attachment.fileName
+                                };
+                                
+                                // Add the new media item to the list
+                                setMediaItems(prevItems => [newMediaItem, ...prevItems]);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error processing new media message:", error);
+                    }
+                }
+            };
+            
+            // Also listen for attachment sent event for more immediate feedback
+            const handleAttachmentSent = async (data: { success: boolean, messageId: string }) => {
+                if (data.success) {
+                    try {
+                        const messageResponse = await MessageService.getMessages(conversationId);
+                        if (messageResponse.success) {
+                            const message = messageResponse.messages.find(m => m.id === data.messageId);
+                            if (message) {
+                                handleNewMessage(message);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Error fetching message after attachment sent:", error);
+                    }
+                }
+            };
+            
+            // Register socket listeners
+            socketService.onNewMessage(handleNewMessage);
+            // socketService.onAttachmentSent(handleAttachmentSent);
+            
+            // Cleanup function to remove listeners
+            return () => {
+                socketService.removeMessageListener(handleNewMessage);
+                // socketService.removeAttachmentSentListener(handleAttachmentSent);
+            };
         }
     }, [conversationId]);
 
@@ -42,7 +104,7 @@ export default function MediaInfo({ conversationId, onViewAll, onPreviewMedia }:
             const response = await MessageService.getMessages(conversationId);
             
             if (response.success) {
-                // Lọc các tin nhắn có type là IMAGE hoặc VIDEO
+                // Lọc các tin nhắn có type là FILE (có thể chứa hình ảnh hoặc video)
                 const mediaMessages = response.messages.filter(
                     msg => msg.type === MessageType.FILE
                 );

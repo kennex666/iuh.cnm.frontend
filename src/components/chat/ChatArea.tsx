@@ -250,7 +250,6 @@ export default function ChatArea(
     }, [selectedChat, user]);
 
     // ================================================== Handlers
-    // ================================================== Handlers
 
     // Handles image selection and closes file selection modal
     const handleSelectImageWithClose = () => {
