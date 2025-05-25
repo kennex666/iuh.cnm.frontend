@@ -91,9 +91,9 @@ const MessageItem: React.FC<MessageItemProps> = (
                     delayLongPress={200}
                     activeOpacity={0.7}
                 >
-                    <View className={`px-3 py-2 ${
+                    <View className={`relative px-3 py-2 ${
                         isSender
-                            ? isHighlighted ? "bg-blue-400" : "bg-[#0084ff]"
+                            ? isHighlighted ? "bg-blue-100" : "bg-gray-100"
                             : isHighlighted ? "bg-gray-50" : "bg-gray-100"
                     } ${
                         isSender 
@@ -104,6 +104,16 @@ const MessageItem: React.FC<MessageItemProps> = (
                                 ? "rounded-[18px] rounded-bl-[4px]"
                                 : "rounded-[18px] rounded-tl-[4px] rounded-bl-[18px]"
                     }`}>
+                        {message.repliedToId && repliedToMessage && (
+                            <View className="mb-1">
+                                <ReplyPreview
+                                    repliedMessage={repliedToMessage}
+                                    isSender={isSender}
+                                    userName={messageUsers[repliedToMessage.senderId]?.name || "Người dùng"}
+                                />
+                            </View>
+                        )}
+
                         {message.type === MessageType.TEXT && (
                             <TextMessage message={message} isSender={isSender}/>
                         )}

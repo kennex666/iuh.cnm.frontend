@@ -4,9 +4,10 @@ import {Ionicons} from "@expo/vector-icons";
 import {Conversation} from "@/src/models/Conversation";
 import {useUser} from "@/src/contexts/user/UserContext";
 import {ConversationService} from "@/src/api/services/ConversationService";
+import SocketService from "@/src/api/services/SocketService";
 
 interface GroupInfoProps {
-    group: Conversation;
+    conversation: Conversation;
 }
 
 interface Member {
@@ -14,7 +15,7 @@ interface Member {
     name: string;
     avatar: string;
     role: 'admin' | 'member';
-    isOnline: boolean;
+    members: string;
 }
 
 interface MemberMenuProps {
@@ -32,18 +33,41 @@ interface MemberMenuProps {
 const isDesktop = Dimensions.get('window').width > 768;
 
 
-export default function GroupInfo({group}: GroupInfoProps) {
+export default function GroupInfo({conversation}: GroupInfoProps) {
     const [showDetail, setShowDetail] = useState(false);
-    const [selectedMember, setSelectedMember] = useState<String | null>(null);
+    const [members, setMembers] = useState<Conversation['participantInfo']>(conversation.participantInfo || []);
+    const {user} = useUser();
+    const socketService = SocketService.getInstance();
+    useEffect(() => {
+        const fetchParticipantInfo = () => {
+            const info = conversation.participantInfo || [];
+            setMembers(info);
+        };
+        fetchParticipantInfo();
+    }, [conversation]);
+
+    useEffect(() => {
+        const socketRemoved = (data: { conversationId: string, removedParticipants: string[] }) => {
+            if (data.conversationId === conversation.id) {
+            setMembers(prevMembers =>
+                prevMembers.filter(member => !data.removedParticipants.includes(member.id))
+            );
+            }
+        };
+        socketService.onParticipantsRemovedServer(socketRemoved);
+        return () => {
+            socketService.removeParticipantsRemovedServer(socketRemoved);
+        };
+    }, [conversation.id, socketService]);
 
     const handleRemoveMember = async (memberId: string) => {
         try {
-            const response = await ConversationService.removeParticipants(group.id, [memberId]);
+            const response = await ConversationService.removeParticipants(conversation.id, [memberId]);
             if (response.success) {
-                // Handle success (e.g., show success message, update UI)
                 console.log('Member removed successfully');
+                socketService.actionParticipantsRemoved({ conversationId: conversation.id, participantIds: [memberId] });
+                setMembers(prevMembers => prevMembers.filter(member => member.id !== memberId));
             } else {
-                // Handle error
                 console.error('Failed to remove member:', response.message);
             }
         } catch (error) {
@@ -53,11 +77,15 @@ export default function GroupInfo({group}: GroupInfoProps) {
 
     const handleAddAdmin = async (memberId: string) => {
         try {
-            console.log('Adding admin:', memberId);
-            console.log('Group ID:', group.id);
-            const response = await ConversationService.transferAdmin(group.id, memberId);
+            const response = await ConversationService.transferAdmin(conversation.id, memberId);
             if (response.success) {
                 console.log('Admin role transferred successfully');
+                setMembers(prevMembers => prevMembers.map(member => 
+                    member.id === memberId ? {...member, role: 'admin'} : member
+                ));
+                setMembers(prevMembers => prevMembers.map(member =>
+                    member.id === user?.id ? {...member, role: 'member'} : member
+                ));
             } else {
                 console.error('Failed to transfer admin role:', response.message);
             }
@@ -68,9 +96,12 @@ export default function GroupInfo({group}: GroupInfoProps) {
 
     const handleAddMod = async (memberId: string) => {
         try {
-            const response = await ConversationService.grantModRole(group.id, memberId);
+            const response = await ConversationService.grantModRole(conversation.id, memberId);
             if (response.success) {
                 console.log('Mod role granted successfully');
+                setMembers(prevMembers => prevMembers.map(member => 
+                    member.id === memberId ? {...member, role: 'mod'} : member
+                ));
             } else {
                 console.error('Failed to grant mod role:', response.message);
             }
@@ -81,9 +112,12 @@ export default function GroupInfo({group}: GroupInfoProps) {
 
     const handleRemoveAdmin = async (memberId: string) => {
         try {
-            const response = await ConversationService.removeParticipants(group.id, [memberId]);
+            const response = await ConversationService.removeModRole(conversation.id, memberId);
             if (response.success) {
                 console.log('Admin role removed successfully');
+                setMembers(prevMembers => prevMembers.map(member => 
+                    member.id === memberId ? {...member, role: 'member'} : member
+                ));
             } else {
                 console.error('Failed to remove admin role:', response.message);
             }
@@ -175,35 +209,18 @@ export default function GroupInfo({group}: GroupInfoProps) {
         );
     };
 
-
     const ShowDetail = () => {
         const [openMenuForMember, setOpenMenuForMember] = useState<string | null>(null);
-        const [MOCK_MEMBERS, setParticipantInfo] = useState<Conversation['participantInfo']>([]);
-        const {user} = useUser();
-
-        useEffect(() => {
-            // Fetch participant info from the group data
-            const fetchParticipantInfo = async () => {
-                // Simulate fetching data
-                const info = group.participantInfo || [];
-                console.log('Participant Info:', info);
-                setParticipantInfo(info);
-            };
-
-            fetchParticipantInfo();
-        }, [group]);
-
-
         return (
             <View className="flex-1">
                 {/* Admins Section */}
                 <Text className="text-sm text-gray-500 mb-2">Quản trị viên</Text>
-                {MOCK_MEMBERS.filter(member => member.role === 'admin' || member.role === 'mod').map((member, index) => (
+                {members.filter(member => member.role === 'admin' || member.role === 'mod').map((member, index) => (
                     <View key={member.id} className="flex-row items-start justify-between py-2">
                         <View className="flex-row items-center">
                             <View className="flex-row items-center">
                                 <Image
-                                    source={{uri: (member.avatar?.trim() || '') == 'default' ? `https://picsum.photos/id/${index}/200/300` : member.avatar}}
+                                    source={{uri: member.avatar ? member.avatar : `https://placehold.co/200x200`}}
                                     className="w-10 h-10 rounded-full"
                                 />
                                 <Text>
@@ -229,7 +246,7 @@ export default function GroupInfo({group}: GroupInfoProps) {
                                                 <Text className="text-sm text-gray-500 ml-1"> (Bạn)</Text>
                                             )
                                         }
-                                    </View>}
+                                </View>}
                             </View>
                         </View>
                         <View className="relative flex-1 items-end">
@@ -240,7 +257,7 @@ export default function GroupInfo({group}: GroupInfoProps) {
                                 <Ionicons name="ellipsis-horizontal" size={20} color="#666"/>
                             </TouchableOpacity>
                             {
-                                (member.id !== user?.id && (MOCK_MEMBERS.find(p => p.id === user?.id)?.role === 'admin')) && (
+                                (member.id !== user?.id && (members.find(p => p.id === user?.id)?.role === 'admin')) && (
                                     <MemberMenu
                                         visible={openMenuForMember === member.id}
                                         onClose={() => setOpenMenuForMember(null)}
@@ -257,11 +274,11 @@ export default function GroupInfo({group}: GroupInfoProps) {
 
                 {/* Members Section */}
                 <Text className="text-sm text-gray-500 mt-4 mb-2">Thành viên</Text>
-                {MOCK_MEMBERS.filter(member => (member.role === 'member' && member.id !== user?.id)).map((member, index) => (
+                {members.filter(member => (member.role === 'member')).map((member, index) => (
                     <View key={member.id} className="flex-row py-2">
                         <View className="flex-row">
                             <Image
-                                source={{uri: (member.avatar?.trim() || '') == 'default' ? `https://picsum.photos/id/${index}/200/300` : member.avatar}}
+                                source={{uri: member.avatar ? member.avatar : `https://placehold.co/200x200`}}
                                 className="w-10 h-10 rounded-full"
                             />
                         </View>
@@ -284,13 +301,13 @@ export default function GroupInfo({group}: GroupInfoProps) {
                                 <Ionicons name="ellipsis-horizontal" size={20} color="#666"/>
                             </TouchableOpacity>
                             {
-                                (MOCK_MEMBERS.find(p => p.id === user?.id)?.role === 'admin' ||
-                                    (MOCK_MEMBERS.find(p => p.id === user?.id)?.role === 'mod' && member.role === 'member')) && (
+                                (members.find(p => p.id === user?.id)?.role === 'admin' ||
+                                    (members.find(p => p.id === user?.id)?.role === 'mod' && member.role === 'member')) && (
                                     <MemberMenu
                                         visible={openMenuForMember === member.id}
                                         onClose={() => setOpenMenuForMember(null)}
                                         isAdmin={false}
-                                        isModerator={MOCK_MEMBERS.find(p => p.id === user?.id)?.role === 'mod'}
+                                        isModerator={members.find(p => p.id === user?.id)?.role === 'mod'}
                                         memberId={member.id}
                                         onRemoveMember={handleRemoveMember}
                                         onAddAdmin={handleAddAdmin}
@@ -309,7 +326,7 @@ export default function GroupInfo({group}: GroupInfoProps) {
         <View className="flex-1 px-4 pt-6 pb-4 border-b-4 border-gray-200">
             <View className="flex-row justify-between items-center mb-4">
                 <Text className="text-base font-medium text-blue-950">
-                    Thành viên nhóm ({group.participantInfo.length - 1})
+                    Thành viên nhóm ({conversation.participantInfo.length})
                 </Text>
                 <TouchableOpacity
                     className="py-1 px-3"

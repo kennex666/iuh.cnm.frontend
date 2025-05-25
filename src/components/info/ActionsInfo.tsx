@@ -7,17 +7,17 @@ import {ConversationService} from '@/src/api/services/ConversationService';
 
 interface ActionsInfoProps {
     selectChat: Conversation | null;
-    setLoadConversation: React.Dispatch<React.SetStateAction<Conversation | null>>;
+    setConversation: React.Dispatch<React.SetStateAction<Conversation | null>>;
     onSearchPress: () => void;
 }
 
-export default function ActionsInfo({selectChat, setLoadConversation, onSearchPress}: ActionsInfoProps) {
+export default function ActionsInfo({selectChat, setConversation, onSearchPress}: ActionsInfoProps) {
     const [addMemberVisible, setAddMemberVisible] = useState(false);
 
     const fetchConversation = async (conversationId: string) => {
         try {
             const conversation = await ConversationService.getConversationById(conversationId);
-            setLoadConversation(conversation.conversation);
+            setConversation(conversation.conversation);
         } catch (error) {
             console.error('Error fetching conversation:', error);
         }
@@ -26,7 +26,7 @@ export default function ActionsInfo({selectChat, setLoadConversation, onSearchPr
     useEffect(() => {
             fetchConversation(selectChat?.id || '');
         }
-        , [addMemberVisible]);
+    ,[addMemberVisible]);
 
     return (
         <View className={`flex-row justify-around items-center pt-6 pb-4 border-b-4 border-gray-200`}>

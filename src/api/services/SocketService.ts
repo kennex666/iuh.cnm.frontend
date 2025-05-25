@@ -134,7 +134,9 @@ import {io, Socket} from 'socket.io-client';
         public onParticipantsAddedServer(callback: (updatedConversation: Conversation) => void): void {
             if (this.socket) {
                 console.log('Listening for participants added event from server');
-                this.socket.on('conversation:participants_added', callback);
+                this.socket.on('conversation:participants_added', (data: any) => {
+                    callback(data.updatedConversation); 
+                });
             }
         }
 
@@ -143,6 +145,27 @@ import {io, Socket} from 'socket.io-client';
                 this.socket.off('conversation:participants_added', callback);
             }
         }
+
+        public actionParticipantsRemoved(data: { conversationId: string, participantIds: string[] }): void {
+            if (this.socket) {
+                console.log('Participants removed from conversation:', data.conversationId, data.participantIds);
+                this.socket.emit('conversation:remove_participants', data);
+            }
+        }
+        public onParticipantsRemovedServer(callback: (data: { conversationId: string, removedParticipants: string[] }) => void): void {
+            if (this.socket) {
+            console.log('Listening for participants removed event from server');
+            this.socket.on('conversation:participants_removed', (data: { conversationId: string, removedParticipants: string[] }) => {
+                callback(data);
+            });
+            }
+        }
+        public removeParticipantsRemovedServer(callback: (data: { conversationId: string, removedParticipants: string[] }) => void): void {
+            if (this.socket) {
+                this.socket.off('conversation:participants_removed', callback);
+            }
+        }
+        
 
         //==================================
         // Message handling
