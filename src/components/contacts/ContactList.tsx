@@ -6,6 +6,7 @@ import {FriendRequest} from '@/src/models/FriendRequest';
 import {useUser} from '@/src/contexts/user/UserContext';
 import {UserService} from '@/src/api/services/UserService';
 import {User} from '@/src/models/User';
+import { router } from 'expo-router';
 
 interface FriendInfo extends User {
     friendRequestDate: Date;
@@ -107,7 +108,7 @@ export default function ContactList() {
                     </View>
                 ) : (
                     friends.map((friend) => (
-                        <View key={friend.id} className="border-b border-gray-100">
+                        <View key={friend.id} className="flex-row justify-between border-b border-gray-100 ">
                             <View className="flex-row items-center px-4 py-3">
                                 <Image
                                     source={{
@@ -117,7 +118,7 @@ export default function ContactList() {
                                     }}
                                     className="w-12 h-12 rounded-full"
                                 />
-                                <View className="flex-1 ml-3">
+                                <View className="ml-3">
                                     <Text className="text-base font-medium text-gray-800">
                                         {friend.name}
                                     </Text>
@@ -131,6 +132,23 @@ export default function ContactList() {
                                         Kết bạn từ: {new Date(friend.friendRequestDate).toLocaleDateString('vi-VN')}
                                     </Text>
                                 </View>
+                            </View>
+                            <View className="px-4 py-2 justify-center items-center">
+                                <Ionicons
+                                    name="chatbubble-ellipses-outline"
+                                    size={28}
+                                    color="#0068FF"
+                                    style={{}}
+                                    onPress={() => {
+                                        // TODO: Navigate to chat screen with this friend
+                                        router.push({
+                                            pathname: '/(main)',
+                                            params: {
+                                                conversationId: "305322850577810432", // Replace with the actual conversation ID for this friend
+                                            }
+                                        });
+                                    }}
+                                />
                             </View>
                         </View>
                     ))

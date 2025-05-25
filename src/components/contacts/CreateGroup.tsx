@@ -174,6 +174,14 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
             });
             return;
         }
+        if (groupName.length < 3) {
+            setToast({
+                visible: true,
+                message: 'Tên nhóm phải có ít nhất 3 ký tự',
+                type: 'error'
+            });
+            return;
+        }
         try {
             if (selectedContacts.length < 2) {
                 setToast({
@@ -192,7 +200,7 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
                 type: 'group',
                 participantIds: [user?.id ?? '', ...selectedContacts].filter(id => id !== ''),
                 participantInfo: [user?.id ?? '', ...selectedContacts]
-                    .filter(id => id !== '')
+                    .filter(id => id !== '' && id !== user?.id)
                     .map(id => ({
                         id,
                         name: contacts.find(contact => contact.id === id)?.name || '',
@@ -226,10 +234,9 @@ export default function CreateGroup({visible, onClose}: CreateGroupProps) {
             }
             socketService.actionParticipantsAdded({
                 conversationId: response.conversation.id,
-                participantIds: response.conversation.participantIds
+                participantIds: response.conversation.participantIds.filter(id => id !== user?.id)
             });
             if (response.success) {
-                console.log('Group created successfully:', response.conversation);
                 onClose(); // Close the modal after creating the group
             } else {
                 console.error('Error creating group:', response.message);

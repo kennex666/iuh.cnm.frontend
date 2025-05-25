@@ -12,7 +12,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     setShowQRScanner
 }) => {
     return (
-        <View className="px-4 py-4 border-b border-gray-100 bg-white">
+        <View className="px-2 py-2 border-b border-gray-100 bg-white">
             <View className="flex-row items-center justify-between">
                 <View className="flex-1 flex-row items-center bg-gray-100 rounded-full px-4 h-12">
                     <Ionicons name="search" size={16} color="#65676B" />

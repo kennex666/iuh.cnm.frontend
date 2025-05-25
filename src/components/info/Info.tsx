@@ -11,6 +11,8 @@ import {Ionicons} from '@expo/vector-icons';
 import GroupInfo from './GroupInfo';
 import {ConversationService} from '@/src/api/services/ConversationService';
 import {useUser} from '@/src/contexts/user/UserContext';
+import { MessageService } from '@/src/api/services/MessageService';
+const { Alert } = require('react-native');
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -58,29 +60,28 @@ export interface InfoProps {
 
 export default function Info({selectedChat, onBackPress}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
-    const [loadConversation, setLoadConversation] = useState<Conversation | null>(selectedChat);
+    const [conversation, setConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
-
+    
     useEffect(() => {
-            if (selectedChat) {
-                setLoadConversation(selectedChat);
-            }
+        if (selectedChat) {
+            setConversation(selectedChat);
         }
-        , [selectedChat?.id]);
+    },[selectedChat?.id]);
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
     };
 
     const isAdmin = React.useMemo(() => {
-        if (!loadConversation || !user) return false;
+        if (!conversation || !user) return false;
 
-        const currentParticipant = loadConversation.participantInfo?.find(
+        const currentParticipant = conversation.participantInfo?.find(
             participant => participant.id === user.id
         );
 
         return currentParticipant?.role === 'admin';
-    }, [loadConversation, user]);
+    }, [conversation, user]);
 
     const handleDisbandGroup = async () => {
         console.log('Disband group:', selectedChat?.id);
@@ -141,20 +142,16 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
             </View>
             <ScrollView className="flex-1">
                 <ProfileInfo
-                    avatar={loadConversation?.avatarUrl}
-                    name={loadConversation?.name}
-                    isGroup={loadConversation?.isGroup ?? false}
-                    memberCount={loadConversation?.participantIds?.length ?? 0}
-                    isOnline={!selectedChat.isGroup}
+                    conversation={conversation}
                 />
                 <ActionsInfo
                     selectChat={selectedChat}
-                    setLoadConversation={setLoadConversation}
+                    setConversation={setConversation}
                     onSearchPress={handleSearchPress}
                 />
-                {selectedChat.isGroup && loadConversation && loadConversation.participantIds && (
+                {selectedChat.isGroup && conversation && conversation.participantIds && (
                     <GroupInfo
-                        group={loadConversation}
+                        conversation={conversation}
                     />
                 )}
                 <MediaInfo
@@ -167,7 +164,30 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                     <View className="mb-2 pt-2 border-t border-gray-200">
                         <TouchableOpacity
                             className="flex-row items-center px-4 py-2 rounded-xl"
-                            onPress={handleDisbandGroup}
+                            onPress={async () => {
+                                let confirmed = false;
+                                if (typeof window !== 'undefined' && window.confirm) {
+                                    // Web: dùng window.confirm
+                                    confirmed = window.confirm('Bạn có chắc chắn muốn giải tán nhóm này không?');
+                                } else {
+                                    // Mobile: dùng Alert
+                                    // @ts-ignore
+                                    await new Promise<void>((resolve) => {
+                                        Alert.alert(
+                                            'Xác nhận',
+                                            'Bạn có chắc chắn muốn giải tán nhóm này không?',
+                                            [
+                                                { text: 'Không', style: 'cancel', onPress: () => { confirmed = false; resolve(); } },
+                                                { text: 'Có', style: 'destructive', onPress: () => { confirmed = true; resolve(); } },
+                                            ],
+                                            { cancelable: true }
+                                        );
+                                    });
+                                }
+                                if (confirmed) {
+                                    await handleDisbandGroup();
+                                }
+                            }}
                         >
                             <Ionicons name="trash-outline" size={18} color="red" className="mr-2"/>
                             <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>

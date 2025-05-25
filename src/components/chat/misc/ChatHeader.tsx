@@ -1,15 +1,16 @@
-import {Ionicons} from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import React, {useEffect, useState} from "react";
 import {Image, Text, TouchableOpacity, View} from "react-native";
 import {MessageService} from "@/src/api/services/MessageService";
 import {Conversation} from "@/src/models/Conversation";
 import SocketService from "@/src/api/services/SocketService";
+import { useUser } from "@/src/contexts/user/UserContext";
 
 interface ChatHeaderProps {
-    selectedChat: Conversation; // Replace with the actual type of selectedChat
+    selectedChat: Conversation;
     onBackPress?: () => void;
     onInfoPress?: () => void;
-    information?: any; // Replace with the actual type of information
+    information?: any;
 }
 
 export default function ChatHeader({
@@ -19,12 +20,10 @@ export default function ChatHeader({
                                        information,
                                    }: ChatHeaderProps) {
     {
-        // Listen for add participant event
         const [groups, setGroups] = useState<Conversation | null>(selectedChat);
         useEffect(() => {
             const handleAddParticipant = (updatedConversation: Conversation) => {
-                console.log("Add participant event received:", updatedConversation);
-                setGroups(updatedConversation.updatedConversation);
+                setGroups(updatedConversation);
             };
             const socketService = SocketService.getInstance();
             socketService.onParticipantsAddedServer(handleAddParticipant);
@@ -33,32 +32,41 @@ export default function ChatHeader({
             };
         }, [selectedChat]);
 
-        useEffect(() => {
-            console.log("Group state updated:", groups);
-        }, [groups]);
+        const {user} = useUser();
+
+        const name = groups?.isGroup 
+            ? groups?.name 
+            : groups?.participantInfo && groups.participantInfo.length > 0 
+                ? groups.participantInfo.find(p => p.id !== user?.id)?.name || "Người dùng"
+                : "Người dùng";
+        const avatar = groups?.isGroup 
+            ? groups?.avatarUrl 
+            : groups?.participantInfo && groups.participantInfo.length > 0 
+                ? groups.participantInfo.find(p => p.id !== user?.id)?.avatar
+                : null;
 
         return (
-            <View className="h-16 px-4 border-b border-gray-200 flex-row items-center justify-between">
+            <View className="h-14 px-3 border-b border-gray-200 flex-row items-center justify-between">
                 <View className="flex-row items-center flex-1">
                     {onBackPress && (
-                        <TouchableOpacity onPress={onBackPress} className="mr-3">
-                            <Ionicons name="arrow-back" size={24} color="#666"/>
+                        <TouchableOpacity onPress={onBackPress} className="mr-2">
+                            <MaterialCommunityIcons name="chevron-left" size={28} color="#0084ff"/>
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{uri: groups?.avatarUrl?.trim() || "https://placehold.co/400"}}
-                        className="w-12 h-12 rounded-full"
+                        source={{uri: avatar?.trim() || "https://picsum.photos/200"}}
+                        className="w-10 h-10 rounded-full"
                     />
-                    <View className="ml-3" style={{maxWidth: "45%"}}>
+                    <View className="ml-2.5" style={{maxWidth: "45%"}}>
                         <Text
-                            className="font-semibold text-gray-900 text-lg"
+                            className="font-semibold text-gray-900"
                             numberOfLines={1}
                             ellipsizeMode="tail"
                         >
-                            {selectedChat?.name || "No name"}
+                            {name}
                         </Text>
                         {groups?.isGroup && (
-                            <Text className="text-sm text-gray-500">
+                            <Text className="text-xs text-gray-500">
                                 {groups?.participantIds.length} thành viên
                             </Text>
                         )}
@@ -66,26 +74,26 @@ export default function ChatHeader({
                 </View>
                 <View className="flex-row items-center">
                     <TouchableOpacity
-                        className="p-2 mr-1"
+                        className="p-2"
                         onPress={() => {
                             MessageService.makeACall(selectedChat.id);
                         }}
                     >
-                        <Ionicons name="call-outline" size={22} color="#666"/>
+                        <MaterialCommunityIcons name="phone" size={22} color="#0084ff"/>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => {
                             MessageService.makeACall(selectedChat.id);
                         }}
-                        className="p-2 mr-1"
+                        className="p-2 mx-1"
                     >
-                        <Ionicons name="videocam-outline" size={22} color="#666"/>
+                        <MaterialCommunityIcons name="video" size={24} color="#0084ff"/>
                     </TouchableOpacity>
                     <TouchableOpacity className="p-2" onPress={onInfoPress}>
-                        <Ionicons
-                            name="information-circle-outline"
+                        <MaterialCommunityIcons
+                            name="dots-horizontal"
                             size={24}
-                            color="#666"
+                            color="#0084ff"
                         />
                     </TouchableOpacity>
                 </View>

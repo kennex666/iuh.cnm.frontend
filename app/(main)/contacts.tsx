@@ -16,8 +16,6 @@ export default function ContactsScreen() {
                 return <FriendRequestList />;
             case 'groups':
                 return <GroupList />;
-            case 'groupRequests':
-                return <GroupRequestList />;
             default:
                 return <ContactList />;
         }
@@ -78,22 +76,6 @@ export default function ContactsScreen() {
                             }`}
                         >
                             Nhóm
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        className={`py-4 px-6 ${
-                            activeTab === 'groupRequests' 
-                            ? 'border-b-2 border-blue-500' 
-                            : 'border-b-2 border-transparent'
-                        }`}
-                        onPress={() => setActiveTab('groupRequests')}
-                    >
-                        <Text 
-                            className={`text-[16px] font-semibold ${
-                                activeTab === 'groupRequests' ? 'text-blue-500' : 'text-gray-600'
-                            }`}
-                        >
-                            Lời mời nhóm
                         </Text>
                     </TouchableOpacity>
                 </ScrollView>

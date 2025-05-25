@@ -1,23 +1,29 @@
+import { useUser } from '@/src/contexts/user/UserContext';
+import { Conversation } from '@/src/models/Conversation';
 import React from 'react';
 import {Image, Text, View} from 'react-native';
 
 interface ProfileInfoProps {
-    avatar?: string;
-    name?: string;
-    isGroup: boolean;
-    memberCount?: number;
-    isOnline?: boolean;
+    conversation: Conversation | null;
 }
 
-export default function ProfileInfo({
-                                        avatar,
-                                        name,
-                                        isGroup,
-                                        memberCount,
-                                        isOnline
-                                    }: ProfileInfoProps) {
+export default function ProfileInfo({conversation}: ProfileInfoProps) {
     // listen to socket events to update online status
+    const {user} = useUser();
 
+    const name = conversation?.isGroup 
+        ? conversation?.name 
+        : conversation?.participantInfo && conversation.participantInfo.length > 0 
+        ? conversation.participantInfo.find(p => p.id !== user?.id)?.name || "Người dùng"
+            : "Người dùng";
+    const isGroup = conversation?.isGroup || false;
+    const isOnline = conversation?.participantInfo?.some(p => p.id !== user?.id && p.isOnline) || false;
+    const memberCount = conversation?.participantInfo?.length || 0;
+    const avatar = conversation?.isGroup 
+        ? conversation?.avatarUrl 
+        : conversation?.participantInfo && conversation.participantInfo.length > 0 
+        ? conversation.participantInfo.find(p => p.id !== user?.id)?.avatar
+        : null;
     return (
         <View className="items-center pt-8 pb-6 border-b-4 border-gray-200">
             <View className="mb-4 relative">
@@ -34,7 +40,7 @@ export default function ProfileInfo({
                 )}
             </View>
             <Text className="text-[17px] font-semibold text-blue-950">
-                {name || 'Chưa có tên'}
+                {name }
             </Text>
             <Text className="text-sm text-blue-500 mt-1">
                 {isGroup

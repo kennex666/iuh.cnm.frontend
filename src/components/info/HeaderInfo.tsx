@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Platform, Text, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import QRCodeDisplay from "../ui/QRCodeDisplay";
@@ -15,8 +15,10 @@ export default function HeaderInfo({
                                        onBackPress,
                                        selectedChat,
                                    }: HeaderInfoProps) {
-    const [showQRCode, setShowQRCode] = React.useState(true);
-    const [qrValue, setQrValue] = useState("https://ngthluan.io.vn/");
+    const [showQRCode, setShowQRCode] = React.useState(false);
+    useEffect(() => {
+        setShowQRCode(false);
+    }, [selectedChat]);
     return (
         <View className="h-16 px-6 border-b border-blue-100 flex-row items-center justify-between bg-white">
             <View className="flex-row justify-between items-center w-full">
@@ -45,7 +47,7 @@ export default function HeaderInfo({
                                 showQRCode && (
                                     <View className="absolute top-12 right-0 z-10 bg-white shadow-lg rounded-lg p-2">
                                         <QRCodeDisplay
-                                            value={selectedChat?.url || qrValue}
+                                            value={selectedChat?.url || ""}
                                             size={256}
                                         />
                                     </View>
