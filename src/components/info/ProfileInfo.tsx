@@ -1,6 +1,7 @@
+import { UserService } from '@/src/api/services/UserService';
 import { useUser } from '@/src/contexts/user/UserContext';
 import { Conversation } from '@/src/models/Conversation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {Image, Text, View} from 'react-native';
 
 interface ProfileInfoProps {
@@ -10,6 +11,27 @@ interface ProfileInfoProps {
 export default function ProfileInfo({conversation}: ProfileInfoProps) {
     // listen to socket events to update online status
     const {user} = useUser();
+    const [avatarUrl, setAvatarUrl] = useState<string>('https://example.com/default-avatar.png');
+
+    useEffect(() => {
+
+        const getConversationAvatar = async (conversation: Conversation | null) => {
+            if (!conversation) return;
+            if (!conversation.isGroup && conversation.participantIds.length < 3) {
+                const otherParticipantId = conversation.participantIds.find((id) => id !== user?.id);
+                const otherParticipant = await UserService.getUserById(otherParticipantId || '');
+                if (otherParticipant.success && otherParticipant.user) {
+                    // return otherParticipant.user.avatarURL || 'https://example.com/default-avatar.png';
+                    setAvatarUrl(otherParticipant.user.avatarURL || 'https://example.com/default-avatar.png');
+                }
+            } else {
+                // return conversation.avatarUrl;
+                setAvatarUrl(conversation.avatarUrl || 'https://example.com/default-avatar.png');
+            }
+        };
+        getConversationAvatar(conversation);
+
+    }, [conversation]);
 
     const name = conversation?.isGroup 
         ? conversation?.name 
@@ -30,7 +52,7 @@ export default function ProfileInfo({conversation}: ProfileInfoProps) {
                 <View
                     className="w-24 h-24 rounded-full bg-gradient-to-b from-blue-100 to-blue-200 items-center justify-center">
                     <Image
-                        source={{uri: avatar || 'https://placehold.co/96x96/png'}}
+                        source={{uri: avatarUrl || 'https://example.com/default-avatar.png'}}
                         className="w-24 h-24 rounded-full border-[2.5px] border-white"
                     />
                 </View>
