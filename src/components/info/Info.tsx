@@ -1,56 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
-import {Conversation} from '@/src/models/Conversation';
-import Search from './Search';
-import HeaderInfo from './HeaderInfo';
-import ProfileInfo from './ProfileInfo';
+import { ConversationService } from '@/src/api/services/ConversationService';
+import { useUser } from '@/src/contexts/user/UserContext';
+import { Conversation } from '@/src/models/Conversation';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import ActionsInfo from './ActionsInfo';
-import MediaInfo from './MediaInfo';
 import FilesInfo from './FilesInfo';
-import {Ionicons} from '@expo/vector-icons';
 import GroupInfo from './GroupInfo';
-import {ConversationService} from '@/src/api/services/ConversationService';
-import {useUser} from '@/src/contexts/user/UserContext';
-import {MessageService} from '@/src/api/services/MessageService';
+import HeaderInfo from './HeaderInfo';
+import MediaInfo from './MediaInfo';
+import ProfileInfo from './ProfileInfo';
+import Search from './Search';
 const {Alert} = require('react-native');
-
-// Mockup data cho ảnh đã chia sẻ
-const MOCK_IMAGES = [
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-];
-
-// Mockup data cho files đã chia sẻ
-const MOCK_FILES = [
-    {
-        name: 'Project_Presentation.pdf',
-        size: '2.5 MB',
-        type: 'pdf',
-        date: '15/02/2024',
-    },
-    {
-        name: 'Meeting_Notes.docx',
-        size: '856 KB',
-        type: 'docx',
-        date: '14/02/2024',
-    },
-    {
-        name: 'Budget_2024.xlsx',
-        size: '1.2 MB',
-        type: 'xlsx',
-        date: '13/02/2024',
-    },
-    {
-        name: 'Assets.zip',
-        size: '5.7 MB',
-        type: 'zip',
-        date: '12/02/2024',
-    },
-];
 
 // Props interface cho component Info
 export interface InfoProps {
@@ -141,16 +102,13 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                 <MediaInfo
                     conversationId={selectedChat.id}
                     onViewAll={() => {
-                        /* Implement view all media */
+                        
                     }}
                     onPreviewMedia={(url, type) => {
                         if (type === 'image') {
-                            // Open image viewer
-                            // This could be implemented using the existing FullScreenImageViewer
-                            // or similar component from your ChatArea
+                            
                         } else if (type === 'video') {
-                            // Open video player
-                            // You might need to implement a video player component
+                            
                         }
                     }}
                 />
@@ -162,11 +120,8 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                             onPress={async () => {
                                 let confirmed = false;
                                 if (typeof window !== 'undefined' && window.confirm) {
-                                    // Web: dùng window.confirm
                                     confirmed = window.confirm('Bạn có chắc chắn muốn giải tán nhóm này không?');
                                 } else {
-                                    // Mobile: dùng Alert
-                                    // @ts-ignore
                                     await new Promise<void>((resolve) => {
                                         Alert.alert(
                                             'Xác nhận',
