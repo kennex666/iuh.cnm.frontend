@@ -11,8 +11,8 @@ import {Ionicons} from '@expo/vector-icons';
 import GroupInfo from './GroupInfo';
 import {ConversationService} from '@/src/api/services/ConversationService';
 import {useUser} from '@/src/contexts/user/UserContext';
-import { MessageService } from '@/src/api/services/MessageService';
-const { Alert } = require('react-native');
+import {MessageService} from '@/src/api/services/MessageService';
+const {Alert} = require('react-native');
 
 // Mockup data cho ảnh đã chia sẻ
 const MOCK_IMAGES = [
@@ -30,26 +30,26 @@ const MOCK_FILES = [
         name: 'Project_Presentation.pdf',
         size: '2.5 MB',
         type: 'pdf',
-        date: '15/02/2024'
+        date: '15/02/2024',
     },
     {
         name: 'Meeting_Notes.docx',
         size: '856 KB',
         type: 'docx',
-        date: '14/02/2024'
+        date: '14/02/2024',
     },
     {
         name: 'Budget_2024.xlsx',
         size: '1.2 MB',
         type: 'xlsx',
-        date: '13/02/2024'
+        date: '13/02/2024',
     },
     {
         name: 'Assets.zip',
         size: '5.7 MB',
         type: 'zip',
-        date: '12/02/2024'
-    }
+        date: '12/02/2024',
+    },
 ];
 
 // Props interface cho component Info
@@ -62,12 +62,12 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [conversation, setConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
-    
+
     useEffect(() => {
         if (selectedChat) {
             setConversation(selectedChat);
         }
-    },[selectedChat?.id]);
+    }, [selectedChat?.id]);
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
@@ -76,9 +76,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     const isAdmin = React.useMemo(() => {
         if (!conversation || !user) return false;
 
-        const currentParticipant = conversation.participantInfo?.find(
-            participant => participant.id === user.id
-        );
+        const currentParticipant = conversation.participantInfo?.find((participant) => participant.id === user.id);
 
         return currentParticipant?.role === 'admin';
     }, [conversation, user]);
@@ -122,10 +120,8 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
         return (
             <View className="flex-1 items-center justify-center bg-blue-50/50 rounded-2xl m-4">
                 <View className="bg-white p-6 rounded-2xl shadow-sm items-center">
-                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6"/>
-                    <Text className="text-blue-900 mt-4 text-center">
-                        Chọn một cuộc trò chuyện để xem thông tin chi tiết
-                    </Text>
+                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
+                    <Text className="text-blue-900 mt-4 text-center">Chọn một cuộc trò chuyện để xem thông tin chi tiết</Text>
                 </View>
             </View>
         );
@@ -134,33 +130,31 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     return (
         <View className="flex-1 bg-white">
             <View className="z-10">
-                <HeaderInfo
-                    selectedChat={selectedChat}
-                    isGroup={selectedChat.isGroup}
-                    onBackPress={onBackPress}
-                />
+                <HeaderInfo selectedChat={selectedChat} isGroup={selectedChat.isGroup} onBackPress={onBackPress} />
             </View>
             <ScrollView className="flex-1">
-                <ProfileInfo
-                    conversation={conversation}
-                />
-                <ActionsInfo
-                    selectChat={selectedChat}
-                    setConversation={setConversation}
-                    onSearchPress={handleSearchPress}
-                />
+                <ProfileInfo conversation={conversation} />
+                <ActionsInfo selectChat={selectedChat} setConversation={setConversation} onSearchPress={handleSearchPress} />
                 {selectedChat.isGroup && conversation && conversation.participantIds && (
-                    <GroupInfo
-                        conversation={conversation}
-                    />
+                    <GroupInfo conversation={conversation} />
                 )}
                 <MediaInfo
-                    images={MOCK_IMAGES}
-                />
-                <FilesInfo
                     conversationId={selectedChat.id}
-                    onViewAll={() => {}}
+                    onViewAll={() => {
+                        /* Implement view all media */
+                    }}
+                    onPreviewMedia={(url, type) => {
+                        if (type === 'image') {
+                            // Open image viewer
+                            // This could be implemented using the existing FullScreenImageViewer
+                            // or similar component from your ChatArea
+                        } else if (type === 'video') {
+                            // Open video player
+                            // You might need to implement a video player component
+                        }
+                    }}
                 />
+                <FilesInfo conversationId={selectedChat.id} onViewAll={() => {}} />
                 {selectedChat.isGroup && isAdmin && (
                     <View className="mb-2 pt-2 border-t border-gray-200">
                         <TouchableOpacity
@@ -178,10 +172,24 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                                             'Xác nhận',
                                             'Bạn có chắc chắn muốn giải tán nhóm này không?',
                                             [
-                                                { text: 'Không', style: 'cancel', onPress: () => { confirmed = false; resolve(); } },
-                                                { text: 'Có', style: 'destructive', onPress: () => { confirmed = true; resolve(); } },
+                                                {
+                                                    text: 'Không',
+                                                    style: 'cancel',
+                                                    onPress: () => {
+                                                        confirmed = false;
+                                                        resolve();
+                                                    },
+                                                },
+                                                {
+                                                    text: 'Có',
+                                                    style: 'destructive',
+                                                    onPress: () => {
+                                                        confirmed = true;
+                                                        resolve();
+                                                    },
+                                                },
                                             ],
-                                            { cancelable: true }
+                                            {cancelable: true}
                                         );
                                     });
                                 }
@@ -190,18 +198,14 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                                 }
                             }}
                         >
-                            <Ionicons name="trash-outline" size={18} color="red" className="mr-2"/>
+                            <Ionicons name="trash-outline" size={18} color="red" className="mr-2" />
                             <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>
                         </TouchableOpacity>
                     </View>
                 )}
             </ScrollView>
 
-            <Search
-                isVisible={isSearchVisible}
-                onClose={() => setIsSearchVisible(false)}
-                conversationId={selectedChat.id}
-            />
+            <Search isVisible={isSearchVisible} onClose={() => setIsSearchVisible(false)} conversationId={selectedChat.id} />
         </View>
     );
 }
