@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, Image, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Image, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
+import { router } from 'expo-router';
 
 const SCHOOLS = [
   {
@@ -34,11 +35,27 @@ const SCHOOLS = [
 export default function StudentOnboardingScreen() {
   const [selectedSchool, setSelectedSchool] = useState(SCHOOLS[0].value);
   const [showSchoolList, setShowSchoolList] = useState(false);
-
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [message, setMessage] = useState('');
+  const [chatHistory, setChatHistory] = useState<Array<{text: string, isUser: boolean}>>([]);
 
   const handleWebView = (url: string) => {
     setWebViewUrl(url);
+  };
+
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      setChatHistory([...chatHistory, { text: message, isUser: true }]);
+      // Simulate AI response
+      setTimeout(() => {
+        setChatHistory(prev => [...prev, { 
+          text: "Xin chào! Tôi là trợ lý AI. Tôi có thể giúp gì cho bạn?", 
+          isUser: false 
+        }]);
+      }, 1000);
+      setMessage('');
+    }
   };
 
   if (webViewUrl) {
@@ -51,6 +68,85 @@ export default function StudentOnboardingScreen() {
           <MaterialIcons name="close" size={32} color="#3B82F6" />
         </TouchableOpacity>
         <WebView source={{ uri: webViewUrl }} className="flex-1" />
+      </SafeAreaView>
+    );
+  }
+
+  if (showChat) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1">
+          {/* Header */}
+          <View className="flex-row items-center px-4 py-3 border-b border-gray-200 bg-blue-600">
+            <TouchableOpacity onPress={() => setShowChat(false)}>
+              <MaterialIcons name="arrow-back" size={24} color="white" />
+            </TouchableOpacity>
+            <Text className="ml-4 text-lg font-semibold text-white">Chat với AI về trường học</Text>
+          </View>
+
+          {/* Welcome Message */}
+          {chatHistory.length === 0 && (
+            <View className="flex-1 items-center justify-center px-4">
+              <MaterialCommunityIcons name="robot" size={64} color="#3B82F6" />
+              <Text className="text-xl font-bold text-gray-800 mt-4">Xin chào!</Text>
+              <Text className="text-center text-gray-600 mt-2">
+                Tôi là trợ lý AI. Tôi có thể giúp bạn tìm hiểu thông tin về trường học và giải đáp các thắc mắc của bạn.
+              </Text>
+            </View>
+          )}
+
+          {/* Chat Messages */}
+          <ScrollView 
+            className="flex-1 px-4 py-2"
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
+            {chatHistory.map((msg, index) => (
+              <View
+                key={index}
+                className={`mb-3 max-w-[80%] ${
+                  msg.isUser ? 'self-end' : 'self-start'
+                }`}
+              >
+                <View
+                  className={`rounded-2xl px-4 py-2 ${
+                    msg.isUser ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <Text
+                    className={`text-base ${
+                      msg.isUser ? 'text-white' : 'text-gray-800'
+                    }`}
+                  >
+                    {msg.text}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Input Area - Fixed at bottom */}
+          <View className="border-t border-gray-200 bg-white px-4 py-3">
+            <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
+              <TextInput
+                className="flex-1 text-base"
+                placeholder="Nhập tin nhắn của bạn..."
+                value={message}
+                onChangeText={setMessage}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                onPress={handleSendMessage}
+                className="bg-blue-600 rounded-full p-2 ml-2"
+                disabled={!message.trim()}
+                style={{ opacity: message.trim() ? 1 : 0.5 }}
+              >
+                <MaterialIcons name="send" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View className="h-20"></View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -118,6 +214,16 @@ export default function StudentOnboardingScreen() {
         >
           <View className="py-3 items-center bg-blue-600">
             <Text className="text-white text-lg font-bold">Tham quan</Text>
+          </View>
+        </TouchableOpacity>
+        {/* Chatbot AI */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          className="rounded-xl overflow-hidden mt-2 mb-2"
+          onPress={() => setShowChat(true)}
+        >
+          <View className="py-3 items-center bg-blue-600">
+            <Text className="text-white text-lg font-bold">Giải đáp thắc mắc</Text>
           </View>
         </TouchableOpacity>
       </View>
