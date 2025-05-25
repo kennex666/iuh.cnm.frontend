@@ -17,7 +17,7 @@ type Route = {
 const routes: Route[] = [
     {name: "index", title: "Tin nhắn", icon: "comments"},        
     {name: "contacts", title: "Danh bạ", icon: "address-book"},  
-    {name: "miniapps", title: "Ứng dụng", icon: "th-large"},     
+    {name: "miniapps", title: "Ứng dụng", icon: "th-large"}, 
     {name: "settings", title: "Cài đặt", icon: "gear"},          
 ];
 
