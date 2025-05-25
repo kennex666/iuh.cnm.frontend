@@ -103,6 +103,13 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
                     setDataCall(null);
                 }
             }
+
+            if (message?.type == ("deleted_conversation" as any)) {
+				setConversations((prev) =>
+					prev.filter((conv) => conv.id !== message.conversationId)
+				);
+				return;
+			}
             conversations.forEach((conversation) => {
                 if (conversation.id === message.conversationId) {
                     const updatedConversation = {
