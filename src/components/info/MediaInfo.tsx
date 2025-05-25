@@ -64,31 +64,10 @@ export default function MediaInfo({ conversationId, onViewAll, onPreviewMedia }:
                 }
             };
             
-            // Also listen for attachment sent event for more immediate feedback
-            const handleAttachmentSent = async (data: { success: boolean, messageId: string }) => {
-                if (data.success) {
-                    try {
-                        const messageResponse = await MessageService.getMessages(conversationId);
-                        if (messageResponse.success) {
-                            const message = messageResponse.messages.find(m => m.id === data.messageId);
-                            if (message) {
-                                handleNewMessage(message);
-                            }
-                        }
-                    } catch (error) {
-                        console.error("Error fetching message after attachment sent:", error);
-                    }
-                }
-            };
-            
-            // Register socket listeners
             socketService.onNewMessage(handleNewMessage);
-            // socketService.onAttachmentSent(handleAttachmentSent);
             
-            // Cleanup function to remove listeners
             return () => {
                 socketService.removeMessageListener(handleNewMessage);
-                // socketService.removeAttachmentSentListener(handleAttachmentSent);
             };
         }
     }, [conversationId]);
@@ -105,6 +84,7 @@ export default function MediaInfo({ conversationId, onViewAll, onPreviewMedia }:
             
             if (response.success) {
                 // Lọc các tin nhắn có type là FILE (có thể chứa hình ảnh hoặc video)
+                response.messages.reverse(); // Đảo ngược thứ tự để hiển thị mới nhất trước
                 const mediaMessages = response.messages.filter(
                     msg => msg.type === MessageType.FILE
                 );

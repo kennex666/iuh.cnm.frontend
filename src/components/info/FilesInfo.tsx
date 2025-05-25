@@ -71,31 +71,12 @@ export default function FilesInfo({ conversationId, onViewAll }: FilesInfoProps)
                 }
             };
             
-            // Also listen for attachment sent event
-            const handleAttachmentSent = async (data: { success: boolean, messageId: string }) => {
-                if (data.success) {
-                    try {
-                        const messageResponse = await MessageService.getMessages(conversationId);
-                        if (messageResponse.success) {
-                            const message = messageResponse.messages.find(m => m.id === data.messageId);
-                            if (message) {
-                                handleNewMessage(message);
-                            }
-                        }
-                    } catch (error) {
-                        console.error("Error fetching message after attachment sent:", error);
-                    }
-                }
-            };
-            
             // Register socket listeners
             socketService.onNewMessage(handleNewMessage);
-            // socketService.onAttachmentSent(handleAttachmentSent);
             
             // Cleanup function to remove listeners
             return () => {
                 socketService.removeMessageListener(handleNewMessage);
-                // socketService.removeAttachmentSentListener(handleAttachmentSent);
             };
         }
     }, [conversationId]);
@@ -112,6 +93,7 @@ export default function FilesInfo({ conversationId, onViewAll }: FilesInfoProps)
             
             if (response.success) {
                 // Lọc các tin nhắn có type là FILE
+                response.messages.reverse();
                 const fileMessages = response.messages.filter(msg => msg.type === MessageType.FILE);
                 
                 // Nếu không có tin nhắn file nào
