@@ -8,6 +8,8 @@ import {UserService} from '@/src/api/services/UserService';
 import {User} from '@/src/models/User';
 import { router } from 'expo-router';
 import Toast from '../ui/Toast';
+import { Conversation } from '@/src/models/Conversation';
+import { ConversationService } from '@/src/api/services/ConversationService';
 
 interface FriendInfo extends User {
     friendRequestDate: Date;
@@ -21,17 +23,41 @@ export default function ContactList() {
     const [friends, setFriends] = useState<FriendInfo[]>([]);
     const {user} = useUser();
     const [showProfile, setShowProfile] = useState(false);
-    const [phone , setPhone] = useState<string | null>(null);
+    const [phone, setPhone] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any | null>(null);
     const [friendRemoved, setFriendRemoved] = useState<string | null>(null);
+    const [conversations, setConversations] = useState<Conversation[]>([]);
     const [toast, setToast] = useState({
         visible: false,
         message: '',
         type: 'success' as 'success' | 'error'
     });
 
+        const fetchConversations = async () => {
+            try {
+                const response = await ConversationService.getConversations();
+                if (response.success) {
+                    setConversations(response.conversations);
+                } else {
+                    setError(
+                        response.message || "Failed to fetch conversations"
+                    );
+                }
+            } catch (error) {
+                setError(
+                    error instanceof Error
+                        ? error.message
+                        : "An unknown error occurred"
+                );
+            } finally {
+                console.log("Conversations fetched");
+                setLoading(false);
+            }
+        };
+
     useEffect(() => {
         loadFriendRequests();
+        fetchConversations();
     }, [user]);
 
     useEffect(() => {
@@ -168,6 +194,28 @@ export default function ContactList() {
 
     }
 
+    const skipsMessage = (friendId: string) => {
+        const conversation = conversations.find(convo =>
+            convo.participantIds.some(id => id === friendId) &&
+            convo.participantIds.length === 2
+
+        );
+        if (conversation) {
+            router.push({
+                pathname: '/(main)',
+                params: {
+                    conversationId: conversation.id
+                }
+            });
+        } else {
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy cuộc trò chuyện với người này',
+                type: 'error'
+            });
+        }
+    };
+
     return (
         <View className="flex-1 bg-white">
             {/* Search Bar */}
@@ -230,15 +278,7 @@ export default function ContactList() {
                                     size={28}
                                     color="#0068FF"
                                     style={{}}
-                                    onPress={() => {
-                                        // TODO: Navigate to chat screen with this friend
-                                        router.push({
-                                            pathname: '/(main)',
-                                            params: {
-                                                conversationId: "305322850577810432", // Replace with the actual conversation ID for this friend
-                                            }
-                                        });
-                                    }}
+                                    onPress={() => skipsMessage(friend.id)}
                                 />
                             </View>
                         </View>
@@ -287,11 +327,7 @@ export default function ContactList() {
                         <View className="w-full flex-row justify-center items-center">
                             <TouchableOpacity
                                 className="bg-blue-500 rounded-full px-6 py-2"
-                                onPress={() => {
-                                    router.push({
-                                        pathname: '/(main)'
-                                    });
-                                }}
+                                onPress={() => skipsMessage(userInfo?.id || '')}
                             >
                                 <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" />
                             </TouchableOpacity>
