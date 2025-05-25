@@ -1,6 +1,6 @@
 // src/components/chat/input/ChatInputArea.tsx
 import React, {useState} from 'react';
-import {TextInput, TouchableOpacity, View} from 'react-native';
+import {Platform, TextInput, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
 import EmojiPicker from "./EmojiPicker";
 import StickerPicker from "./StickerPicker";
@@ -49,7 +49,7 @@ const ChatInputArea: React.FC<ChatInputAreaProps> = (
     };
 
     return (
-        <View className="border-t border-gray-200 p-2.5">
+        <View className={`border-t border-gray-200 p-2.5 ${Platform.OS === 'ios' ? 'mb-8' : ''}`}>
             <View className="flex-row items-center position-relative">
                 <TouchableOpacity className="p-1.5" onPress={openFileSelection}>
                     <Ionicons name="add-circle-outline" size={20} color="#0084ff"/>

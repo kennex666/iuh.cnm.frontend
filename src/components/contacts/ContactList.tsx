@@ -23,6 +23,12 @@ export default function ContactList() {
     const [showProfile, setShowProfile] = useState(false);
     const [phone , setPhone] = useState<string | null>(null);
     const [userInfo, setUserInfo] = useState<any | null>(null);
+    const [friendRemoved, setFriendRemoved] = useState<string | null>(null);
+    const [toast, setToast] = useState({
+        visible: false,
+        message: '',
+        type: 'success' as 'success' | 'error'
+    });
 
     useEffect(() => {
         loadFriendRequests();
@@ -111,6 +117,57 @@ export default function ContactList() {
         );
     }
 
+    const removeFriend = async (friendId: string) => {
+        if (!friendId) {
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy yêu cầu kết bạn để xoá',
+                type: 'error'
+            });
+            return;
+        }
+        const ids = filteredRequests.map(request => {
+            if (request.senderId === friendId) {
+                return request.id;
+            } else if (request.receiverId === friendId) {
+                return request.id;
+            }
+        }).filter(id => id !== undefined);
+        if (ids.length === 0) {
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy yêu cầu kết bạn để xoá',
+                type: 'error'
+            });
+            return;
+        }
+        let allSuccess = true;
+        for (const id of ids) {
+            const response = await FriendRequestService.deleteFriendRequest(id as string);
+            if (!response.success) {
+                allSuccess = false;
+            }
+        }
+        if (allSuccess) {
+            setToast({
+                visible: true,
+                message: 'Đã xoá bạn bè thành công',
+                type: 'success'
+            });
+            // Cập nhật danh sách bạn bè sau khi xoá
+            setFriends(friends.filter(friend => friend.id !== friendId));
+            setShowProfile(false);
+        }
+        else {
+            setToast({
+                visible: true,
+                message: 'Xoá bạn bè thất bại',
+                type: 'error'
+            });
+        }
+
+    }
+
     return (
         <View className="flex-1 bg-white">
             {/* Search Bar */}
@@ -141,6 +198,7 @@ export default function ContactList() {
                                 onPress={() => {
                                     setShowProfile(true);
                                     setPhone(friend.phone);
+                                    setFriendRemoved(friend.id);
                                 }}
                             >
                                 <Image
@@ -226,6 +284,25 @@ export default function ContactList() {
                         <Text className="text-base text-gray-500 mb-4">
                             @{userInfo?.username || 'N/A'}
                         </Text>
+                        <View className="w-full flex-row justify-center items-center">
+                            <TouchableOpacity
+                                className="bg-blue-500 rounded-full px-6 py-2"
+                                onPress={() => {
+                                    router.push({
+                                        pathname: '/(main)'
+                                    });
+                                }}
+                            >
+                                <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" />
+                            </TouchableOpacity>
+                            <View className="mx-2" />
+                            <TouchableOpacity
+                                className="bg-red-500 rounded-full px-6 py-2"
+                                onPress={() => removeFriend(userInfo?.id || '')}
+                            >
+                                <Ionicons name="person-remove-outline" size={18} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
                         <View className="w-full mt-2 p-4">
                             <View className="flex-row items-center mb-4">
                                 <Ionicons name="call-outline" size={18} color="#0068FF" />
@@ -279,6 +356,12 @@ export default function ContactList() {
                     </View>
                 </View>
             )}
+            <Toast
+                visible={toast.visible}
+                message={toast.message}
+                type={toast.type}
+                onHide={() => setToast(prev => ({...prev, visible: false}))}
+            />
         </View>
     );
 } 
