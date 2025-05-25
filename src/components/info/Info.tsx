@@ -158,7 +158,8 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
                     images={MOCK_IMAGES}
                 />
                 <FilesInfo
-                    files={MOCK_FILES}
+                    conversationId={selectedChat.id}
+                    onViewAll={() => {}}
                 />
                 {selectedChat.isGroup && isAdmin && (
                     <View className="mb-2 pt-2 border-t border-gray-200">
