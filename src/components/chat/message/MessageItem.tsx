@@ -59,11 +59,17 @@ const MessageItem: React.FC<MessageItemProps> = (
                     setReactions(response.reactions);
                 }
             });
-
         }
     }, [message.id, currentUserId]);
 
     const [currentReaction, setCurrentReaction] = useState<string>();
+    // lay emoij cua nguoi dung hien tai
+    useEffect(() => {
+        if (user && user.id) {
+            setCurrentReaction(reactions[user.id]);
+        }
+    }, [reactions, user]);
+
     const REACTIONS = [
         {id: '1', emoji: '❤️'},     
         {id: '2', emoji: '😊'},      
@@ -74,30 +80,55 @@ const MessageItem: React.FC<MessageItemProps> = (
     ] as const;
 
     const handleSelectReaction = (emoji: string) => {
-        if (currentReaction === emoji) {
+        if (currentReaction === emoji ) {
             // Bỏ chọn reaction
-            setCurrentReaction(undefined);
-            setReactions(prev => {
-                const updated = { ...prev };
-                if (updated[emoji]) {
-                    updated[emoji] = updated[emoji].filter(uid => uid !== currentUserId);
-                    if (updated[emoji].length === 0) delete updated[emoji];
+            setReactions(
+                (prev: Record<string, any[]>) => {
+                    const updated = { ...prev };
+                    if (updated[emoji]) {
+                        updated[emoji] = updated[emoji].filter(id => id !== currentUserId);
+                        if (updated[emoji].length === 0) {
+                            delete updated[emoji];
+                        }
+                    }
+                    return updated;
                 }
-                return updated;
-            });
+            );
             handleReaction(message.id, "");
-        } else {
-            // Chọn reaction mới
-            setCurrentReaction(emoji);
-            setReactions(prev => {
-                const updated = { ...prev };
-                if (!updated[emoji]) updated[emoji] = [];
-                if (!updated[emoji].includes(currentUserId)) updated[emoji].push(currentUserId);
-                return updated;
-            });
-            handleReaction(message.id, emoji); // Gửi lên server sau
-        }
-        setActionReaction(false);
+        } else{
+                // Chọn reaction mới
+                setReactions(
+                    (prev: Record<string, any[]>) => {
+                        for (const key in prev) {
+                            if (prev[key].includes(currentUserId)) {
+                                prev[key] = prev[key].filter(id => id !== currentUserId);
+                                if (prev[key].length === 0) {
+                                    delete prev[key];
+                                }
+                            }
+                        }
+                        const updated = { ...prev };
+                        // Tìm emoij truoc do
+                        for (const key in updated) {
+                            if (updated[key].includes(currentUserId)) {
+                                updated[key] = updated[key].filter(id => id !== currentUserId);
+                                if (updated[key].length === 0) {
+                                    delete updated[key];
+                                }
+                            }
+                        }
+                        if (!updated[emoji]) {
+                            updated[emoji] = [];
+                        }
+                        if (!updated[emoji].includes(currentUserId)) {
+                            updated[emoji].push(currentUserId);
+                        }
+                        return updated;
+                    }
+                );
+                handleReaction(message.id, emoji); // Gửi lên server sau
+            }
+            setActionReaction(false);
     };
     
 
@@ -189,26 +220,29 @@ const MessageItem: React.FC<MessageItemProps> = (
                         )}
 
 
-                        {reactions && Object.keys(reactions).length > 0 && (
-                            <View className="absolute -bottom-4 flex-row items-center bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm border border-gray-100 mt-1 self-end">
-                                <View className="flex-row items-center ">
-                                    {Object.entries(reactions).map(([key, value], index) => (
-                                        <Text key={key} className="text-xs">
-                                            {value as string}
-                                        </Text>
-                                    ))}
-                                </View>
-                                <View className="bg-gray-50 rounded-full ml-1 px-1">
-                                    <Text className="text-xs text-gray-600 font-medium">
-                                        {Object.entries(reactions).length}
-                                    </Text>
-                                </View>
-                            </View>
-                        )}
+                        
 
                     </View>
                     
                 </TouchableOpacity>
+                {reactions && Object.keys(reactions).length > 0 && (
+                    <View className="absolute -bottom-4 flex-row items-center bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm border border-gray-100 mt-1 self-end">
+                        <View className="flex-row items-center ">
+                            {Object.entries(reactions)
+                                .slice(-3)
+                                .map(([key, value], index) => (
+                                    <Text key={key} className="text-xs">
+                                        {REACTIONS.find(reaction => reaction.emoji === key)?.emoji || value as string}
+                                    </Text>
+                                ))}
+                        </View>
+                        <View className="bg-gray-50 rounded-full ml-1 px-1">
+                            <Text className="text-xs text-gray-600 font-medium">
+                                {Object.entries(reactions).length}
+                            </Text>
+                        </View>
+                    </View>
+                )}
                 <View className={`absolute -bottom-0 ${
                                 isSender ? 'right-[100%]' : 'left-[100%]'
                             } bg-white/90 backdrop-blur-sm z-599 rounded-full px-2 py-1 shadow-sm border border-gray-100 self-end flex-row items-center`}>
