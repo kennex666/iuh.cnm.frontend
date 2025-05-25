@@ -120,6 +120,27 @@ import {io, Socket} from 'socket.io-client';
             this.conversationCallbacks = this.conversationCallbacks.filter(cb => cb !== callback);
         }
 
+        public sendChatWithAI(data: { message: string, token: string}): void {
+            if (this.socket) {
+                console.log('Sending chat with AI:', data);
+                this.socket.emit('chatwithAI:send', data);
+            }
+        }
+        public onChatWithAIResponse(callback: (data: { message: string }) => void): void {
+            if (this.socket) {
+                this.socket.on('ai:response', (data: { message: string }) => {
+                    console.log('Received AI response:', data);
+                    callback(data);
+                });
+            }
+        }
+        public removeChatWithAIResponseListener(callback: (data: { message: string }) => void): void {
+            if (this.socket) {
+                this.socket.off('ai:response', callback);
+            }
+        }
+
+
         //==================================
         // Participants management
         //==================================

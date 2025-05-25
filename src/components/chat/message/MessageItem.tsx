@@ -99,14 +99,6 @@ const MessageItem: React.FC<MessageItemProps> = (
                 // Chọn reaction mới
                 setReactions(
                     (prev: Record<string, any[]>) => {
-                        for (const key in prev) {
-                            if (prev[key].includes(currentUserId)) {
-                                prev[key] = prev[key].filter(id => id !== currentUserId);
-                                if (prev[key].length === 0) {
-                                    delete prev[key];
-                                }
-                            }
-                        }
                         const updated = { ...prev };
                         // Tìm emoij truoc do
                         for (const key in updated) {
