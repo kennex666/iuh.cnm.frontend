@@ -48,9 +48,9 @@ export default function AppLayout() {
     };
 
     useEffect(() => {
-        validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
-            setAvatar(validatedAvatar);
-        });
+        // validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
+        //     setAvatar(validatedAvatar);
+        // });
     }, [user?.avatarURL]);
 
     if (isLoading) {
@@ -81,7 +81,7 @@ export default function AppLayout() {
                                 }}
                             >
                                 <Image
-                                    source={avatar}
+                                    source={{uri: user?.avatarURL || ""}}
                                     resizeMode="cover"
                                     className="w-12 h-12 rounded-full border-2 border-blue-100"
                                     style={{width: 48, height: 48}}

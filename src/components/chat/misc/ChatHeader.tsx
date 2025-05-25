@@ -5,6 +5,7 @@ import {MessageService} from "@/src/api/services/MessageService";
 import {Conversation} from "@/src/models/Conversation";
 import SocketService from "@/src/api/services/SocketService";
 import { useUser } from "@/src/contexts/user/UserContext";
+import { UserService } from "@/src/api/services/UserService";
 
 interface ChatHeaderProps {
     selectedChat: Conversation;
@@ -21,10 +22,27 @@ export default function ChatHeader({
                                    }: ChatHeaderProps) {
     {
         const [groups, setGroups] = useState<Conversation | null>(selectedChat);
+        const [avatarUrl, setAvatarUrl] = useState<string>('https://example.com/default-avatar.png');
         useEffect(() => {
             const handleAddParticipant = (updatedConversation: Conversation) => {
                 setGroups(updatedConversation);
             };
+
+            const getConversationAvatar = async (conversation: Conversation) => {
+                if (!conversation.isGroup && conversation.participantIds.length < 3) {
+                    const otherParticipantId = conversation.participantIds.find((id) => id !== user?.id);
+                    const otherParticipant = await UserService.getUserById(otherParticipantId || '');
+                    if (otherParticipant.success && otherParticipant.user) {
+                        // return otherParticipant.user.avatarURL || 'https://example.com/default-avatar.png';
+                        setAvatarUrl(otherParticipant.user.avatarURL || 'https://example.com/default-avatar.png');
+                    }
+                } else {
+                    // return conversation.avatarUrl;
+                    setAvatarUrl(conversation.avatarUrl || 'https://example.com/default-avatar.png');
+                }
+            };
+            getConversationAvatar(selectedChat);
+            
             const socketService = SocketService.getInstance();
             socketService.onParticipantsAddedServer(handleAddParticipant);
             return () => {
@@ -45,6 +63,8 @@ export default function ChatHeader({
                 ? groups.participantInfo.find(p => p.id !== user?.id)?.avatar
                 : null;
 
+        
+
         return (
             <View className="h-14 px-3 border-b border-gray-200 flex-row items-center justify-between">
                 <View className="flex-row items-center flex-1">
@@ -54,7 +74,7 @@ export default function ChatHeader({
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{uri: avatar?.trim() || "https://picsum.photos/200"}}
+                        source={{uri: avatarUrl}}
                         className="w-10 h-10 rounded-full"
                     />
                     <View className="ml-2.5" style={{maxWidth: "45%"}}>

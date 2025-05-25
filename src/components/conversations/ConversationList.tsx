@@ -1,7 +1,7 @@
 import React from 'react';
-import { ScrollView, Text, TouchableOpacity, View, Image } from 'react-native';
-import { Conversation } from "@/src/models/Conversation";
-import { Message } from '@/src/models/Message';
+import {ScrollView, Text, TouchableOpacity, View, Image} from 'react-native';
+import {Conversation} from '@/src/models/Conversation';
+import {Message} from '@/src/models/Message';
 
 interface ConversationListProps {
     conversations: Conversation[];
@@ -23,15 +23,22 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     userId,
     formatTime,
     isReadByMe,
-    getConversationName
+    getConversationName,
 }) => {
-    console.log("Rendering ConversationList with conversations:", conversations);
-    console.log("Selected chat:", selectedChat);
+    console.log('Rendering ConversationList with conversations:', conversations);
+    console.log('Selected chat:', selectedChat);
+
+    const getConversationAvatar = (conversation: Conversation) => {
+        if (!conversation.isGroup && conversation.participantIds.length < 3) {
+            const otherParticipantId = conversation.participantIds.find((id) => id !== userId);
+            return participantAvatars[otherParticipantId || ''] || conversation.avatarUrl;
+        } else {
+            return conversation.avatarUrl;
+        }
+    };
+
     return (
-        <ScrollView 
-            className="flex-1 bg-white"
-            showsVerticalScrollIndicator={false}
-        >
+        <ScrollView className="flex-1 bg-white" showsVerticalScrollIndicator={false}>
             {conversations.length === 0 ? (
                 <View className="p-4">
                     <Text className="text-gray-500 text-center text-sm">
@@ -44,19 +51,12 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                         key={conversation.id}
                         onPress={() => onSelectChat(conversation)}
                         className={`flex-row items-center px-2 py-2 rounded-lg ${
-                            selectedChat?.id === conversation.id
-                                ? 'bg-blue-50'
-                                : 'hover:bg-blue-50'
+                            selectedChat?.id === conversation.id ? 'bg-blue-50' : 'hover:bg-blue-50'
                         }`}
                     >
                         <View className="relative">
                             <Image
-                                source={{
-                                    uri: !conversation.isGroup && conversation.participantIds.length < 3
-                                        ? participantAvatars[conversation.participantIds.find((id) => id !== userId) || ''] || conversation.avatarUrl
-                                        : conversation.avatarUrl,
-                                    headers: { Accept: "image/*" },
-                                }}
+                                source={{uri: getConversationAvatar(conversation)}}
                                 className="w-12 h-12 rounded-full border-2 border-gray-200"
                             />
                             {!conversation.isGroup && conversation.participantIds.length > 0 && (
@@ -66,21 +66,19 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
                         <View className="flex-1 ml-3 py-2">
                             <View className="flex-row items-center justify-between">
-                                <Text 
+                                <Text
                                     className={`text-[15px] ${
-                                        !isReadByMe(conversation)
-                                            ? 'font-bold text-black'
-                                            : 'font-medium text-black'
+                                        !isReadByMe(conversation) ? 'font-bold text-black' : 'font-medium text-black'
                                     }`}
                                     numberOfLines={1}
                                 >
                                     {getConversationName(conversation)}
                                 </Text>
-                                <Text className={`text-xs ${
-                                    !isReadByMe(conversation)
-                                        ? 'text-[#0084FF] font-medium'
-                                        : 'text-gray-500'
-                                }`}>
+                                <Text
+                                    className={`text-xs ${
+                                        !isReadByMe(conversation) ? 'text-[#0084FF] font-medium' : 'text-gray-500'
+                                    }`}
+                                >
                                     {formatTime(conversation.lastMessage?.sentAt as string)}
                                 </Text>
                             </View>
@@ -89,16 +87,12 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                                 <Text
                                     numberOfLines={1}
                                     className={`text-sm flex-1 mr-2 ${
-                                        !isReadByMe(conversation)
-                                            ? 'text-black font-medium'
-                                            : 'text-gray-500'
+                                        !isReadByMe(conversation) ? 'text-black font-medium' : 'text-gray-500'
                                     }`}
                                 >
                                     {conversation.lastMessage?.content || 'Bắt đầu cuộc trò chuyện'}
                                 </Text>
-                                {!isReadByMe(conversation) && (
-                                    <View className="w-3 h-3 rounded-full bg-[#0084FF]" />
-                                )}
+                                {!isReadByMe(conversation) && <View className="w-3 h-3 rounded-full bg-[#0084FF]" />}
                             </View>
                         </View>
                     </TouchableOpacity>
@@ -106,4 +100,4 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             )}
         </ScrollView>
     );
-}; 
+};
