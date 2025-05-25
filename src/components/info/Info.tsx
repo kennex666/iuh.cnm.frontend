@@ -101,6 +101,27 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
         }
     };
 
+    
+    const handleLeftGroup = async () => {
+		console.log("Left group:", selectedChat?.id);
+		try {
+			if (!selectedChat?.id) {
+				console.error("Conversation ID is undefined");
+				return;
+			}
+			const response = await ConversationService.leftConversation(
+				selectedChat?.id
+			);
+			if (response.success) {
+				console.log("Group left successfully");
+			} else {
+				console.error("Error left group:", response.message);
+			}
+		} catch (error) {
+			console.error("Error left group:", error);
+		}
+	};
+
     // Helper function để lấy icon cho từng loại file
     const getFileIcon = (type: string) => {
         switch (type) {
@@ -132,75 +153,156 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     }
 
     return (
-        <View className="flex-1 bg-white">
-            <View className="z-10">
-                <HeaderInfo
-                    selectedChat={selectedChat}
-                    isGroup={selectedChat.isGroup}
-                    onBackPress={onBackPress}
-                />
-            </View>
-            <ScrollView className="flex-1">
-                <ProfileInfo
-                    conversation={conversation}
-                />
-                <ActionsInfo
-                    selectChat={selectedChat}
-                    setConversation={setConversation}
-                    onSearchPress={handleSearchPress}
-                />
-                {selectedChat.isGroup && conversation && conversation.participantIds && (
-                    <GroupInfo
-                        conversation={conversation}
-                    />
-                )}
-                <MediaInfo
-                    images={MOCK_IMAGES}
-                />
-                <FilesInfo
-                    files={MOCK_FILES}
-                />
-                {selectedChat.isGroup && isAdmin && (
-                    <View className="mb-2 pt-2 border-t border-gray-200">
-                        <TouchableOpacity
-                            className="flex-row items-center px-4 py-2 rounded-xl"
-                            onPress={async () => {
-                                let confirmed = false;
-                                if (typeof window !== 'undefined' && window.confirm) {
-                                    // Web: dùng window.confirm
-                                    confirmed = window.confirm('Bạn có chắc chắn muốn giải tán nhóm này không?');
-                                } else {
-                                    // Mobile: dùng Alert
-                                    // @ts-ignore
-                                    await new Promise<void>((resolve) => {
-                                        Alert.alert(
-                                            'Xác nhận',
-                                            'Bạn có chắc chắn muốn giải tán nhóm này không?',
-                                            [
-                                                { text: 'Không', style: 'cancel', onPress: () => { confirmed = false; resolve(); } },
-                                                { text: 'Có', style: 'destructive', onPress: () => { confirmed = true; resolve(); } },
-                                            ],
-                                            { cancelable: true }
-                                        );
-                                    });
-                                }
-                                if (confirmed) {
-                                    await handleDisbandGroup();
-                                }
-                            }}
-                        >
-                            <Ionicons name="trash-outline" size={18} color="red" className="mr-2"/>
-                            <Text className="text-red-500 font-semibold text-sm">Giải tán nhóm</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </ScrollView>
+		<View className="flex-1 bg-white">
+			<View className="z-10">
+				<HeaderInfo
+					selectedChat={selectedChat}
+					isGroup={selectedChat.isGroup}
+					onBackPress={onBackPress}
+				/>
+			</View>
+			<ScrollView className="flex-1">
+				<ProfileInfo conversation={conversation} />
+				<ActionsInfo
+					selectChat={selectedChat}
+					setConversation={setConversation}
+					onSearchPress={handleSearchPress}
+				/>
+				{selectedChat.isGroup &&
+					conversation &&
+					conversation.participantIds && (
+						<GroupInfo conversation={conversation} />
+					)}
+				<MediaInfo images={MOCK_IMAGES} />
+				<FilesInfo files={MOCK_FILES} />
+				{selectedChat.isGroup && isAdmin && (
+					<View className="mb-2 pt-2 border-t border-gray-200">
+						<TouchableOpacity
+							className="flex-row items-center px-4 py-2 rounded-xl"
+							onPress={async () => {
+								let confirmed = false;
+								if (
+									typeof window !== "undefined" &&
+									window.confirm
+								) {
+									// Web: dùng window.confirm
+									confirmed = window.confirm(
+										"Bạn có chắc chắn muốn giải tán nhóm này không?"
+									);
+								} else {
+									// Mobile: dùng Alert
+									// @ts-ignore
+									await new Promise<void>((resolve) => {
+										Alert.alert(
+											"Xác nhận",
+											"Bạn có chắc chắn muốn giải tán nhóm này không?",
+											[
+												{
+													text: "Không",
+													style: "cancel",
+													onPress: () => {
+														confirmed = false;
+														resolve();
+													},
+												},
+												{
+													text: "Có",
+													style: "destructive",
+													onPress: () => {
+														confirmed = true;
+														resolve();
+													},
+												},
+											],
+											{ cancelable: true }
+										);
+									});
+								}
+								if (confirmed) {
+									await handleDisbandGroup();
+								}
+							}}
+						>
+							<Ionicons
+								name="trash-outline"
+								size={18}
+								color="red"
+								className="mr-2"
+							/>
+							<Text className="text-red-500 font-semibold text-sm">
+								Giải tán nhóm
+							</Text>
+						</TouchableOpacity>
+					</View>
+				)}
 
-            <Search
-                isVisible={isSearchVisible}
-                onClose={() => setIsSearchVisible(false)}
-                conversationId={selectedChat.id}
-            />
-        </View>
-    );
+				{selectedChat.isGroup && !isAdmin && (
+					<View className="mb-2 pt-2 border-t border-gray-200">
+						<TouchableOpacity
+							className="flex-row items-center px-4 py-2 rounded-xl"
+							onPress={async () => {
+								let confirmed = false;
+								if (
+									typeof window !== "undefined" &&
+									window.confirm
+								) {
+									// Web: dùng window.confirm
+									confirmed = window.confirm(
+										"Bạn có chắc chắn muốn rời nhóm này không?"
+									);
+								} else {
+									// Mobile: dùng Alert
+									// @ts-ignore
+									await new Promise<void>((resolve) => {
+										Alert.alert(
+											"Xác nhận",
+											"Bạn có chắc chắn muốn rời nhóm này không?",
+											[
+												{
+													text: "Không",
+													style: "cancel",
+													onPress: () => {
+														confirmed = false;
+														resolve();
+													},
+												},
+												{
+													text: "Có",
+													style: "destructive",
+													onPress: () => {
+														confirmed = true;
+														resolve();
+													},
+												},
+											],
+											{ cancelable: true }
+										);
+									});
+								}
+								if (confirmed) {
+									await handleLeftGroup();
+								}
+							}}
+						>
+							<Ionicons
+								name="trash-outline"
+								size={18}
+								color="red"
+								className="mr-2"
+							/>
+							<Text className="text-red-500 font-semibold text-sm">
+								Rời nhóm
+							</Text>
+						</TouchableOpacity>
+					</View>
+				)}
+			</ScrollView>
+
+			<Search
+				isVisible={isSearchVisible}
+				onClose={() => setIsSearchVisible(false)}
+				conversationId={selectedChat.id}
+			/>
+		</View>
+	);
 }

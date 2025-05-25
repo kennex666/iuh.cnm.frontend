@@ -110,6 +110,17 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
 				);
 				return;
 			}
+
+            if (message?.type == MessageType.LEFT_CONVERSATION) {
+				if (message.senderId == user?.id) {
+					setConversations((prev) =>
+						prev.filter(
+							(conv) => conv.id !== message.conversationId
+						)
+					);
+					return;
+				}
+			}
             conversations.forEach((conversation) => {
                 if (conversation.id === message.conversationId) {
                     const updatedConversation = {

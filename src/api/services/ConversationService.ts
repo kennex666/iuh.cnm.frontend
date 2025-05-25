@@ -3,481 +3,570 @@ import {Conversation} from "@/src/models/Conversation";
 import {BaseService} from "@/src/api/services/BaseService";
 
 interface ConversationService {
-    getConversations: () => Promise<{
-        success: boolean;
-        conversations: Conversation[];
-        message: string;
-    }>;
-    getConversationById: (id: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    createConversation: (conversation: Conversation) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    updateConversation: (id: string, conversation: Conversation) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    deleteConversation: (id: string) => Promise<{
-        success: boolean;
-        message: string;
-    }>;
-    addParticipants: (conversationId: string, participantIds: string[]) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    removeParticipants: (conversationId: string, participantIds: string[]) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    removeModRole: (conversationId: string, userId: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    transferAdmin: (conversationId: string, newAdminId: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    grantModRole: (conversationId: string, userId: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    updateAllowMessaging: (conversationId: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    pinMessage: (conversationId: string, messageId: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
-    joinGroupByUrl: (url: string) => Promise<{
-        success: boolean;
-        conversation: Conversation;
-        message: string;
-    }>;
+	getConversations: () => Promise<{
+		success: boolean;
+		conversations: Conversation[];
+		message: string;
+	}>;
+	getConversationById: (id: string) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	createConversation: (conversation: Conversation) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	updateConversation: (
+		id: string,
+		conversation: Conversation
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	deleteConversation: (id: string) => Promise<{
+		success: boolean;
+		message: string;
+	}>;
+	leftConversation: (id: string) => Promise<{
+		success: boolean;
+		message: string;
+	}>;
+	addParticipants: (
+		conversationId: string,
+		participantIds: string[]
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	removeParticipants: (
+		conversationId: string,
+		participantIds: string[]
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	removeModRole: (
+		conversationId: string,
+		userId: string
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	transferAdmin: (
+		conversationId: string,
+		newAdminId: string
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	grantModRole: (
+		conversationId: string,
+		userId: string
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	updateAllowMessaging: (conversationId: string) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	pinMessage: (
+		conversationId: string,
+		messageId: string
+	) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
+	joinGroupByUrl: (url: string) => Promise<{
+		success: boolean;
+		conversation: Conversation;
+		message: string;
+	}>;
 }
 
 export const ConversationService: ConversationService = {
-    async getConversations() {
-        try {
-            const response = await BaseService.authenticatedRequest<any[]>('get', ApiEndpoints.API_CONVERSATION);
+	async getConversations() {
+		try {
+			const response = await BaseService.authenticatedRequest<any[]>(
+				"get",
+				ApiEndpoints.API_CONVERSATION
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversations: [],
-                    message: response.message
-                };
-            }
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversations: [],
+					message: response.message,
+				};
+			}
 
-            const conversations = response.data.map(mapApiConversationToModel);
+			const conversations = response.data.map(mapApiConversationToModel);
 
-            return {
-                success: true,
-                conversations,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error("Error fetching conversations:", error);
-            return {
-                success: false,
-                conversations: [],
-                message: error.message || "Failed to fetch conversations"
-            };
-        }
-    },
+			return {
+				success: true,
+				conversations,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error("Error fetching conversations:", error);
+			return {
+				success: false,
+				conversations: [],
+				message: error.message || "Failed to fetch conversations",
+			};
+		}
+	},
 
-    async getConversationById(id: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>('get', `${ApiEndpoints.API_CONVERSATION}/${id}`);
+	async getConversationById(id: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"get",
+				`${ApiEndpoints.API_CONVERSATION}/${id}`
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-            const apiConv = response.data._doc || response.data;
-            const conversation = mapApiConversationToModel(apiConv);
+			const apiConv = response.data._doc || response.data;
+			const conversation = mapApiConversationToModel(apiConv);
 
-            return {
-                success: true,
-                conversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error fetching conversation ${id}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to fetch conversation"
-            };
-        }
-    },
+			return {
+				success: true,
+				conversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(`Error fetching conversation ${id}:`, error);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to fetch conversation",
+			};
+		}
+	},
 
-    async createConversation(conversation: Conversation) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'post',
-                ApiEndpoints.API_CONVERSATION,
-                conversation
-            );
+	async createConversation(conversation: Conversation) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"post",
+				ApiEndpoints.API_CONVERSATION,
+				conversation
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-            const newConversation = mapApiConversationToModel(response.data);
+			const newConversation = mapApiConversationToModel(response.data);
 
-            return {
-                success: true,
-                conversation: newConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error("Error creating conversation:", error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to create conversation"
-            };
-        }
-    },
+			return {
+				success: true,
+				conversation: newConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error("Error creating conversation:", error);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to create conversation",
+			};
+		}
+	},
 
-    async updateConversation(id: string, conversation: Conversation) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/${id}`,
-                conversation
-            );
+	async updateConversation(id: string, conversation: Conversation) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/${id}`,
+				conversation
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error updating conversation ${id}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to update conversation"
-            };
-        }
-    },
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(`Error updating conversation ${id}:`, error);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to update conversation",
+			};
+		}
+	},
 
-    async deleteConversation(id: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<void>(
-                'delete',
-                `${ApiEndpoints.API_CONVERSATION}/${id}`
-            );
+	async deleteConversation(id: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<void>(
+				"delete",
+				`${ApiEndpoints.API_CONVERSATION}/${id}`
+			);
 
-            return {
-                success: response.success,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error deleting conversation ${id}:`, error);
-            return {
-                success: false,
-                message: error.message || "Failed to delete conversation"
-            };
-        }
-    },
+			return {
+				success: response.success,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(`Error deleting conversation ${id}:`, error);
+			return {
+				success: false,
+				message: error.message || "Failed to delete conversation",
+			};
+		}
+	},
 
-    async addParticipants(conversationId: string, participantIds: string[]) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/add-participants/${conversationId}`,
-                {participantIds}
-            );
+	async leftConversation(id: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<void>(
+				"get",
+				`${ApiEndpoints.API_CONVERSATION}/left/${id}`
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: response.success,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(`Error deleting conversation ${id}:`, error);
+			return {
+				success: false,
+				message: error.message || "Failed to delete conversation",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async addParticipants(conversationId: string, participantIds: string[]) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/add-participants/${conversationId}`,
+				{ participantIds }
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error adding participants to conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to add participants"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async removeParticipants(conversationId: string, participantIds: string[]) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/remove-participants/${conversationId}`,
-                {participantIds}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error adding participants to conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to add participants",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async removeParticipants(conversationId: string, participantIds: string[]) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/remove-participants/${conversationId}`,
+				{ participantIds }
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error removing participants from conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to remove participants"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async removeModRole(conversationId: string, userId: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/remove-mod-role/${conversationId}`,
-                {toUserId: userId}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error removing participants from conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to remove participants",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async removeModRole(conversationId: string, userId: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/remove-mod-role/${conversationId}`,
+				{ toUserId: userId }
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error removing mod role in conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to remove mod role"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async transferAdmin(conversationId: string, newAdminId: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/transfer-admin/${conversationId}`,
-                {toUserId: newAdminId}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error removing mod role in conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to remove mod role",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async transferAdmin(conversationId: string, newAdminId: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/transfer-admin/${conversationId}`,
+				{ toUserId: newAdminId }
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error transferring admin role in conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to transfer admin role"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async grantModRole(conversationId: string, userId: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/grant-mod-role/${conversationId}`,
-                {toUserId: userId}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error transferring admin role in conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to transfer admin role",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async grantModRole(conversationId: string, userId: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/grant-mod-role/${conversationId}`,
+				{ toUserId: userId }
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error granting mod role in conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to grant mod role"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async updateAllowMessaging(conversationId: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/update-allow-messaging/${conversationId}`,
-                {}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error granting mod role in conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to grant mod role",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async updateAllowMessaging(conversationId: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/update-allow-messaging/${conversationId}`,
+				{}
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error updating messaging permission in conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to update messaging permission"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async pinMessage(conversationId: string, messageId: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/pin-message/${conversationId}`,
-                {messageId}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error updating messaging permission in conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message:
+					error.message || "Failed to update messaging permission",
+			};
+		}
+	},
 
-            const updatedConversation = mapApiConversationToModel(response.data);
+	async pinMessage(conversationId: string, messageId: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/pin-message/${conversationId}`,
+				{ messageId }
+			);
 
-            return {
-                success: true,
-                conversation: updatedConversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error(`Error pinning message in conversation ${conversationId}:`, error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to pin message"
-            };
-        }
-    },
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
 
-    async joinGroupByUrl(url: string) {
-        try {
-            const response = await BaseService.authenticatedRequest<any>(
-                'put',
-                `${ApiEndpoints.API_CONVERSATION}/join-group-by-url`,
-                {url}
-            );
+			const updatedConversation = mapApiConversationToModel(
+				response.data
+			);
 
-            if (!response.success || !response.data) {
-                return {
-                    success: false,
-                    conversation: {} as Conversation,
-                    message: response.message
-                };
-            }
+			return {
+				success: true,
+				conversation: updatedConversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error(
+				`Error pinning message in conversation ${conversationId}:`,
+				error
+			);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to pin message",
+			};
+		}
+	},
 
-            const conversation = mapApiConversationToModel(response.data);
+	async joinGroupByUrl(url: string) {
+		try {
+			const response = await BaseService.authenticatedRequest<any>(
+				"put",
+				`${ApiEndpoints.API_CONVERSATION}/join-group-by-url`,
+				{ url }
+			);
 
-            return {
-                success: true,
-                conversation,
-                message: response.message
-            };
-        } catch (error: any) {
-            console.error("Error joining group by URL:", error);
-            return {
-                success: false,
-                conversation: {} as Conversation,
-                message: error.message || "Failed to join group"
-            };
-        }
-    }
+			if (!response.success || !response.data) {
+				return {
+					success: false,
+					conversation: {} as Conversation,
+					message: response.message,
+				};
+			}
+
+			const conversation = mapApiConversationToModel(response.data);
+
+			return {
+				success: true,
+				conversation,
+				message: response.message,
+			};
+		} catch (error: any) {
+			console.error("Error joining group by URL:", error);
+			return {
+				success: false,
+				conversation: {} as Conversation,
+				message: error.message || "Failed to join group",
+			};
+		}
+	},
 };
 
 function mapApiConversationToModel(apiConv: any): Conversation {

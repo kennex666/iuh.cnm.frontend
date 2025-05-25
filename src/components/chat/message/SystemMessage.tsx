@@ -3,7 +3,7 @@ import {Text, View} from 'react-native';
 import {Message} from "@/src/models/Message";
 
 interface SystemMessageProps {
-    message: Message;
+    message: any;
     isHighlighted: boolean;
     onLayout: (event: any) => void;
 }
@@ -17,17 +17,14 @@ const SystemMessage: React.FC<SystemMessageProps> = (
     return (
         <View
             key={message.id}
-            className="flex-row justify-center mb-4"
+            className="flex-row justify-center"
             onLayout={onLayout}
         >
-            <View className={`bg-gray-100 rounded-lg px-4 py-2 max-w-[80%] items-center ${
-                isHighlighted ? "bg-yellow-100 border border-yellow-300" : ""
+            <View className={`py-2 max-w-[80%] items-center ${
+                isHighlighted ? "text-yellow-600" : ""
             }`}>
-                <Text className="text-gray-500 text-xs mb-1">
-                    System Message
-                </Text>
                 <Text className="text-gray-800 text-center">
-                    {message.content}
+                    {message?.content || message || "Phiên bản đã cũ, vui lòng cập nhật"}
                 </Text>
             </View>
         </View>
