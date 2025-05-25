@@ -114,7 +114,7 @@ export default function FriendRequestList() {
         setSearchQuery(query);
         //reset
         setSearchResults([]);
-        if (query.length < 2) {
+        if (query.length < 10) {
             setSearchResults([]);
             return;
         }
