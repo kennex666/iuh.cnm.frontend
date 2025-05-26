@@ -18,9 +18,11 @@ const {Alert} = require('react-native');
 export interface InfoProps {
     selectedChat: Conversation | null;
     onBackPress?: () => void;
+    onScrollToMessage?: (messageId: string) => void;
+    onConversationUpdate?: (updatedConversation: Conversation) => void;
 }
 
-export default function Info({selectedChat, onBackPress}: InfoProps) {
+export default function Info({selectedChat, onBackPress, onScrollToMessage, onConversationUpdate}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [conversation, setConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
@@ -82,6 +84,10 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
 		}
 	};
 
+	const handleConversationUpdate = (updatedConversation: Conversation) => {
+		setConversation(updatedConversation);
+	};
+
     // Helper function để lấy icon cho từng loại file
     const getFileIcon = (type: string) => {
         switch (type) {
@@ -120,7 +126,10 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
 				/>
 			</View>
 			<ScrollView className="flex-1">
-				<ProfileInfo conversation={conversation} />
+				<ProfileInfo 
+					conversation={conversation} 
+					onConversationUpdate={onConversationUpdate} 
+				/>
 				<ActionsInfo
 					selectChat={selectedChat}
 					setConversation={setConversation}
@@ -272,6 +281,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
 				isVisible={isSearchVisible}
 				onClose={() => setIsSearchVisible(false)}
 				conversationId={selectedChat.id}
+				onSelectMessage={onScrollToMessage}
 			/>
 		</View>
 	);

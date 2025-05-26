@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState, useRef} from 'react';
 import {Linking, useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/conversations/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
@@ -29,6 +29,9 @@ export default function MessagesScreen() {
     const [linkCall, setLinkCall] = useState<string | null>(null);
     const [dataCall, setDataCall] = useState<any>(null);
     const [conversationsForCall, setConversationsForCall] = useState<Conversation[]>([]);
+    
+    // New ref for scrolling to messages
+    const messageScrollRef = useRef<{ scrollToMessage?: (messageId: string) => void }>({}); 
 
     const handleBackPress = () => {
         if (showInfo) {
@@ -40,6 +43,22 @@ export default function MessagesScreen() {
 
     const handleInfoPress = () => {
         setShowInfo(true);
+    };
+    
+    // New function to handle scrolling to a message
+    const handleScrollToMessage = (messageId: string) => {
+        if (messageScrollRef.current.scrollToMessage) {
+            messageScrollRef.current.scrollToMessage(messageId);
+        }
+    };
+
+    const handleConversationUpdate = (updatedConversation: Conversation) => {
+        setSelectedChat(prevChat => {
+            if (prevChat && prevChat.id === updatedConversation.id) {
+                return updatedConversation;
+            }
+            return prevChat;
+        });
     };
 
     useEffect(() => {
@@ -60,9 +79,9 @@ export default function MessagesScreen() {
 
     useEffect(() => {
         if (!isDesktop && selectedChat) {
-			hideTabBar();
-			return () => showTabBar(); // khi unmount thì hiện lại
-		}
+            hideTabBar();
+            return () => showTabBar(); // khi unmount thì hiện lại
+        }
     }, [selectedChat]);
 
     useEffect(() => {
@@ -127,13 +146,17 @@ export default function MessagesScreen() {
                     <ChatArea
                         selectedChat={selectedChat}
                         onInfoPress={handleInfoPress}
+                        scrollRef={messageScrollRef}
                     />
                 </View>
 
                 {/* Right Column - Info (25%) */}
                 <View className="w-[25%]">
                     <View className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
-                        <Info selectedChat={selectedChat}/>
+                        <Info 
+                            selectedChat={selectedChat}
+                            onScrollToMessage={handleScrollToMessage}
+                        />
                     </View>
                 </View>
             </View>
@@ -160,6 +183,7 @@ export default function MessagesScreen() {
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}
                         onInfoPress={handleInfoPress}
+                        scrollRef={messageScrollRef}
                     />
                 </View>
             )}
@@ -167,9 +191,11 @@ export default function MessagesScreen() {
             {selectedChat && showInfo && (
                 <View className='flex-1'>
                     <View className='h-8'></View>
-                    <Info
+                    <Info 
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}
+                        onScrollToMessage={handleScrollToMessage}
+                        onConversationUpdate={handleConversationUpdate}
                     />
                 </View>
             )}

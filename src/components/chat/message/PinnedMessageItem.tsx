@@ -1,4 +1,3 @@
-// src/components/chat/pinned/PinnedMessageItem.tsx
 import React from 'react';
 import {Image, Text, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
@@ -8,14 +7,26 @@ interface PinnedMessageItemProps {
     message: Message;
     sender: any;
     onPress: () => void;
+    onUnpin?: (messageId: string) => void;
+    canUnpin?: boolean;
 }
 
 const PinnedMessageItem: React.FC<PinnedMessageItemProps> = (
     {
         message,
         sender,
-        onPress
+        onPress,
+        onUnpin,
+        canUnpin = true
     }) => {
+    
+    const handleUnpin = (e: any) => {
+        e.stopPropagation();
+        if (onUnpin) {
+            onUnpin(message.id);
+        }
+    };
+    
     return (
         <TouchableOpacity
             className="p-3 border-b border-gray-100 active:bg-gray-50"
@@ -40,7 +51,19 @@ const PinnedMessageItem: React.FC<PinnedMessageItemProps> = (
                         {message.content}
                     </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#666"/>
+                
+                <View className="flex-row items-center">
+                    {canUnpin && (
+                        <TouchableOpacity 
+                            onPress={handleUnpin}
+                            className="mr-2 p-1"
+                            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                        >
+                            <Ionicons name="close-circle-outline" size={18} color="#ef4444" />
+                        </TouchableOpacity>
+                    )}
+                    <Ionicons name="chevron-forward" size={16} color="#666"/>
+                </View>
             </View>
         </TouchableOpacity>
     );

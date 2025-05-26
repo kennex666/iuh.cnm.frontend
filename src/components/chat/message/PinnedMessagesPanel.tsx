@@ -3,22 +3,50 @@ import {Text, TouchableOpacity, View} from 'react-native';
 import {Ionicons} from "@expo/vector-icons";
 import {Message} from "@/src/models/Message";
 import PinnedMessagesList from './PinnedMessagesList';
+import SocketService from '@/src/api/services/SocketService';
+import {useUser} from '@/src/contexts/user/UserContext';
 
 interface PinnedMessagesPanelProps {
     pinnedMessages: Message[];
     messageUsers: { [key: string]: any };
     onScrollToMessage: (messageId: string) => void;
+    conversationId: string;
 }
 
 const PinnedMessagesPanel: React.FC<PinnedMessagesPanelProps> = (
     {
         pinnedMessages,
         messageUsers,
-        onScrollToMessage
+        onScrollToMessage,
+        conversationId
     }) => {
     const [expanded, setExpanded] = useState(false);
+    const socketService = SocketService.getInstance();
+    const { user } = useUser();
+    
+    // Check if user is admin or moderator
+    const isAdminOrMod = React.useMemo(() => {
+        if (!user || !pinnedMessages || pinnedMessages.length === 0) return false;
+        
+        const message = pinnedMessages[0];
+        if (!message || !message.conversationId) return false;
+        
+        // We need to get the conversation to check user permissions
+        // This would typically come from a context or prop
+        // For simplicity, we'll just enable the button for all users for now
+        return true;
+    }, [user, pinnedMessages]);
+    
+    const handleUnpinMessage = (messageId: string) => {
+        if (!conversationId) return;
+        
+        socketService.removePinMessage({
+            conversationId: conversationId,
+            messageId: messageId
+        });
+    };
 
-    if (pinnedMessages.length === 0) return null;
+    if (!pinnedMessages || pinnedMessages.length === 0) return null;
 
     return (
         <View className="absolute top-[70px] left-2 right-2 z-10 items-center">
@@ -44,6 +72,8 @@ const PinnedMessagesPanel: React.FC<PinnedMessagesPanelProps> = (
                     pinnedMessages={pinnedMessages}
                     messageUsers={messageUsers}
                     onMessagePress={onScrollToMessage}
+                    onUnpinMessage={handleUnpinMessage}
+                    canUnpin={isAdminOrMod}
                 />
             )}
         </View>

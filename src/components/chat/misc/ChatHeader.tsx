@@ -28,6 +28,12 @@ export default function ChatHeader({
                 setGroups(updatedConversation);
             };
 
+            const handleConversationRenamed = (data: { conversationId: string, newName: string }) => {
+                if (selectedChat.id === data.conversationId) {
+                    setGroups(prev => prev ? { ...prev, name: data.newName } : prev);
+                }
+            };
+
             const getConversationAvatar = async (conversation: Conversation) => {
                 if (!conversation.isGroup && conversation.participantIds.length < 3) {
                     const otherParticipantId = conversation.participantIds.find((id) => id !== user?.id);
@@ -45,8 +51,10 @@ export default function ChatHeader({
             
             const socketService = SocketService.getInstance();
             socketService.onParticipantsAddedServer(handleAddParticipant);
+            socketService.onConversationRenamed(handleConversationRenamed);
             return () => {
                 socketService.removeParticipantsAddedServer(handleAddParticipant);
+                socketService.removeConversationRenamedListener(handleConversationRenamed);
             };
         }, [selectedChat]);
 
