@@ -33,6 +33,17 @@ export interface MessageService {
         messages: Message[];
         statusMessage: string;
     }>;
+    getReactions?: (messageId: string) => Promise<{
+        success: boolean;
+        reactions: any[];
+        statusMessage: string;
+    }>;
+
+    reactMessage?: (messageId: string, reactionId: string) => Promise<{
+        success: boolean;
+        reaction: any;
+        statusMessage: string;
+    }>;
 }
 
 export const MessageService: MessageService = {
@@ -207,6 +218,67 @@ export const MessageService: MessageService = {
                 success: false,
                 messages: [],
                 statusMessage: error.message || "Failed to reject call"
+            };
+        }
+    },
+
+    // Optional methods for reactions can be added here
+    async getReactions(messageId: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_MESSAGE}/reactions/${messageId}`
+            );
+
+            if (!response.success) {
+                return {
+                    success: false,
+                    reactions: {},
+                    statusMessage: response.message || "Failed to fetch reactions"
+                };
+            }
+            return {
+                success: true,
+                reactions: response.data || {},
+                statusMessage: response.message || "Reactions fetched successfully"
+            };
+        } catch (error: any) {
+            console.error("Error fetching reactions:", error);
+            return {
+                success: false,
+                reactions: {},
+                statusMessage: error.message || "Failed to fetch reactions"
+            };
+        }
+    },
+
+    async reactMessage(messageId: string, reactionType: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'post',
+                `http://localhost:8087/api/messages/reactions/${messageId}`,
+                {reactionType}
+            );
+            
+            if (!response.success || !response.data) {
+                return {
+                    success: false,
+                    reaction: null,
+                    statusMessage: response.message || "Failed to react to message"
+                };
+            }
+
+            return {
+                success: true,
+                reaction: response.data,
+                statusMessage: response.message || "Reaction added successfully"
+            };
+        } catch (error: any) {
+            console.error("Error reacting to message:", error);
+            return {
+                success: false,
+                reaction: null,
+                statusMessage: error.message || "Failed to react to message"
             };
         }
     }

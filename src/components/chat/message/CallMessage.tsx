@@ -12,7 +12,7 @@ const CallMessage: React.FC<CallMessageProps> = (
         isSender
     }) => {
     return (
-        <Text className={isSender ? "text-white" : "text-gray-900"}>
+        <Text className={isSender ? "text-blue" : "text-gray-900"}>
             {content === "start" ? "📞 Cuộc gọi đang bắt đầu" : "📴 Cuộc gọi đã kết thúc"}
         </Text>
     );
