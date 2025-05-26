@@ -107,13 +107,22 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 return;
             }
 
+            const newAvatarUrl = response.data.data.avatarUrl;
+            setAvatar({uri: newAvatarUrl});
+
+            delete fetchedUser?.email; 
+
+            await update({
+                ...fetchedUser,
+                avatarURL: newAvatarUrl
+            });
+
             setToast({
                 visible: true,
                 message: result.message,
                 type: 'success'
             });
 
-            setAvatar({uri: response.data.data.avatarUrl});
         }
     };
 
@@ -141,6 +150,16 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 });
                 return;
             }
+
+            const newCoverUrl = response.data.data.coverUrl;
+            setCover({uri: newCoverUrl});
+            
+            delete fetchedUser?.email;
+
+            await update({
+                ...fetchedUser,
+                coverURL: newCoverUrl
+            });
 
             setToast({
                 visible: true,

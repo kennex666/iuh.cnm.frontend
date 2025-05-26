@@ -105,7 +105,9 @@ export const UserProvider = ({children}: UserProviderProps) => {
     };
 
     const handleUpdate = async (updatedUser: Partial<User>): Promise<ApiResponse> => {
+        console.log('Updating user:', updatedUser);
         const result = await UserManager.updateUser(updatedUser);
+        console.log('Update result:', result);
 
         if (result.success && result.data) {
             setUser(result.data);
