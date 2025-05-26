@@ -184,28 +184,29 @@ const FileMessageContent = ({messageId, fileName, isSender, getAttachment, onIma
     // Xử lý hiển thị hình ảnh
     if (isImage && attachment?.url) {
         return (
-            <TouchableOpacity
-                onPress={() => onImagePress(attachment.url)}
-                className="w-full"
-                activeOpacity={0.9}
-            >
-                <Image
-                    source={{uri: attachment.url}}
-                    className="rounded-lg"
-                    style={{
-                        width: mediaDimensions.width,
-                        height: mediaDimensions.height,
-                        alignSelf: 'center'
-                    }}
-                    resizeMode="cover"
-                    onError={(error) => {
-                        console.error('Error loading image:', error);
-                    }}
-                />
-                <View className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center">
-                    <Text className="text-white text-xs">{fileName}</Text>
-                </View>
-            </TouchableOpacity>
+            <View className="overflow-hidden rounded-lg max-w-full">
+                <TouchableOpacity
+                    onPress={() => onImagePress(attachment.url)}
+                    activeOpacity={0.9}
+                >
+                    <Image
+                        source={{uri: attachment.url}}
+                        style={{
+                            width: mediaDimensions.width,
+                            height: mediaDimensions.height,
+                            alignSelf: 'center',
+                            borderRadius: 8
+                        }}
+                        resizeMode="cover"
+                        onError={(error) => {
+                            console.error('Error loading image:', error);
+                        }}
+                    />
+                    <View className="absolute bottom-2 right-2 bg-black/50 px-2 py-1 rounded-full flex-row items-center">
+                        <Text className="text-white text-xs">{fileName}</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
         );
     }
 
