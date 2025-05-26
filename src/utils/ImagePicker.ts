@@ -7,6 +7,7 @@ interface ImagePickerResult {
     message: string;
     width?: number;
     height?: number;
+    name?: string;
     mimeType?: string;
 }
 
@@ -98,6 +99,7 @@ const pickImage = async (options: PickImageOptions): Promise<ImagePickerResult> 
                 message: finalOptions.successMessage,
                 width: asset.width,
                 height: asset.height,
+                name: asset.fileName || `image_${Date.now()}.jpg`,
                 mimeType: asset.mimeType
             };
         }
@@ -121,7 +123,7 @@ const pickImage = async (options: PickImageOptions): Promise<ImagePickerResult> 
 };
 
 export const pickAvatar = async (): Promise<ImagePickerResult> => {
-    return pickImage({
+    return await pickImage({
         aspect: [1, 1],
         successMessage: 'Đã cập nhật ảnh đại diện!',
         allowsEditing: true
@@ -129,7 +131,7 @@ export const pickAvatar = async (): Promise<ImagePickerResult> => {
 };
 
 export const pickCover = async (): Promise<ImagePickerResult> => {
-    return pickImage({
+    return await pickImage({
         aspect: [16, 9],
         successMessage: 'Đã cập nhật ảnh bìa!',
         allowsEditing: true

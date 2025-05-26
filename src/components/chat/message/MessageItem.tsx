@@ -177,7 +177,7 @@ const MessageItem: React.FC<MessageItemProps> = (
                     activeOpacity={0.7}
                 >
                     <View 
-                        style={{ minWidth: 80}}
+                        style={{ minWidth: 80 }}
                         className={`relative px-3 py-2 ${
                             isSender
                                 ? isHighlighted ? "bg-blue-100" : "bg-gray-100"

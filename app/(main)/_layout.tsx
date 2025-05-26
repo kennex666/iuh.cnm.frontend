@@ -48,9 +48,11 @@ export default function AppLayout() {
     };
 
     useEffect(() => {
-        // validateAvatar(user?.avatarURL || "").then((validatedAvatar) => {
-        //     setAvatar(validatedAvatar);
-        // });
+        console.log("User object changed:", user);
+        if (user?.avatarURL) {
+            console.log("Avatar URL changed:", user.avatarURL);
+            setAvatar({uri: user.avatarURL});
+        }
     }, [user?.avatarURL]);
 
     if (isLoading) {
@@ -81,60 +83,61 @@ export default function AppLayout() {
                                 }}
                             >
                                 <Image
-                                    source={{uri: user?.avatarURL || ""}}
+                                    source={avatar}
                                     resizeMode="cover"
                                     className="w-12 h-12 rounded-full border-2 border-blue-100"
                                     style={{width: 48, height: 48}}
                                 />
-                                <View
-                                    className="absolute -right-0.5 -bottom-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white"/>
+                                <View className="absolute -right-0.5 -bottom-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-white" />
                             </TouchableOpacity>
 
-                            <View className="w-4/5 h-px bg-blue-100 mb-6"/>
+                            <View className="w-4/5 h-px bg-blue-100 mb-6" />
 
-              {routes.filter((route) => route.name !== "miniapps").map((route) => {
-                const active = isActive(route.name);
-                return (
-                  <Link
-                    key={route.name}
-                    href={getHref(route.name)}
-                    className={`w-14 h-14 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${
-                      active ? "bg-blue-500 shadow-sm" : "hover:bg-blue-50"
-                    }`}
-                  >
-                    <View className="w-full h-full justify-center items-center">
-                      <FontAwesome
-                        name={route.icon}
-                        size={22}
-                        color={active ? "#FFFFFF" : "#3B82F6"}
-                      />
+                            {routes
+                                .filter((route) => route.name !== 'miniapps')
+                                .map((route) => {
+                                    const active = isActive(route.name);
+                                    return (
+                                        <Link
+                                            key={route.name}
+                                            href={getHref(route.name)}
+                                            className={`w-14 h-14 justify-center items-center mb-3 rounded-xl transition-all duration-200 ${
+                                                active ? 'bg-blue-500 shadow-sm' : 'hover:bg-blue-50'
+                                            }`}
+                                        >
+                                            <View className="w-full h-full justify-center items-center">
+                                                <FontAwesome
+                                                    name={route.icon}
+                                                    size={22}
+                                                    color={active ? '#FFFFFF' : '#3B82F6'}
+                                                />
+                                            </View>
+                                        </Link>
+                                    );
+                                })}
+                        </View>
+                        <View className="flex flex-col items-center justify-center py-4 relative">
+                            <TouchableOpacity
+                                className="p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors duration-200"
+                                onPress={async () => {
+                                    try {
+                                        await logout();
+                                        router.replace('/(auth)');
+                                    } catch (error) {
+                                        console.error('Error during logout:', error);
+                                    }
+                                }}
+                            >
+                                <FontAwesome name="sign-out" size={20} color="#EF4444" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                  </Link>
-                );
-              })}
-            </View>
-            <View className="flex flex-col items-center justify-center py-4 relative">
-              <TouchableOpacity
-                className="p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors duration-200"
-                onPress={async () => {
-                  try {
-                    await logout();
-                    router.replace("/(auth)");
-                  } catch (error) {
-                    console.error("Error during logout:", error);
-                  }
-                }}
-              >
-                <FontAwesome name="sign-out" size={20} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      )}
+                </View>
+            )}
 
             {!isDesktop && (
-                <View className={`flex-1 ${Platform.OS === "ios" ? "mt-12" : ""}`}>
-                    <Stack screenOptions={{headerShown: false}}/>
+                <View className={`flex-1 ${Platform.OS === 'ios' ? 'mt-12' : ''}`}>
+                    <Stack screenOptions={{headerShown: false}} />
                 </View>
             )}
 
@@ -145,7 +148,7 @@ export default function AppLayout() {
                             screenOptions={{
                                 headerShown: false,
                                 contentStyle: {
-                                    backgroundColor: "transparent",
+                                    backgroundColor: 'transparent',
                                 },
                             }}
                         />
@@ -174,20 +177,10 @@ export default function AppLayout() {
                                 className={`flex-1 h-full justify-center items-center`}
                             >
                                 <View className="items-center">
-                                    <View
-                                        className={`p-2 rounded-lg ${active ? "bg-blue-50" : ""}`}
-                                    >
-                                        <FontAwesome
-                                            name={route.icon}
-                                            size={22}
-                                            color={active ? "#3B82F6" : "#6B7280"}
-                                        />
+                                    <View className={`p-2 rounded-lg ${active ? 'bg-blue-50' : ''}`}>
+                                        <FontAwesome name={route.icon} size={22} color={active ? '#3B82F6' : '#6B7280'} />
                                     </View>
-                                    <Text
-                                        className={`text-xs mt-1 font-medium ${
-                                            active ? "text-blue-500" : "text-gray-500"
-                                        }`}
-                                    >
+                                    <Text className={`text-xs mt-1 font-medium ${active ? 'text-blue-500' : 'text-gray-500'}`}>
                                         {route.title}
                                     </Text>
                                 </View>
@@ -205,18 +198,13 @@ export default function AppLayout() {
                                 className="w-8 h-8 rounded-full border-2 border-blue-100"
                                 style={{width: 32, height: 32}}
                             />
-                            <Text className="text-xs mt-1 font-medium text-gray-500">
-                                Tài khoản
-                            </Text>
+                            <Text className="text-xs mt-1 font-medium text-gray-500">Tài khoản</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
             )}
 
-            <ProfileModal
-                visible={profileModalVisible}
-                onClose={() => setProfileModalVisible(false)}
-            />
+            <ProfileModal visible={profileModalVisible} onClose={() => setProfileModalVisible(false)} />
         </View>
     );
 }
