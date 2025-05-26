@@ -94,9 +94,6 @@ export class BaseService {
                 };
             }
 
-            console.log(`${method.toUpperCase()} request to ${url} failed:`, response.data);
-            console.error(`Response data:`, response);
-
             return {
                 success: false,
                 message: response.data.message || "Operation failed"
