@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {useWindowDimensions, View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Linking, useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/conversations/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
 import Info from '@/src/components/info/Info';
@@ -8,6 +8,12 @@ import { useNavigation } from 'expo-router';
 import { useTabBar } from '@/src/contexts/tabbar/TabBarContext';
 import { useLocalSearchParams } from 'expo-router';
 import { ConversationService } from '@/src/api/services/ConversationService';
+import { Message, MessageType } from '@/src/models/Message';
+import SocketService from '@/src/api/services/SocketService';
+import { useUser } from '@/src/contexts/user/UserContext';
+import { IncomingCallModal } from '@/src/components/conversations/IncomingCallModal';
+import { MessageService } from '@/src/api/services/MessageService';
+import { URL_BE } from '@/src/constants/ApiConstant';
 
 export default function MessagesScreen() {
     const params = useLocalSearchParams();
@@ -17,6 +23,12 @@ export default function MessagesScreen() {
     const {width} = useWindowDimensions();
     const isDesktop = width >= 768;
     const { hideTabBar, showTabBar } = useTabBar();
+    const {user} = useUser();
+    const socketService = useRef(SocketService.getInstance()).current;
+    const [isComingCall, setIsComingCall] = useState(false);
+    const [linkCall, setLinkCall] = useState<string | null>(null);
+    const [dataCall, setDataCall] = useState<any>(null);
+    const [conversationsForCall, setConversationsForCall] = useState<Conversation[]>([]);
 
     const handleBackPress = () => {
         if (showInfo) {
@@ -53,6 +65,55 @@ export default function MessagesScreen() {
 		}
     }, [selectedChat]);
 
+    useEffect(() => {
+            const handleNewMessage = (message: Message) => {
+                if (message?.type == MessageType.CALL) {
+                    console.log("Incoming call message: ", message);
+                    if (message.content == 'start') {
+                        if (message.senderId === user?.id) {
+                            setLinkCall("");
+                            setIsComingCall(false);
+                            setDataCall(null);
+                            // Open the call in browser (on React Native)\
+                            Linking.openURL(`${URL_BE}/webrtc/call/${message.conversationId}/${user?.id}/${message.id}`);
+                            return;
+                        }
+                        setLinkCall(
+                            `${URL_BE}/webrtc/call/${message.conversationId}/${user?.id}/${message.id}`
+                        );
+                        setIsComingCall(true);
+                        setDataCall(message);
+                    } else {
+                        setLinkCall("");
+                        setIsComingCall(false);
+                        setDataCall(null);
+                    }
+                }
+    
+                if (message?.type == ("deleted_conversation" as any)) {
+                    setConversationsForCall((prev) =>
+                        prev.filter((conv) => conv.id !== message.conversationId)
+                    );
+                    return;
+                }
+    
+                if (message?.type == MessageType.LEFT_CONVERSATION) {
+                    if (message.senderId == user?.id) {
+                        setConversationsForCall((prev) =>
+                            prev.filter(
+                                (conv) => conv.id !== message.conversationId
+                            )
+                        );
+                        return;
+                    }
+                }
+            };
+            socketService.onNewMessage(handleNewMessage);
+            return () => {
+                socketService.removeMessageListener(handleNewMessage);
+            };
+        }, [selectedChat, socketService, user?.id]);
+
     if (isDesktop) {
         return (
             <View className="flex-1 flex-row">
@@ -88,6 +149,7 @@ export default function MessagesScreen() {
                     <Conversations
                         selectedChat={selectedChat}
                         onSelectChat={setSelectedChat}
+                        setConversationsForCall={setConversationsForCall}
                     />
                 </View>
             )}
@@ -111,6 +173,17 @@ export default function MessagesScreen() {
                     />
                 </View>
             )}
+             <IncomingCallModal
+                    isVisible={isComingCall && !!linkCall}
+                    linkCall={linkCall || ''}
+                    onAccept={() => {
+                        setIsComingCall(false);
+                        }}
+                    onDecline={() => {
+                        setIsComingCall(false);
+                    MessageService.rejectCall(dataCall.conversationId);
+                }}
+            />
         </View>
     );
 }

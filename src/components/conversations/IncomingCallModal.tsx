@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, Linking } from 'react-native';
+import { Text, TouchableOpacity, View, Linking, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface IncomingCallModalProps {
@@ -18,6 +18,12 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
     if (!isVisible) return null;
 
     return (
+        <Modal
+            visible={isVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={onDecline}
+        >
         <View className="absolute inset-0 bg-black/90 z-50">
             <View className="flex-1 items-center justify-center px-6">
                 <View className="w-20 h-20 bg-[#0084FF] rounded-full items-center justify-center mb-6">
@@ -56,5 +62,6 @@ export const IncomingCallModal: React.FC<IncomingCallModalProps> = ({
                 </View>
             </View>
         </View>
+        </Modal>
     );
 }; 

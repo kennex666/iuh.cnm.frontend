@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Linking, Text, View} from 'react-native';
+import {Linking, Platform, Text, View} from 'react-native';
 import {ConversationService} from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
 import {useUser} from '@/src/contexts/user/UserContext';
@@ -18,9 +18,10 @@ interface ConversationsProps {
     selectedChat: Conversation | null;
     onSelectChat: (chat: Conversation) => void;
     newSelectedChat?: Conversation | null;
+    setConversationsForCall?: (conversations: Conversation[]) => void;
 }
 
-export default function Conversations({selectedChat, onSelectChat, newSelectedChat}: ConversationsProps) {
+export default function Conversations({selectedChat, onSelectChat,setConversationsForCall, newSelectedChat}: ConversationsProps) {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,7 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
             const response = await ConversationService.getConversations();
             if (response.success) {
                 setConversations(response.conversations);
+                setConversationsForCall?.(response.conversations);
 
                 // Fetch avatars for all participants
                 const uniqueParticipantIds = new Set<string>();
@@ -264,17 +266,20 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
 
     return (
         <View className="flex-1 px-2">
-            <IncomingCallModal
-                isVisible={isComingCall && !!linkCall}
-                linkCall={linkCall || ''}
-                onAccept={() => {
-                    setIsComingCall(false);
-                }}
-                onDecline={() => {
-                    setIsComingCall(false);
-                    MessageService.rejectCall(dataCall.conversationId);
-                }}
-            />
+            {
+            Platform.OS === 'web' && (
+                <IncomingCallModal
+                    isVisible={isComingCall && !!linkCall}
+                    linkCall={linkCall || ''}
+                    onAccept={() => {
+                        setIsComingCall(false);
+                    }}
+                    onDecline={() => {
+                        setIsComingCall(false);
+                        MessageService.rejectCall(dataCall.conversationId);
+                    }}
+                /> 
+            )}
 
             <SearchBar
                 showQRScanner={showQRScanner}
