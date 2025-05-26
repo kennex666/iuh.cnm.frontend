@@ -30,6 +30,7 @@ export interface ChatAreaProps {
     selectedChat: Conversation | null;
     onBackPress?: () => void;
     onInfoPress?: () => void;
+    scrollRef?: React.MutableRefObject<{ scrollToMessage?: (messageId: string) => void }>;
 }
 
 export default function ChatArea(
@@ -37,6 +38,7 @@ export default function ChatArea(
         selectedChat,
         onBackPress,
         onInfoPress,
+        scrollRef
     }: ChatAreaProps) {
 
     //================================================== State
@@ -248,6 +250,25 @@ export default function ChatArea(
         loadOtherParticipant().then(() => {
         });
     }, [selectedChat, user]);
+
+    useEffect(() => {
+        if (scrollRef) {
+            scrollRef.current = {
+                scrollToMessage: (messageId: string) => {
+                    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+                    if (messageIndex === -1) return;
+            
+                    const yOffset = messageRefs.current[messageId] || messageIndex * 80;
+                    scrollViewRef.current?.scrollTo({y: yOffset, animated: true});
+            
+                    setHighlightedMessageId(messageId);
+                    setTimeout(() => {
+                        setHighlightedMessageId(null);
+                    }, 1500);
+                }
+            };
+        }
+    }, [messages, scrollRef]);
 
     // ================================================== Handlers
 
@@ -486,19 +507,11 @@ export default function ChatArea(
 
     // Scrolls to a specific message and highlights it
     const scrollToMessage = (messageId: string) => {
-        const messageIndex = messages.findIndex(msg => msg.id === messageId);
-        if (messageIndex === -1) return;
-
-        const yOffset = messageRefs.current[messageId] || messageIndex * 80;
-        scrollViewRef.current?.scrollTo({y: yOffset, animated: true});
-
-        setHighlightedMessageId(messageId);
-        setTimeout(() => {
-            setHighlightedMessageId(null);
-        }, 1500);
-
+    if (scrollRef && scrollRef.current.scrollToMessage) {
+        scrollRef.current.scrollToMessage(messageId);
         setShowPinnedMessagesList(false);
-    };
+    }
+};
 
     if (loading) {
         return (

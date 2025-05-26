@@ -18,9 +18,10 @@ const {Alert} = require('react-native');
 export interface InfoProps {
     selectedChat: Conversation | null;
     onBackPress?: () => void;
+    onScrollToMessage?: (messageId: string) => void;
 }
 
-export default function Info({selectedChat, onBackPress}: InfoProps) {
+export default function Info({selectedChat, onBackPress, onScrollToMessage}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [conversation, setConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
@@ -272,6 +273,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
 				isVisible={isSearchVisible}
 				onClose={() => setIsSearchVisible(false)}
 				conversationId={selectedChat.id}
+				onSelectMessage={onScrollToMessage}
 			/>
 		</View>
 	);

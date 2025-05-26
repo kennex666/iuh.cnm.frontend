@@ -44,6 +44,12 @@ export interface MessageService {
         reaction: any;
         statusMessage: string;
     }>;
+
+    searchMessages: (conversationId: string, searchText: string) => Promise<{
+        success: boolean;
+        messages: Message[];
+        statusMessage: string;
+    }>;
 }
 
 export const MessageService: MessageService = {
@@ -279,6 +285,38 @@ export const MessageService: MessageService = {
                 success: false,
                 reaction: null,
                 statusMessage: error.message || "Failed to react to message"
+            };
+        }
+    },
+
+    async searchMessages(conversationId: string, searchText: string) {
+        try {
+            const response = await BaseService.authenticatedRequest<any>(
+                'get',
+                `${ApiEndpoints.API_MESSAGE}/search/${conversationId}?query=${encodeURIComponent(searchText)}`
+            );
+
+            if (!response.success) {
+                return {
+                    success: false,
+                    messages: [],
+                    statusMessage: response.message || "Failed to search messages"
+                };
+            }
+
+            const messages = response.data?.map(mapApiMessageToModel) || [];
+
+            return {
+                success: true,
+                messages,
+                statusMessage: response.message || "Search completed successfully"
+            };
+        } catch (error: any) {
+            console.error("Error searching messages:", error);
+            return {
+                success: false,
+                messages: [],
+                statusMessage: error.message || "Failed to search messages"
             };
         }
     }
