@@ -14,6 +14,8 @@ import {io, Socket} from 'socket.io-client';
         private deleteMessageCallbacks: ((message: Message) => void)[] = [];
         private pinnedMessageCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
         private messageUnpinnedCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
+        private voteOptionAddedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
+        private voteOptionRemovedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
 
         // Conversation related
         private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
@@ -443,6 +445,22 @@ import {io, Socket} from 'socket.io-client';
             }
         }
 
+        public onVoteOptionAdded(callback: (data: { conversationId: string, vote: Message }) => void): void {
+            this.voteOptionAddedCallbacks.push(callback);
+        }
+
+        public onVoteOptionRemoved(callback: (data: { conversationId: string, vote: Message }) => void): void {
+            this.voteOptionRemovedCallbacks.push(callback);
+        }
+
+        public removeVoteOptionAddedListener(callback: (data: { conversationId: string, vote: Message }) => void): void {
+            this.voteOptionAddedCallbacks = this.voteOptionAddedCallbacks.filter(cb => cb !== callback);
+        }
+
+        public removeVoteOptionRemovedListener(callback: (data: { conversationId: string, vote: Message }) => void): void {
+            this.voteOptionRemovedCallbacks = this.voteOptionRemovedCallbacks.filter(cb => cb !== callback);
+        }
+
         //==================================
         // QR Login
         //==================================
@@ -563,6 +581,16 @@ import {io, Socket} from 'socket.io-client';
             }) => {
                 console.log('Message unpinned:', data);
                 this.messageUnpinnedCallbacks.forEach(callback => callback(data));
+            });
+
+            this.socket.on('vote:option_added', (data: { conversationId: string, vote: Message }) => {
+                console.log('Vote option added:', data);
+                this.voteOptionAddedCallbacks.forEach(callback => callback(data));
+            });
+
+            this.socket.on('vote:option_removed', (data: { conversationId: string, vote: Message }) => {
+                console.log('Vote option removed:', data);
+                this.voteOptionRemovedCallbacks.forEach(callback => callback(data));
             });
         }
 

@@ -13,6 +13,7 @@ import {Ionicons} from '@expo/vector-icons';
 import SocketService from '@/src/api/services/SocketService';
 import { UserService } from '@/src/api/services/UserService';
 import { useUser } from '@/src/contexts/user/UserContext';
+import Toast from '@/src/components/ui/Toast';
 
 interface VoteOption {
     id: string;
@@ -58,6 +59,13 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
     const [votersListLoading, setVotersListLoading] = useState(false);
     const [activeOptionId, setActiveOptionId] = useState<string | null>(null);
     
+    // Toast state
+    const [toast, setToast] = useState({
+        visible: false,
+        message: '',
+        type: 'info' as 'success' | 'error' | 'warning' | 'info'
+    });
+    
     const { user } = useUser();
     const socketService = SocketService.getInstance();
     
@@ -102,6 +110,7 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
                     );
                     setUserVoted(hasVoted);
 
+                    // Reset loading state after receiving update
                     setLoading(false);
                 } catch (err) {
                     console.error('Error parsing updated vote data:', err);
@@ -109,16 +118,57 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
                 }
             }
         };
+        
+        // Handle option added event
+        const handleOptionAdded = (data: { conversationId: string, vote: any }) => {
+            if (data.vote.id === messageId) {
+                console.log('Vote option added:', data.vote);
+                try {
+                    const updatedVote = typeof data.vote.content === 'string'
+                        ? JSON.parse(data.vote.content)
+                        : data.vote.content;
+                    setVote(updatedVote);
+                } catch (err) {
+                    console.error('Error parsing vote option added data:', err);
+                }
+            }
+        };
+        
+        // Add error handler for vote operations
+        const handleVoteError = (error: { message: string }) => {
+            console.error('Vote error:', error);
+            setLoading(false);
+            
+            setToast({
+                visible: true,
+                message: error.message,
+                type: 'error'
+            });
+        };
 
         socketService.onVoteUpdated(handleVoteUpdated);
         socketService.onVoteResult(handleVoteUpdated); // Reuse the same handler
+        socketService.onVoteError(handleVoteError);
+        
+        // Add listeners for option added/removed events
+        socketService.onVoteOptionAdded(handleOptionAdded);
+        socketService.onVoteOptionRemoved(handleOptionAdded); // Both can use the same handler as they update the entire vote object
 
         // Request the latest vote data
         socketService.getVote({conversationId, voteId: messageId});
 
+        // Safety timeout to reset loading state if no response
+        const timeoutId = setTimeout(() => {
+            setLoading(false);
+        }, 5000);
+
         return () => {
             socketService.removeVoteUpdatedListener(handleVoteUpdated);
             socketService.removeVoteResultListener(handleVoteUpdated);
+            socketService.removeVoteErrorListener(handleVoteError);
+            socketService.removeVoteOptionAddedListener(handleOptionAdded);
+            socketService.removeVoteOptionRemovedListener(handleOptionAdded);
+            clearTimeout(timeoutId);
         };
     }, [messageId, conversationId, userId]);
 
@@ -166,16 +216,24 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
 
     const handleVote = (optionId: string) => {
         setLoading(true);
+        setActiveOptionId(optionId);
+        
         socketService.submitVote({
             conversationId,
             voteId: messageId,
             optionId
         });
+        
+        // Safety timeout to reset loading state if no response
+        setTimeout(() => {
+            setLoading(false);
+        }, 5000);
     };
 
     const handleAddOption = () => {
         if (!newOptionText.trim()) return;
         
+        setLoading(true);
         socketService.addVoteOption({
             messageId,
             optionText: newOptionText.trim()
@@ -186,6 +244,17 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
     };
 
     const handleRemoveOption = (optionId: string) => {
+        // Check if there are only 2 options left
+        if (vote && vote.options.length <= 2) {
+            setToast({
+                visible: true,
+                message: 'Không thể xóa option khi chỉ còn 2 lựa chọn',
+                type: 'warning'
+            });
+            return;
+        }
+        
+        setLoading(true);
         socketService.removeVoteOption({
             messageId,
             optionId
@@ -223,6 +292,10 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
         loadVoterInfo(option);
         setShowVotersList(true);
     };
+    
+    const hideToast = () => {
+        setToast(prev => ({ ...prev, visible: false }));
+    };
 
     if (error) {
         return (
@@ -250,11 +323,15 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
                 const votesCount = option.votes ? option.votes.length : 0;
                 const percentage = getPercentage(votesCount);
                 const isSelected = option.votes && option.votes.includes(userId);
+                const isLoadingOption = loading && activeOptionId === option.id;
 
                 return (
                     <View key={option.id || index} className="mb-2">
                         <TouchableOpacity
-                            onPress={() => handleVote(option.id)}
+                            onPress={() => {
+                                setActiveOptionId(option.id);
+                                handleVote(option.id);
+                            }}
                             disabled={loading}
                             className={`rounded-lg overflow-hidden border ${
                                 isSelected ? 'border-blue-500' : 'border-gray-200'
@@ -272,7 +349,9 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
                                 {/* Option content */}
                                 <View className="flex-row justify-between items-center p-3 z-10">
                                     <View className="flex-row items-center flex-1">
-                                        {isSelected && (
+                                        {isLoadingOption ? (
+                                            <ActivityIndicator size="small" color="#3B82F6" className="mr-2" />
+                                        ) : isSelected && (
                                             <Ionicons name="checkmark-circle" size={18} color="#3B82F6" className="mr-2"/>
                                         )}
                                         <Text className={`${isSelected ? 'font-medium' : ''}`}>{option.text}</Text>
@@ -420,6 +499,16 @@ const VoteMessageContent: React.FC<VoteMessageContentProps> = ({
                     </View>
                 </View>
             </Modal>
+            
+            {/* Toast notification */}
+            <Toast
+                visible={toast.visible}
+                message={toast.message}
+                type={toast.type}
+                onHide={hideToast}
+                duration={3000}
+                showIcon={true}
+            />
         </View>
     );
 };
