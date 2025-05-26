@@ -159,7 +159,17 @@ export default function ChatArea(
     useEffect(() => {
         const handleNewMessage = (message: Message) => {
             if (message.conversationId === selectedChat?.id) {
-                setMessages((prev) => [...prev, message]);
+                // Ignore messages sent by current user (they're already in state)
+                if (message.senderId === user?.id) {
+                    return;
+                }
+                setMessages(prev => {
+                    const messageExists = prev.some(m => m.id === message.id);
+                    if (messageExists) {
+                        return prev;
+                    }
+                     return [...prev, message];
+                    });
 
                 setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({animated: true});
@@ -174,7 +184,7 @@ export default function ChatArea(
         return () => {
             socketService.removeMessageListener(handleNewMessage);
         };
-    }, [selectedChat?.id]);
+    }, [selectedChat?.id, user?.id, messages]);
 
     // Listen for vote creation events
     useEffect(() => {
@@ -345,6 +355,8 @@ export default function ChatArea(
         };
 
         try {
+            // Add message to state immediately
+            setMessages(prev => [...prev, messageData]);
             socketService.sendMessage(messageData);
             setNewMessage("");
             setReplyingTo(null);

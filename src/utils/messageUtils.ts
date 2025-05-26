@@ -30,5 +30,18 @@ export const findRepliedMessage = (
     messages: Message[]
 ): Message | null => {
     if (!messageId) return null;
-    return messages.find(m => m.id === messageId) || null;
+    
+    // Tìm tin nhắn gốc dựa trên cả repliedToId và repliedTold
+    const repliedMessage = messages.find(m => 
+        m.id === messageId || 
+        m.repliedToId === messageId || 
+        m.repliedTold === messageId
+    );
+    
+    if (!repliedMessage) {
+        console.warn(`Replied message with id ${messageId} not found`);
+        return null;
+    }
+    
+    return repliedMessage;
 };

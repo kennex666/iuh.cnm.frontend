@@ -191,7 +191,7 @@ const MessageItem: React.FC<MessageItemProps> = (
                                     ? "rounded-[18px] rounded-bl-[4px]"
                                     : "rounded-[18px] rounded-tl-[4px] rounded-bl-[18px]"
                         }`}>
-                        {message.repliedToId && repliedToMessage && (
+                        {repliedToMessage && (
                             <View className="mb-1">
                                 <ReplyPreview
                                     repliedMessage={repliedToMessage}

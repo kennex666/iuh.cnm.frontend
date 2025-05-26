@@ -59,6 +59,8 @@ const MessageList: React.FC<MessageListProps> = (
                     msg.repliedToId || msg.repliedTold,
                     messages
                 );
+
+                console.log("MessageList: Replied to message:", repliedToMessage);
                 const previousMessage = index > 0 ? messages[index - 1] : null;
 
                 return (
