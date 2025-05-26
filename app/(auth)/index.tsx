@@ -113,7 +113,7 @@ export default function Login() {
         } catch (error) {
             setToast({
                 visible: true,
-                message: `Đăng nhập thất bại`,
+                message: `Đăng nhập thất bại: ${error.message || 'Lỗi không xác định'}`,
                 type: 'error'
             });
         } finally {

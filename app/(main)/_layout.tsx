@@ -27,7 +27,7 @@ export default function AppLayout() {
     const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
     const router = useRouter();
     const {width} = Dimensions.get("window");
-    const isDesktop = width > 768;
+    const isDesktop = width > 768 && Platform.OS == "web"; // Adjust the breakpoint as needed
     const insets = useSafeAreaInsets();
     const pathname = usePathname();
     const {isVisible: isTabBarVisible} = useTabBar();
