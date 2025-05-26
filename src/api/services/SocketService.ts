@@ -16,6 +16,7 @@ import {io, Socket} from 'socket.io-client';
         private messageUnpinnedCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
         private voteOptionAddedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
         private voteOptionRemovedCallbacks: ((data: { conversationId: string, vote: Message }) => void)[] = [];
+        private conversationAvatarUpdatedCallbacks: ((data: { conversationId: string, newAvatarUrl: string }) => void)[] = [];
 
         // Conversation related
         private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
@@ -168,6 +169,21 @@ import {io, Socket} from 'socket.io-client';
             pinnedMessages: Message[] 
         }) => void): void {
             this.messageUnpinnedCallbacks = this.messageUnpinnedCallbacks.filter(cb => cb !== callback);
+        }
+
+        public updateConversationAvatar(data: { conversationId: string, newAvatarUrl: string }): void {
+            if (this.socket) {
+                console.log('Updating conversation avatar:', data);
+                this.socket.emit('conversation:update_avatar', data);
+            }
+        }
+
+        public onConversationAvatarUpdated(callback: (data: { conversationId: string, newAvatarUrl: string }) => void): void {
+            this.conversationAvatarUpdatedCallbacks.push(callback);
+        }
+
+        public removeConversationAvatarUpdatedListener(callback: (data: { conversationId: string, newAvatarUrl: string }) => void): void {
+            this.conversationAvatarUpdatedCallbacks = this.conversationAvatarUpdatedCallbacks.filter(cb => cb !== callback);
         }
 
         //==================================
@@ -591,6 +607,11 @@ import {io, Socket} from 'socket.io-client';
             this.socket.on('vote:option_removed', (data: { conversationId: string, vote: Message }) => {
                 console.log('Vote option removed:', data);
                 this.voteOptionRemovedCallbacks.forEach(callback => callback(data));
+            });
+
+            this.socket.on('conversation:avatar_updated', (data: { conversationId: string, newAvatarUrl: string }) => {
+                console.log('Conversation avatar updated:', data);
+                this.conversationAvatarUpdatedCallbacks.forEach(callback => callback(data));
             });
         }
 
