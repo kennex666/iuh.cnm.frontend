@@ -264,25 +264,25 @@ const FileMessageContent = ({messageId, fileName, isSender, getAttachment, onIma
                 <Ionicons
                     name={getFileIcon(attachment?.fileType)}
                     size={24}
-                    color={isSender ? 'white' : '#666'}
+                    color={isSender ? '#666' : '#666'}
                 />
             </View>
             <View className="flex-1">
                 <Text
-                    className={`${isSender ? 'text-white' : 'text-gray-900'} font-medium`}
+                    className={`${isSender ? 'text-gray-900' : 'text-gray-900'} font-medium`}
                     numberOfLines={1}
                 >
                     {fileName}
                 </Text>
                 <TouchableOpacity
-                    className={`mt-1 ${isSender ? 'bg-white/20' : 'bg-gray-200'} rounded px-2 py-1`}
+                    className={`mt-1 ${isSender ? 'bg-gray-200' : 'bg-gray-200'} rounded px-2 py-1`}
                     onPress={() => {
                         if (attachment?.url) {
                             Linking.openURL(attachment.url);
                         }
                     }}
                 >
-                    <Text className={`text-xs ${isSender ? 'text-white' : 'text-blue-600'}`}>
+                    <Text className={`text-xs ${isSender ? 'text-blue-600' : 'text-blue-600'}`}>
                         Mở file
                     </Text>
                 </TouchableOpacity>

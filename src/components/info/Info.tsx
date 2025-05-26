@@ -1,56 +1,18 @@
-import React, {useEffect, useState} from 'react';
-import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
-import {Conversation} from '@/src/models/Conversation';
-import Search from './Search';
-import HeaderInfo from './HeaderInfo';
-import ProfileInfo from './ProfileInfo';
+import { ConversationService } from '@/src/api/services/ConversationService';
+import { useUser } from '@/src/contexts/user/UserContext';
+import { Conversation } from '@/src/models/Conversation';
+import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import ActionsInfo from './ActionsInfo';
-import MediaInfo from './MediaInfo';
 import FilesInfo from './FilesInfo';
-import {Ionicons} from '@expo/vector-icons';
 import GroupInfo from './GroupInfo';
-import {ConversationService} from '@/src/api/services/ConversationService';
-import {useUser} from '@/src/contexts/user/UserContext';
-import { MessageService } from '@/src/api/services/MessageService';
-const { Alert } = require('react-native');
+import HeaderInfo from './HeaderInfo';
+import MediaInfo from './MediaInfo';
+import ProfileInfo from './ProfileInfo';
+import Search from './Search';
+const {Alert} = require('react-native');
 
-// Mockup data cho ảnh đã chia sẻ
-const MOCK_IMAGES = [
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-    'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=500&auto=format&fit=crop&q=60',
-];
-
-// Mockup data cho files đã chia sẻ
-const MOCK_FILES = [
-    {
-        name: 'Project_Presentation.pdf',
-        size: '2.5 MB',
-        type: 'pdf',
-        date: '15/02/2024'
-    },
-    {
-        name: 'Meeting_Notes.docx',
-        size: '856 KB',
-        type: 'docx',
-        date: '14/02/2024'
-    },
-    {
-        name: 'Budget_2024.xlsx',
-        size: '1.2 MB',
-        type: 'xlsx',
-        date: '13/02/2024'
-    },
-    {
-        name: 'Assets.zip',
-        size: '5.7 MB',
-        type: 'zip',
-        date: '12/02/2024'
-    }
-];
 
 // Props interface cho component Info
 export interface InfoProps {
@@ -62,12 +24,12 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     const [isSearchVisible, setIsSearchVisible] = useState(false);
     const [conversation, setConversation] = useState<Conversation | null>(selectedChat);
     const {user} = useUser(); // Get the current user
-    
+
     useEffect(() => {
         if (selectedChat) {
             setConversation(selectedChat);
         }
-    },[selectedChat?.id]);
+    }, [selectedChat?.id]);
 
     const handleSearchPress = () => {
         setIsSearchVisible(true);
@@ -76,9 +38,7 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
     const isAdmin = React.useMemo(() => {
         if (!conversation || !user) return false;
 
-        const currentParticipant = conversation.participantInfo?.find(
-            participant => participant.id === user.id
-        );
+        const currentParticipant = conversation.participantInfo?.find((participant) => participant.id === user.id);
 
         return currentParticipant?.role === 'admin';
     }, [conversation, user]);
@@ -143,10 +103,8 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
         return (
             <View className="flex-1 items-center justify-center bg-blue-50/50 rounded-2xl m-4">
                 <View className="bg-white p-6 rounded-2xl shadow-sm items-center">
-                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6"/>
-                    <Text className="text-blue-900 mt-4 text-center">
-                        Chọn một cuộc trò chuyện để xem thông tin chi tiết
-                    </Text>
+                    <Ionicons name="chatbubble-ellipses-outline" size={48} color="#3B82F6" />
+                    <Text className="text-blue-900 mt-4 text-center">Chọn một cuộc trò chuyện để xem thông tin chi tiết</Text>
                 </View>
             </View>
         );
@@ -173,8 +131,20 @@ export default function Info({selectedChat, onBackPress}: InfoProps) {
 					conversation.participantIds && (
 						<GroupInfo conversation={conversation} />
 					)}
-				<MediaInfo images={MOCK_IMAGES} />
-				<FilesInfo files={MOCK_FILES} />
+				<MediaInfo
+                    conversationId={selectedChat.id}
+                    onViewAll={() => {
+                        
+                    }}
+                    onPreviewMedia={(url, type) => {
+                        if (type === 'image') {
+                            
+                        } else if (type === 'video') {
+                            
+                        }
+                    }}
+                />
+                <FilesInfo conversationId={selectedChat.id} onViewAll={() => {}} />
 				{selectedChat.isGroup && isAdmin && (
 					<View className="mb-2 pt-2 border-t border-gray-200">
 						<TouchableOpacity

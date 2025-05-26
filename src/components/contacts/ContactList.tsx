@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Image, ScrollView, Text, TextInput, View,} from 'react-native';
+import {Image, ScrollView, Text, TextInput, TouchableOpacity, View,} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {FriendRequestService} from '@/src/api/services/FriendRequestService';
 import {FriendRequest} from '@/src/models/FriendRequest';
@@ -7,6 +7,9 @@ import {useUser} from '@/src/contexts/user/UserContext';
 import {UserService} from '@/src/api/services/UserService';
 import {User} from '@/src/models/User';
 import { router } from 'expo-router';
+import Toast from '../ui/Toast';
+import { Conversation } from '@/src/models/Conversation';
+import { ConversationService } from '@/src/api/services/ConversationService';
 
 interface FriendInfo extends User {
     friendRequestDate: Date;
@@ -19,10 +22,61 @@ export default function ContactList() {
     const [searchQuery, setSearchQuery] = useState('');
     const [friends, setFriends] = useState<FriendInfo[]>([]);
     const {user} = useUser();
+    const [showProfile, setShowProfile] = useState(false);
+    const [phone, setPhone] = useState<string | null>(null);
+    const [userInfo, setUserInfo] = useState<any | null>(null);
+    const [friendRemoved, setFriendRemoved] = useState<string | null>(null);
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [toast, setToast] = useState({
+        visible: false,
+        message: '',
+        type: 'success' as 'success' | 'error'
+    });
+
+        const fetchConversations = async () => {
+            try {
+                const response = await ConversationService.getConversations();
+                if (response.success) {
+                    setConversations(response.conversations);
+                } else {
+                    setError(
+                        response.message || "Failed to fetch conversations"
+                    );
+                }
+            } catch (error) {
+                setError(
+                    error instanceof Error
+                        ? error.message
+                        : "An unknown error occurred"
+                );
+            } finally {
+                console.log("Conversations fetched");
+                setLoading(false);
+            }
+        };
 
     useEffect(() => {
         loadFriendRequests();
+        fetchConversations();
     }, [user]);
+
+    useEffect(() => {
+        // lay thong tin ban be
+        if (phone) {
+            UserService.getUserByPhone(phone).then(response => {
+                if (response.success) {
+                    console.log('User info:', response.users);
+                    if (response.users && response.users.length > 0) {
+                        setUserInfo(response.users[0]);
+                    }
+                }
+            }
+            ).catch(err => {
+                setError('Không thể lấy thông tin người dùng');
+            });
+        }
+    }
+    , [phone]);
 
     const loadFriendRequests = async () => {
         try {
@@ -60,8 +114,6 @@ export default function ContactList() {
         }
     };
 
-
-    console.log('friendRequests', friendRequests);
     const filteredRequests = friendRequests.filter(request =>
         request.senderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         request.receiverId.toLowerCase().includes(searchQuery.toLowerCase())
@@ -82,6 +134,87 @@ export default function ContactList() {
             </View>
         );
     }
+
+    const profileOfUser = () => {
+        return (
+            <View className="flex-1 justify-center items-center">
+                <Text className="text-gray-500">Chưa có bạn bè nào</Text>
+            </View>
+        );
+    }
+
+    const removeFriend = async (friendId: string) => {
+        if (!friendId) {
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy yêu cầu kết bạn để xoá',
+                type: 'error'
+            });
+            return;
+        }
+        const ids = filteredRequests.map(request => {
+            if (request.senderId === friendId) {
+                return request.id;
+            } else if (request.receiverId === friendId) {
+                return request.id;
+            }
+        }).filter(id => id !== undefined);
+        if (ids.length === 0) {
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy yêu cầu kết bạn để xoá',
+                type: 'error'
+            });
+            return;
+        }
+        let allSuccess = true;
+        for (const id of ids) {
+            const response = await FriendRequestService.deleteFriendRequest(id as string);
+            if (!response.success) {
+                allSuccess = false;
+            }
+        }
+        if (allSuccess) {
+            setToast({
+                visible: true,
+                message: 'Đã xoá bạn bè thành công',
+                type: 'success'
+            });
+            // Cập nhật danh sách bạn bè sau khi xoá
+            setFriends(friends.filter(friend => friend.id !== friendId));
+            setShowProfile(false);
+        }
+        else {
+            setToast({
+                visible: true,
+                message: 'Xoá bạn bè thất bại',
+                type: 'error'
+            });
+        }
+
+    }
+
+    const skipsMessage = (friendId: string) => {
+        const conversation = conversations.find(convo =>
+            convo.participantIds.some(id => id === friendId) &&
+            convo.participantIds.length === 2
+
+        );
+        if (conversation) {
+            router.push({
+                pathname: '/(main)',
+                params: {
+                    conversationId: conversation.id
+                }
+            });
+        } else {
+            setToast({
+                visible: true,
+                message: 'Không tìm thấy cuộc trò chuyện với người này',
+                type: 'error'
+            });
+        }
+    };
 
     return (
         <View className="flex-1 bg-white">
@@ -109,7 +242,13 @@ export default function ContactList() {
                 ) : (
                     friends.map((friend) => (
                         <View key={friend.id} className="flex-row justify-between border-b border-gray-100 ">
-                            <View className="flex-row items-center px-4 py-3">
+                            <TouchableOpacity className="flex-row items-center px-4 py-3"
+                                onPress={() => {
+                                    setShowProfile(true);
+                                    setPhone(friend.phone);
+                                    setFriendRemoved(friend.id);
+                                }}
+                            >
                                 <Image
                                     source={{
                                         uri: friend.avatarURL === "default" ?
@@ -132,28 +271,133 @@ export default function ContactList() {
                                         Kết bạn từ: {new Date(friend.friendRequestDate).toLocaleDateString('vi-VN')}
                                     </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                             <View className="px-4 py-2 justify-center items-center">
                                 <Ionicons
                                     name="chatbubble-ellipses-outline"
                                     size={28}
                                     color="#0068FF"
                                     style={{}}
-                                    onPress={() => {
-                                        // TODO: Navigate to chat screen with this friend
-                                        router.push({
-                                            pathname: '/(main)',
-                                            params: {
-                                                conversationId: "305322850577810432", // Replace with the actual conversation ID for this friend
-                                            }
-                                        });
-                                    }}
+                                    onPress={() => skipsMessage(friend.id)}
                                 />
                             </View>
                         </View>
                     ))
                 )}
             </ScrollView>
+            {/* Profile Modal */}
+            {showProfile && (
+                <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/40 z-50 justify-center items-center">
+                    <View className="bg-white rounded-2xl shadow-lg w-11/12 max-w-md p-2 items-center relative">
+                        <TouchableOpacity
+                            className="absolute top-3 right-3 z-10 bg-gray-100 rounded-full p-1 shadow"
+                            onPress={() => setShowProfile(false)}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="close" size={22} color="#0068FF" />
+                        </TouchableOpacity>
+                        {/* Cover Photo */}
+                        <View className="w-full h-40 rounded-xl overflow-hidden mb-[-48px]">
+                            <Image
+                                source={{
+                                    uri: userInfo?.avatarURL
+                                        ? userInfo.avatarURL
+                                        : 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'
+                                }}
+                                className="w-full h-full"
+                                resizeMode="cover"
+                            />
+                        </View>
+                        {/* Avatar */}
+                        <Image
+                            source={{
+                                uri: userInfo?.avatarURL === "default"
+                                    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(userInfo?.name || 'User')}&background=0068FF&color=fff`
+                                    : userInfo?.avatarURL
+                            }}
+                            className="w-24 h-24 rounded-full mb-4 border-2 border-white"
+                            style={{ marginTop: -48 }}
+                        />
+                        <Text className="text-2xl font-semibold text-gray-900 mb-1 pt-2">
+                            {userInfo?.name || 'Không có tên'}
+                        </Text>
+                        <Text className="text-base text-gray-500 mb-4">
+                            @{userInfo?.username || 'N/A'}
+                        </Text>
+                        <View className="w-full flex-row justify-center items-center">
+                            <TouchableOpacity
+                                className="bg-blue-500 rounded-full px-6 py-2"
+                                onPress={() => skipsMessage(userInfo?.id || '')}
+                            >
+                                <Ionicons name="chatbubble-ellipses-outline" size={18} color="#fff" />
+                            </TouchableOpacity>
+                            <View className="mx-2" />
+                            <TouchableOpacity
+                                className="bg-red-500 rounded-full px-6 py-2"
+                                onPress={() => removeFriend(userInfo?.id || '')}
+                            >
+                                <Ionicons name="person-remove-outline" size={18} color="#fff" />
+                            </TouchableOpacity>
+                        </View>
+                        <View className="w-full mt-2 p-4">
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="call-outline" size={18} color="#0068FF" />
+                                <Text className="ml-2 text-base text-gray-700">
+                                    {userInfo?.phone || 'N/A'}
+                                </Text>
+                            </View>
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="mail-outline" size={18} color="#0068FF" />
+                                <Text className="ml-2 text-base text-gray-700">
+                                    {userInfo?.email || 'N/A'}
+                                </Text>
+                            </View>
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="gift-outline" size={18} color="#0068FF" />
+                                <Text className="ml-2 text-base text-gray-700">
+                                    {userInfo?.dob
+                                        ? new Date(userInfo.dob).toLocaleDateString('vi-VN')
+                                        : 'N/A'}
+                                </Text>
+                            </View>
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons
+                                    name={
+                                        userInfo?.gender === 'male'
+                                            ? 'male-outline'
+                                            : userInfo?.gender === 'female'
+                                            ? 'female-outline'
+                                            : 'person-outline'
+                                    }
+                                    size={18}
+                                    color="#0068FF"
+                                />
+                                <Text className="ml-2 text-base text-gray-700">
+                                    {userInfo?.gender === 'male'
+                                        ? 'Nam'
+                                        : userInfo?.gender === 'female'
+                                        ? 'Nữ'
+                                        : 'Khác'}
+                                </Text>
+                            </View>
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="calendar-outline" size={18} color="#0068FF" />
+                                <Text className="ml-2 text-base text-gray-700">
+                                    Kết bạn từ: {userInfo?.friendRequestDate
+                                        ? new Date(userInfo.friendRequestDate).toLocaleDateString('vi-VN')
+                                        : 'N/A'}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            )}
+            <Toast
+                visible={toast.visible}
+                message={toast.message}
+                type={toast.type}
+                onHide={() => setToast(prev => ({...prev, visible: false}))}
+            />
         </View>
     );
 } 

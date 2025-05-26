@@ -250,7 +250,6 @@ export default function ChatArea(
     }, [selectedChat, user]);
 
     // ================================================== Handlers
-    // ================================================== Handlers
 
     // Handles image selection and closes file selection modal
     const handleSelectImageWithClose = () => {
@@ -413,7 +412,7 @@ export default function ChatArea(
     };
 
     // Handles adding a reaction to a message
-    const handleReaction = (messageId: string, reactionId: string) => {
+    const handleReaction = async (messageId: string, reactionId: string) => {
         console.log(`Reacted to message ${messageId} with reaction ${reactionId}`);
 
         const reactionData = {
@@ -423,7 +422,15 @@ export default function ChatArea(
         };
 
         try {
-            console.log("Reaction data:", reactionData);
+            let result;
+            if (typeof MessageService.reactMessage === "function") {
+                result = await MessageService.reactMessage(messageId, reactionId);
+            } else {
+                console.error("MessageService.reactMessage is undefined");
+                setError("Failed to send reaction");
+            }
+
+            console.log("Reaction result:", result);
         } catch (err) {
             console.error("Error sending reaction:", err);
             setError("Failed to send reaction");
