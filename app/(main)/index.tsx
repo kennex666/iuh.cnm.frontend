@@ -6,9 +6,12 @@ import Info from '@/src/components/info/Info';
 import {Conversation} from '@/src/models/Conversation';
 import { useNavigation } from 'expo-router';
 import { useTabBar } from '@/src/contexts/tabbar/TabBarContext';
+import { useLocalSearchParams } from 'expo-router';
+import { ConversationService } from '@/src/api/services/ConversationService';
 
 export default function MessagesScreen() {
-    // slectedChat state to manage the currently selected chat
+    const params = useLocalSearchParams();
+    const conversationId = params.conversationId as string | undefined;
     const [selectedChat, setSelectedChat] = useState<Conversation | null>(null);
     const [showInfo, setShowInfo] = useState(false);
     const {width} = useWindowDimensions();
@@ -27,6 +30,21 @@ export default function MessagesScreen() {
         setShowInfo(true);
     };
 
+    useEffect(() => {
+        if (conversationId) {
+            const fetchConversation = async () => {
+                console.log('Fetching conversation with ID:', conversationId);
+                const response = await ConversationService.getConversationById(conversationId);
+                if (response) {
+                    setSelectedChat(response.conversation);
+                    
+                } else {
+                    console.error('Conversation not found');
+                }
+            };
+            fetchConversation();
+        }
+    }, [conversationId]);
 
     useEffect(() => {
         if (!isDesktop && selectedChat) {

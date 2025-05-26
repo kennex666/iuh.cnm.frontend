@@ -74,7 +74,7 @@ export default function ChatHeader({
                         </TouchableOpacity>
                     )}
                     <Image
-                        source={{uri: avatarUrl}}
+                        source={{uri: avatarUrl || "https://picsum.photos/200"}}
                         className="w-10 h-10 rounded-full"
                     />
                     <View className="ml-2.5" style={{maxWidth: "45%"}}>

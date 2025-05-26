@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Image, SafeAreaView, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import { router } from 'expo-router';
+import { useUser } from '@/src/contexts/user/UserContext';
+import SocketService from '@/src/api/services/SocketService';
+import { AuthStorage } from '@/src/storage/AuthStorage';
 
 const SCHOOLS = [
   {
@@ -39,21 +42,37 @@ export default function StudentOnboardingScreen() {
   const [showChat, setShowChat] = useState(false);
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{text: string, isUser: boolean}>>([]);
+  const {user} = useUser();
+  const socketService = SocketService.getInstance();
 
   const handleWebView = (url: string) => {
     setWebViewUrl(url);
   };
 
-  const handleSendMessage = () => {
+  // Define the handler outside useEffect so it's accessible in cleanup
+
+
+  useEffect(() => {
+    const onChatWithAIResponse = (data: { message: string }) => {
+      setChatHistory(prev => [...prev, { text: data.message, isUser: false }]);
+    };
+    if (user) {
+      socketService.onChatWithAIResponse(onChatWithAIResponse);
+    }
+
+    return () => {
+      socketService.removeChatWithAIResponseListener(onChatWithAIResponse);
+    };
+  }, [user, socketService]);
+
+  const handleSendMessage = async () => {
+    const token = await AuthStorage.getAccessToken();
     if (message.trim()) {
-      setChatHistory([...chatHistory, { text: message, isUser: true }]);
-      // Simulate AI response
-      setTimeout(() => {
-        setChatHistory(prev => [...prev, { 
-          text: "Xin chào! Tôi là trợ lý AI. Tôi có thể giúp gì cho bạn?", 
-          isUser: false 
-        }]);
-      }, 1000);
+      socketService.sendChatWithAI({
+        message: message.trim(),
+        token: token ?? '',
+      });
+      setChatHistory([...chatHistory, { text: message, isUser: true }]);  
       setMessage('');
     }
   };
