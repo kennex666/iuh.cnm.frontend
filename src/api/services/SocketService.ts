@@ -429,6 +429,20 @@ import {io, Socket} from 'socket.io-client';
             this.voteErrorCallbacks = this.voteErrorCallbacks.filter(cb => cb !== callback);
         }
 
+        public addVoteOption(data: { messageId: string, optionText: string }): void {
+            if (this.socket) {
+                console.log('Adding vote option:', data);
+                this.socket.emit('vote:add_option', data);
+            }
+        }
+
+        public removeVoteOption(data: { messageId: string, optionId: string }): void {
+            if (this.socket) {
+                console.log('Removing vote option:', data);
+                this.socket.emit('vote:remove_option', data);
+            }
+        }
+
         //==================================
         // QR Login
         //==================================
