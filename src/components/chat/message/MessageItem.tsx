@@ -50,7 +50,7 @@ const MessageItem: React.FC<MessageItemProps> = (
     if (message.type === MessageType.SYSTEM) {
         return <SystemMessage message={message} isHighlighted={isHighlighted} onLayout={onLayout}/>;
     }
-
+  
     const [reactions, setReactions] = useState<any>({});
     useEffect(() => {
         if (message.id) {
@@ -123,6 +123,23 @@ const MessageItem: React.FC<MessageItemProps> = (
             setActionReaction(false);
     };
     
+    if (message.type == MessageType.LEFT_CONVERSATION){
+        return (
+			<SystemMessage
+				message={
+					(messageUsers[message.senderId]?.name ||
+						"Người dùng không xác định") +
+					" đã rời cuộc trò chuyện."
+				}
+				isHighlighted={isHighlighted}
+				onLayout={onLayout}
+			/>
+		);
+    }
+
+    if (message.type === MessageType.JOIN_CONVERSATION) {
+        
+    }
 
     return (
         <View
