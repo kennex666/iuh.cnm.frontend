@@ -150,7 +150,7 @@ export default function ProfileInfo({conversation, onConversationUpdate}: Profil
                 });
                 
                 if (response.status === 200 && response.data.success) {
-                    const newAvatarUrl = response.data.data.avatarUrl;
+                    const newAvatarUrl = response.data.data._doc?.avatarUrl || response.data.data.avatarUrl;
                     setAvatarUrl(newAvatarUrl);
                     
                     // Update parent component
