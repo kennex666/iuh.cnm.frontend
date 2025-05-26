@@ -238,11 +238,24 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
             fetchConversations();
             console.log("Conversation removed: 11", data.conversationId);
         }
+        // New handler for conversation rename events
+        function handleConversationRenamed(data: { conversationId: string, newName: string }) {
+            console.log("Conversation renamed:", data);
+            setConversations((prev) => 
+                prev.map((conv) => 
+                    conv.id === data.conversationId 
+                        ? { ...conv, name: data.newName } 
+                        : conv
+                )
+            );
+        }
         socketService.onParticipantsAddedServer(handleAddParticipant);
         socketService.onParticipantsRemovedServer(handleRemoveParticipant);
+        socketService.onConversationRenamed(handleConversationRenamed);
         return () => {
             socketService.removeParticipantsAddedServer(handleAddParticipant);
             socketService.removeParticipantsRemovedServer(handleRemoveParticipant);
+            socketService.removeConversationRenamedListener(handleConversationRenamed);
         };
     }, [socketService]);
 

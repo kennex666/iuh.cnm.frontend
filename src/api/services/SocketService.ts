@@ -17,6 +17,7 @@ import {io, Socket} from 'socket.io-client';
         // Conversation related
         private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
         private participantsCallbacks: ((updatedConversation: Conversation) => void)[] = [];
+        private conversationRenamedCallbacks: ((data: { conversationId: string, newName: string }) => void)[] = [];
 
         // Friend request related
         private friendRequestCallbacks: ((friendRequest: FriendRequest) => void)[] = [];
@@ -139,7 +140,18 @@ import {io, Socket} from 'socket.io-client';
                 this.socket.off('ai:response', callback);
             }
         }
-
+        public updateConversationName(data: { conversationId: string, newName: string }): void {
+            if (this.socket) {
+                console.log('Updating conversation name:', data);
+                this.socket.emit('conversation:rename', data);
+            }
+        }
+        public onConversationRenamed(callback: (data: { conversationId: string, newName: string }) => void): void {
+            this.conversationRenamedCallbacks.push(callback);
+        }
+        public removeConversationRenamedListener(callback: (data: { conversationId: string, newName: string }) => void): void {
+            this.conversationRenamedCallbacks = this.conversationRenamedCallbacks.filter(cb => cb !== callback);
+        }
 
         //==================================
         // Participants management
@@ -502,6 +514,11 @@ import {io, Socket} from 'socket.io-client';
             this.socket.on('vote:error', (error: { message: string }) => {
                 console.error('Vote error:', error.message);
                 this.voteErrorCallbacks.forEach(callback => callback(error));
+            });
+
+            this.socket.on('conversation:renamed', (data: { conversationId: string, newName: string }) => {
+                console.log('Conversation renamed:', data);
+                this.conversationRenamedCallbacks.forEach(callback => callback(data));
             });
         }
 
