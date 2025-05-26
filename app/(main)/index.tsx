@@ -40,6 +40,15 @@ export default function MessagesScreen() {
         }
     };
 
+    const handleConversationUpdate = (updatedConversation: Conversation) => {
+        setSelectedChat(prevChat => {
+            if (prevChat && prevChat.id === updatedConversation.id) {
+                return updatedConversation;
+            }
+            return prevChat;
+        });
+    };
+
     useEffect(() => {
         if (conversationId) {
             const fetchConversation = async () => {
@@ -120,10 +129,11 @@ export default function MessagesScreen() {
             {selectedChat && showInfo && (
                 <View className='flex-1'>
                     <View className='h-8'></View>
-                    <Info
+                    <Info 
                         selectedChat={selectedChat}
                         onBackPress={handleBackPress}
                         onScrollToMessage={handleScrollToMessage}
+                        onConversationUpdate={handleConversationUpdate}
                     />
                 </View>
             )}
