@@ -98,11 +98,11 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
                         setIsComingCall(false);
                         setDataCall(null);
                         // Open the call in browser (on React Native)\
-                        Linking.openURL(`${URL_BE}/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`);
+                        Linking.openURL(`${URL_BE}/webrtc/call/${message.conversationId}/${user?.id}/${message.id}`);
                         return;
                     }
                     setLinkCall(
-						`${URL_BE}/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
+						`${URL_BE}/webrtc/call/${message.conversationId}/${user?.id}/${message.id}`
 					);
                     setIsComingCall(true);
                     setDataCall(message);

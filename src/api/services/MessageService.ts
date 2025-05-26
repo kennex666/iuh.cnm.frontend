@@ -1,3 +1,4 @@
+import { URL_BE } from './../../constants/ApiConstant';
 import {ApiEndpoints} from "@/src/constants/ApiConstant";
 import {Message} from "@/src/models/Message";
 import {BaseService} from "@/src/api/services/BaseService";
@@ -256,7 +257,7 @@ export const MessageService: MessageService = {
         try {
             const response = await BaseService.authenticatedRequest<any>(
                 'post',
-                `http://localhost:8087/api/messages/reactions/${messageId}`,
+                `${URL_BE}/api/messages/reactions/${messageId}`,
                 {reactionType}
             );
             
