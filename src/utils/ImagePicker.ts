@@ -7,6 +7,7 @@ interface ImagePickerResult {
     message: string;
     width?: number;
     height?: number;
+    name?: string;
     mimeType?: string;
 }
 
@@ -98,6 +99,7 @@ const pickImage = async (options: PickImageOptions): Promise<ImagePickerResult> 
                 message: finalOptions.successMessage,
                 width: asset.width,
                 height: asset.height,
+                name: asset.fileName || `image_${Date.now()}.jpg`,
                 mimeType: asset.mimeType
             };
         }

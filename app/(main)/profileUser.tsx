@@ -15,6 +15,8 @@ import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
 import {useUser} from "@/src/contexts/user/UserContext";
 import {validateAvatar, validateCover} from "@/src/utils/ImageValidator";
+import axios from "axios";
+import { AuthStorage } from "@/src/storage/AuthStorage";
 
 type ProfileModalProps = {
     visible: boolean;
@@ -43,6 +45,9 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const modalWidth = width >= 768 ? width * 0.25 : width * 0.8;
     const modalHeight = height * 0.8;
 
+    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
+    const [cover, setCover] = useState<ImageSourcePropType>({uri: ""});
+
     // Handle animation when editMode changes
     useEffect(() => {
         if (editMode) {
@@ -66,15 +71,41 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         }
     }, [editMode]);
 
+    const dataURItoBlob = (dataURI: string): Blob => {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], {type: mimeString});
+    }
+
     const handlePickAvatar = async () => {
         const result = await pickAvatar();
         if (result.success) {
-            setAvatarUri(result.uri);
+            const blob = dataURItoBlob(result.uri || "");
+            const formData = new FormData();
+            const file = new File([blob], 'avatar.jpg', {type: blob.type});
+            formData.append('avatar', file);
 
-            await update({
-                ...user,
-                avatarURL: result.uri || fetchedUser?.avatarURL
+            const token = await AuthStorage.getAccessToken();
+            const response = await axios.put('/user/update', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
             });
+
+            if (response.status !== 200) {
+                setToast({
+                    visible: true,
+                    message: 'Cập nhật ảnh đại diện thất bại!',
+                    type: 'error'
+                });
+                return;
+            }
 
             setToast({
                 visible: true,
@@ -82,21 +113,34 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 type: 'success'
             });
 
-            setTimeout(() => {
-                router.replace('/(main)');
-            }, 2000);
+            setAvatar({uri: response.data.data.avatarUrl});
         }
     };
 
     const handlePickCover = async () => {
         const result = await pickCover();
         if (result.success) {
-            setCoverUri(result.uri);
+            const blob = dataURItoBlob(result.uri || "");
+            const formData = new FormData();
+            const file = new File([blob], 'cover.jpg', {type: blob.type});
+            formData.append('cover', file);
 
-            await update({
-                ...user,
-                coverURL: result.uri || fetchedUser?.coverURL
+            const token = await AuthStorage.getAccessToken();
+            const response = await axios.put('/user/update', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
             });
+
+            if (response.status !== 200) {
+                setToast({
+                    visible: true,
+                    message: 'Cập nhật ảnh đại diện thất bại!',
+                    type: 'error'
+                });
+                return;
+            }
 
             setToast({
                 visible: true,
@@ -104,23 +148,13 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 type: 'success'
             });
 
-            setTimeout(() => {
-                router.replace('/(main)');
-            }, 2000);
+            setCover({uri: response.data.data.coverUrl});
         }
     };
 
-    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
-    const [cover, setCover] = useState<ImageSourcePropType>({uri: ""});
-
     useEffect(() => {
-        validateAvatar(avatarUri || "").then((validatedAvatar) => {
-            setAvatar(validatedAvatar);
-        });
-
-        validateCover(coverUri || "").then((validatedCover) => {
-            setCover(validatedCover);
-        });
+        setAvatar({uri: fetchedUser?.avatarURL || ""});
+        setCover({uri: fetchedUser?.coverURL || ""});
     }, [fetchedUser]);
 
     const handleEdit = async () => {
