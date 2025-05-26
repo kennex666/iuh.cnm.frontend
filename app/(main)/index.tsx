@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Linking, useWindowDimensions, View} from 'react-native';
 import Conversations from '@/src/components/conversations/Conversations';
 import ChatArea from '@/src/components/chat/ChatArea';
