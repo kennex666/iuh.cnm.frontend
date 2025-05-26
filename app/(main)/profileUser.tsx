@@ -4,6 +4,7 @@ import {
     Dimensions,
     ImageSourcePropType,
     Modal,
+    Platform,
     SafeAreaView,
     TouchableWithoutFeedback,
     View
@@ -82,13 +83,43 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         return new Blob([ab], {type: mimeString});
     }
 
+    const processImageUri = async (uri: string, fileName: string): Promise<FormData> => {
+        const formData = new FormData();
+        
+        if (Platform.OS === 'web') {
+            if (uri.startsWith('data:')) {
+                const byteString = atob(uri.split(',')[1]);
+                const mimeType = uri.split(',')[0].split(':')[1].split(';')[0];
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+                
+                for (let i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+                
+                const blob = new Blob([ab], { type: mimeType });
+                const file = new File([blob], fileName, { type: mimeType });
+                formData.append(fileName.includes('avatar') ? 'avatar' : 'cover', file);
+            }
+        } else {
+            // React Native: Use file URI directly
+            formData.append(
+                fileName.includes('avatar') ? 'avatar' : 'cover', 
+                {
+                    uri: uri,
+                    name: fileName,
+                    type: `image/${fileName.split('.').pop()}`
+                } as any
+            );
+        }
+        
+        return formData;
+    };
+
     const handlePickAvatar = async () => {
         const result = await pickAvatar();
         if (result.success) {
-            const blob = dataURItoBlob(result.uri || "");
-            const formData = new FormData();
-            const file = new File([blob], 'avatar.jpg', {type: blob.type});
-            formData.append('avatar', file);
+            const formData = await processImageUri(result.uri || '', 'avatar.jpg');
 
             const token = await AuthStorage.getAccessToken();
             const response = await axios.put('/user/update', formData, {
@@ -97,6 +128,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
+            console.log('Avatar update response:', response);
 
             if (response.status !== 200) {
                 setToast({
@@ -129,10 +162,7 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const handlePickCover = async () => {
         const result = await pickCover();
         if (result.success) {
-            const blob = dataURItoBlob(result.uri || "");
-            const formData = new FormData();
-            const file = new File([blob], 'cover.jpg', {type: blob.type});
-            formData.append('cover', file);
+            const formData = await processImageUri(result.uri || '', 'cover.jpg');
 
             const token = await AuthStorage.getAccessToken();
             const response = await axios.put('/user/update', formData, {
@@ -141,6 +171,8 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
+            console.log('Cover update response:', response);
 
             if (response.status !== 200) {
                 setToast({

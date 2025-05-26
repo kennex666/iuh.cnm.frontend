@@ -25,7 +25,6 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     isReadByMe,
     getConversationName,
 }) => {
-    console.log('Rendering ConversationList with conversations:', conversations);
     console.log('Selected chat:', selectedChat);
 
     const getConversationAvatar = (conversation: Conversation) => {

@@ -123,7 +123,7 @@ const pickImage = async (options: PickImageOptions): Promise<ImagePickerResult> 
 };
 
 export const pickAvatar = async (): Promise<ImagePickerResult> => {
-    return pickImage({
+    return await pickImage({
         aspect: [1, 1],
         successMessage: 'Đã cập nhật ảnh đại diện!',
         allowsEditing: true
@@ -131,7 +131,7 @@ export const pickAvatar = async (): Promise<ImagePickerResult> => {
 };
 
 export const pickCover = async (): Promise<ImagePickerResult> => {
-    return pickImage({
+    return await pickImage({
         aspect: [16, 9],
         successMessage: 'Đã cập nhật ảnh bìa!',
         allowsEditing: true
