@@ -13,6 +13,7 @@ import {io, Socket} from 'socket.io-client';
         private messageCallbacks: ((message: Message) => void)[] = [];
         private deleteMessageCallbacks: ((message: Message) => void)[] = [];
         private pinnedMessageCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
+        private messageUnpinnedCallbacks: ((data: { conversationId: string, pinnedMessages: Message[] }) => void)[] = [];
 
         // Conversation related
         private conversationCallbacks: ((conversation: Conversation) => void)[] = [];
@@ -153,6 +154,20 @@ import {io, Socket} from 'socket.io-client';
             this.conversationRenamedCallbacks = this.conversationRenamedCallbacks.filter(cb => cb !== callback);
         }
 
+        public onMessageUnpinned(callback: (data: { 
+            conversationId: string, 
+            pinnedMessages: Message[] 
+        }) => void): void {
+            this.messageUnpinnedCallbacks.push(callback);
+        }
+
+        public removeMessageUnpinnedListener(callback: (data: { 
+            conversationId: string, 
+            pinnedMessages: Message[] 
+        }) => void): void {
+            this.messageUnpinnedCallbacks = this.messageUnpinnedCallbacks.filter(cb => cb !== callback);
+        }
+
         //==================================
         // Participants management
         //==================================
@@ -252,6 +267,13 @@ import {io, Socket} from 'socket.io-client';
 
         public onPinnedMessage(callback: (data: { conversationId: string, pinnedMessages: Message[] }) => void): void {
             this.pinnedMessageCallbacks.push(callback);
+        }
+
+        public removePinMessage(data: { conversationId: string, messageId: string }): void {
+            if (this.socket) {
+                console.log('Removing pinned message:', data);
+                this.socket.emit('message:remove_pin', data);
+            }
         }
 
         public removePinnedMessageListener(callback: (data: {
@@ -519,6 +541,14 @@ import {io, Socket} from 'socket.io-client';
             this.socket.on('conversation:renamed', (data: { conversationId: string, newName: string }) => {
                 console.log('Conversation renamed:', data);
                 this.conversationRenamedCallbacks.forEach(callback => callback(data));
+            });
+
+            this.socket.on('message:unpinned', (data: { 
+                conversationId: string, 
+                pinnedMessages: Message[] 
+            }) => {
+                console.log('Message unpinned:', data);
+                this.messageUnpinnedCallbacks.forEach(callback => callback(data));
             });
         }
 

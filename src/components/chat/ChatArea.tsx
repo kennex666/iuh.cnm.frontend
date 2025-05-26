@@ -208,6 +208,26 @@ export default function ChatArea(
         };
     }, [selectedChat?.id]);
 
+    useEffect(() => {
+        const handleUnpinnedMessage = (data: { conversationId: string, pinnedMessages: Message[] }) => {
+            if (data.conversationId === selectedChat?.id) {
+                console.log('Message unpinned, updating pins list:', data.pinnedMessages);
+                setPinnedMessages(data.pinnedMessages);
+                
+                // If no more pinned messages, collapse the panel
+                if (data.pinnedMessages.length === 0) {
+                    setShowPinnedMessagesList(false);
+                }
+            }
+        };
+
+        socketService.onMessageUnpinned(handleUnpinnedMessage);
+
+        return () => {
+            socketService.removeMessageUnpinnedListener(handleUnpinnedMessage);
+        };
+    }, [selectedChat?.id]);
+
     // Fetch user info for each unique message sender
     useEffect(() => {
         const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
@@ -637,6 +657,7 @@ export default function ChatArea(
                 pinnedMessages={pinnedMessages}
                 messageUsers={messageUsers}
                 onScrollToMessage={scrollToMessage}
+                conversationId={selectedChat?.id || ''}
             />
 
             <FileSelectionModal
