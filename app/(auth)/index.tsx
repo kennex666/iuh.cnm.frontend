@@ -13,7 +13,7 @@ import Divider from '@/src/components/ui/Divider';
 import {useUser} from '@/src/contexts/user/UserContext';
 
 export default function Login() {
-    const {login, user} = useUser();
+    const {login, user, isAuthenticated} = useUser();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -27,10 +27,10 @@ export default function Login() {
     const insets = useSafeAreaInsets();
 
     useEffect(() => {
-        if (user) {
-            router.replace("/(main)");
-        }
-    }, [user]);
+		if (user && isAuthenticated) {
+			router.replace("/(main)");
+		}
+	}, [user, isAuthenticated]);
 
     const validateForm = () => {
         if (!phoneNumber) {

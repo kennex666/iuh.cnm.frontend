@@ -41,17 +41,6 @@ class UserManager {
                 };
             }
 
-            const storedUser = await UserStorage.getUser();
-
-            if (storedUser) {
-                this.socketService.connect(token);
-                return {
-                    success: true,
-                    message: 'Lấy thông tin người dùng từ bộ nhớ',
-                    data: storedUser
-                };
-            }
-
             return {
                 success: false,
                 message: 'Không tìm thấy thông tin người dùng',

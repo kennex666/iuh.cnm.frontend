@@ -1,6 +1,6 @@
 const HOST_BE = process.env.EXPO_PUBLIC_HOST_BE;
 const PORT_BE = process.env.EXPO_PUBLIC_PORT_BE;
-export const URL_BE = `http://${HOST_BE}:${PORT_BE}`;
+export const URL_BE = `https://${HOST_BE}`;
 
 export const ApiEndpoints = {
     API_2FA: `${URL_BE}/api/2fa`,

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Text, View} from 'react-native';
+import {Linking, Text, View} from 'react-native';
 import {ConversationService} from '@/src/api/services/ConversationService';
 import {Conversation} from "@/src/models/Conversation";
 import {useUser} from '@/src/contexts/user/UserContext';
@@ -12,6 +12,7 @@ import {ConversationList} from './ConversationList';
 import {IncomingCallModal} from './IncomingCallModal';
 import {SearchBar} from './SearchBar';
 import {QRScannerModal} from './QRScannerModal';
+import { URL_BE } from '@/src/constants/ApiConstant';
 
 interface ConversationsProps {
     selectedChat: Conversation | null;
@@ -92,9 +93,17 @@ export default function Conversations({selectedChat, onSelectChat, newSelectedCh
             if (message?.type == MessageType.CALL) {
                 console.log("Incoming call message: ", message);
                 if (message.content == 'start') {
+                    if (message.senderId === user?.id) {
+                        setLinkCall("");
+                        setIsComingCall(false);
+                        setDataCall(null);
+                        // Open the call in browser (on React Native)\
+                        Linking.openURL(`${URL_BE}/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`);
+                        return;
+                    }
                     setLinkCall(
-                        `https://601d1a1e408f6c86223929f5e67de511.loophole.site/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
-                    );
+						`${URL_BE}/webrtc/call/${message.conversationId}/${message.senderId}/${message.id}`
+					);
                     setIsComingCall(true);
                     setDataCall(message);
                 } else {
