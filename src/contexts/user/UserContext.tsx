@@ -19,6 +19,7 @@ interface UserContextType {
     isLoading: boolean;
 
     login: (credentials: LoginCredentials) => Promise<ApiResponse>;
+    loginQR: (result: any) => Promise<ApiResponse>;
     logout: (redirect?: boolean) => Promise<void>;
     update: (updatedUser: Partial<User>) => Promise<ApiResponse>;
     refreshUserData: () => Promise<boolean>;
@@ -34,6 +35,7 @@ const UserContext = createContext<UserContextType>({
     isAuthenticated: false,
     isLoading: true,
     login: async () => ({success: false}),
+    loginQR: async () => ({success: false}),
     logout: async () => {
     },
     update: async () => ({success: false}),
@@ -93,6 +95,23 @@ export const UserProvider = ({children}: UserProviderProps) => {
         return result;
     };
 
+    
+    const handleLoginQR = async (
+		result: any,
+	): Promise<ApiResponse> => {
+
+        const loginResult = await AuthManager.loginQR({ result: result.data });
+        console.log("Login QR result:", loginResult);
+        
+        if (loginResult.success && loginResult.data) {
+			setUser(loginResult.data);
+			setProfile(UserManager.computeProfile(loginResult.data));
+			setIsAuthenticated(true);
+		}
+
+		return result || { success: false, errorCode: 500, errorMessage: "Login failed" };
+	};
+
     const handleLogout = async (redirect: boolean = true): Promise<void> => {
         await AuthManager.logout();
         setUser(null);
@@ -132,6 +151,7 @@ export const UserProvider = ({children}: UserProviderProps) => {
                 isAuthenticated,
                 isLoading,
                 login: handleLogin,
+                loginQR: handleLoginQR,
                 logout: handleLogout,
                 update: handleUpdate,
                 refreshUserData

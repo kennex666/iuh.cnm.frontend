@@ -119,7 +119,6 @@ export default function Register() {
             }
 
             if (!result.success) {
-                console.error('Register failed:', result);
                 setToast({
                     visible: true,
                     message: result.message || 'Đã có lỗi xảy ra, vui lòng thử lại',
@@ -144,7 +143,6 @@ export default function Register() {
                 })
             }, 2000);
         } catch (error) {
-            console.error('Register error:', error);
             setToast({
                 visible: true,
                 message: 'Đã có lỗi xảy ra, vui lòng thử lại',
