@@ -86,14 +86,32 @@ export default function ProfileInfo({conversation, onConversationUpdate}: Profil
         }
     }, [conversation, onConversationUpdate]);
 
+    const handleConversationAvatarUpdated = useCallback((data: { conversationId: string, newAvatarUrl: string }) => {
+        if (conversation && data.conversationId === conversation.id) {
+            console.log('Received conversation avatar update event:', data);
+            setAvatarUrl(data.newAvatarUrl);
+            
+            // Update the parent component if callback is provided
+            if (onConversationUpdate && conversation) {
+                const updatedConversation = {
+                    ...conversation,
+                    avatarUrl: data.newAvatarUrl
+                };
+                onConversationUpdate(updatedConversation);
+            }
+        }
+    }, [conversation, onConversationUpdate]);
+
     // Set up and clean up socket listeners
     useEffect(() => {
         socketService.onConversationRenamed(handleConversationRenamed);
+        socketService.onConversationAvatarUpdated(handleConversationAvatarUpdated);
         
         return () => {
             socketService.removeConversationRenamedListener(handleConversationRenamed);
+            socketService.removeConversationAvatarUpdatedListener(handleConversationAvatarUpdated);
         };
-    }, [handleConversationRenamed]);
+    }, [handleConversationRenamed, handleConversationAvatarUpdated]);
 
     // Function to handle avatar upload
     const dataURItoBlob = (dataURI: string): Blob => {
