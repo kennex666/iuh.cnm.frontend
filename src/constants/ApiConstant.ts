@@ -1,4 +1,4 @@
-const HOST_BE = process.env.EXPO_PUBLIC_HOST_BE;
+const HOST_BE = process.env.EXPO_PUBLIC_HOST_BE || "be-imessify.pj.io.vn";
 const PORT_BE = process.env.EXPO_PUBLIC_PORT_BE;
 export const URL_BE = `https://${HOST_BE}`;
 

@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "build-web": "expo export --platform web --output-dir dist"
+    "build-web": "expo export --platform web --output-dir dist",
+	"build-apk": "eas build --platform android --profile preview"
   },
   "jest": {
     "preset": "jest-expo"

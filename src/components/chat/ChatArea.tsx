@@ -162,7 +162,7 @@ export default function ChatArea(
         const handleNewMessage = (message: Message) => {
             if (message.conversationId === selectedChat?.id) {
                 // Ignore messages sent by current user (they're already in state)
-                if (message.senderId === user?.id) {
+                if (message.senderId === user?.id && message.type === MessageType.TEXT) {
                     return;
                 }
                 setMessages(prev => {

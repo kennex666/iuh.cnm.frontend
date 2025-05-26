@@ -3,7 +3,7 @@ dotenv.config();
 
 module.exports = {
 	expo: {
-		name: "iuh-cnm-frontend",
+		name: "iMessify",
 		slug: "iuh-cnm-frontend",
 		version: "1.0.0",
 		orientation: "portrait",
