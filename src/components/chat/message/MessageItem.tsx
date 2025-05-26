@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {Image, Platform, Text, TouchableOpacity, View} from 'react-native';
+import {Image, Platform, Text, TouchableOpacity, View, Modal, ScrollView} from 'react-native';
 import {Message, MessageType} from "@/src/models/Message";
 import SystemMessage from './SystemMessage';
 import TextMessage from './TextMessage';
@@ -9,6 +9,8 @@ import CallMessage from './CallMessage';
 import ReplyPreview from './ReplyPreview';
 import { MessageService } from '@/src/api/services/MessageService';
 import { useUser } from '@/src/contexts/user/UserContext';
+import {Ionicons} from "@expo/vector-icons";
+import { UserService } from '@/src/api/services/UserService';
 
 interface MessageItemProps {
     message: Message;
@@ -47,11 +49,13 @@ const MessageItem: React.FC<MessageItemProps> = (
     const isFirstInSequence = !previousMessage || previousMessage.senderId !== message.senderId;
     const [actionReaction, setActionReaction] = useState(false);
     const {user} = useUser();
+    const [showReactionsModal, setShowReactionsModal] = useState(false);
+
     if (message.type === MessageType.SYSTEM) {
         return <SystemMessage message={message} isHighlighted={isHighlighted} onLayout={onLayout}/>;
     }
   
-    const [reactions, setReactions] = useState<any>({});
+    const [reactions, setReactions] = useState<Record<string, string>>({});
     useEffect(() => {
         if (message.id) {
             MessageService.getReactions?.(message.id).then(response => {
@@ -79,49 +83,25 @@ const MessageItem: React.FC<MessageItemProps> = (
         {id: '6', emoji: '😆'}, 
     ] as const;
 
-    const handleSelectReaction = (emoji: string) => {
-        if (currentReaction === emoji ) {
-            // Bỏ chọn reaction
-            setReactions(
-                (prev: Record<string, any[]>) => {
-                    const updated = { ...prev };
-                    if (updated[emoji]) {
-                        updated[emoji] = updated[emoji].filter(id => id !== currentUserId);
-                        if (updated[emoji].length === 0) {
-                            delete updated[emoji];
-                        }
-                    }
-                    return updated;
-                }
-            );
-            handleReaction(message.id, "");
-        } else{
-                // Chọn reaction mới
-                setReactions(
-                    (prev: Record<string, any[]>) => {
-                        const updated = { ...prev };
-                        // Tìm emoij truoc do
-                        for (const key in updated) {
-                            if (updated[key].includes(currentUserId)) {
-                                updated[key] = updated[key].filter(id => id !== currentUserId);
-                                if (updated[key].length === 0) {
-                                    delete updated[key];
-                                }
-                            }
-                        }
-                        if (!updated[emoji]) {
-                            updated[emoji] = [];
-                        }
-                        if (!updated[emoji].includes(currentUserId)) {
-                            updated[emoji].push(currentUserId);
-                        }
-                        return updated;
-                    }
-                );
-                handleReaction(message.id, emoji); // Gửi lên server sau
-            }
-            setActionReaction(false);
-    };
+const handleSelectReaction = (emoji: string) => {
+  setReactions((prev: Record<string, string>) => {
+    const updated = { ...prev };
+
+    // Nếu emoji đã được chọn, bỏ chọn
+    if (currentReaction === emoji) {
+      delete updated[user.id];
+      handleReaction(message.id, "");
+    } else {
+      // Chọn emoji mới
+      updated[user.id] = emoji;
+      handleReaction(message.id, emoji);
+    }
+
+    return updated;
+  });
+
+  setActionReaction(false);
+};
     
     if (message.type == MessageType.LEFT_CONVERSATION){
         return (
@@ -140,6 +120,52 @@ const MessageItem: React.FC<MessageItemProps> = (
     if (message.type === MessageType.JOIN_CONVERSATION) {
         
     }
+
+    const renderReactionsList = () => {
+        if (!reactions) return null;
+        
+        return (
+            <Modal
+                visible={showReactionsModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowReactionsModal(false)}
+            >
+                <TouchableOpacity 
+                    className="flex-1 bg-black/50 justify-center items-center"
+                    activeOpacity={1}
+                    onPress={() => setShowReactionsModal(false)}
+                >
+                    <View className="bg-white rounded-xl w-80 max-h-96">
+                        <View className="p-4 border-b border-gray-100">
+                            <Text className="text-lg font-semibold text-center">Reactions</Text>
+                        </View>
+                        <ScrollView className="p-4">
+                            {Object.entries(reactions).map(([userId, emoji]: [string, string]) => {
+                                return (
+                                  <View
+                                    key={userId}
+                                    className="flex-row items-center mb-3 p-1 bg-white rounded-lg shadow-sm border border-gray-100"
+                                  >
+                                    <Text
+                                        className="text-xs font-semibold text-gray-800 mr-3 flex-1"
+                                        numberOfLines={1}
+                                        ellipsizeMode="tail"
+                                    >
+                                        {REACTIONS.find((reaction) => reaction.emoji === emoji)?.emoji || emoji}
+                                    </Text>
+                                    <Text className="text-xs">
+                                        {messageUsers[userId]?.name || "Người dùng không xác định"}
+                                    </Text>
+                                  </View>
+                                );
+                            })}
+                        </ScrollView>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        );
+    };
 
     return (
         <View
@@ -235,7 +261,10 @@ const MessageItem: React.FC<MessageItemProps> = (
                     
                 </TouchableOpacity>
                 {reactions && Object.keys(reactions).length > 0 && (
-                    <View className="absolute -bottom-4 flex-row items-center bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm border border-gray-100 mt-1 self-end">
+                    <TouchableOpacity 
+                        className="absolute -bottom-4 flex-row items-center bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-sm border border-gray-100 mt-1 self-end"
+                        onPress={() => setShowReactionsModal(true)}
+                    >
                         <View className="flex-row items-center ">
                             {Object.entries(reactions)
                                 .slice(-3)
@@ -250,8 +279,9 @@ const MessageItem: React.FC<MessageItemProps> = (
                                 {Object.entries(reactions).length}
                             </Text>
                         </View>
-                    </View>
+                    </TouchableOpacity>
                 )}
+                {renderReactionsList()}
                 <View className={`absolute -bottom-0 ${
                                 isSender ? 'right-[100%]' : 'left-[100%]'
                             } bg-white/90 backdrop-blur-sm z-599 rounded-full px-2 py-1 shadow-sm border border-gray-100 self-end flex-row items-center`}>
