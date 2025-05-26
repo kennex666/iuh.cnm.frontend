@@ -1,6 +1,7 @@
-import 'dotenv/config';
+const dotenv = require("dotenv");
+dotenv.config();
 
-export default {
+module.exports = {
 	expo: {
 		name: "iuh-cnm-frontend",
 		slug: "iuh-cnm-frontend",
@@ -21,7 +22,7 @@ export default {
 				foregroundImage: "./resources/assets/images/adaptive-icon.png",
 				backgroundColor: "#ffffff",
 			},
-            package: "com.obxstd.studentchat",
+			package: "com.obxstd.studentchat",
 			usesCleartextTraffic: true,
 		},
 		web: {
