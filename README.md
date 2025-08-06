@@ -10,6 +10,7 @@ iMessify is a real-time messaging app built with React Native, designed for smoo
 - Modern UI/UX
 - Responsive on Android & iOS
 - Modular architecture for easy maintenance
+- Miniapps - [repo here](https://github.com/kennex666/iuh.cnm.miniapps)
 
 > ✨ Upcoming: End-to-End Encryption (E2EE), Push Notifications, Media messages
 
