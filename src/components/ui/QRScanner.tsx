@@ -1,9 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Alert, Linking, StyleSheet, Text, View} from 'react-native';
+import {Alert, StyleSheet, Text, View} from 'react-native';
 import {BarcodeScanningResult, CameraView, useCameraPermissions} from "expo-camera";
-import { navigate } from 'expo-router/build/global-state/routing';
-import { router } from 'expo-router';
-import { ConversationService } from '@/src/api/services/ConversationService';
+import {router} from 'expo-router';
+import {ConversationService} from '@/src/api/services/ConversationService';
+import axios from 'axios';
+import { URL_BE } from '@/src/constants/ApiConstant';
 
 interface QrScannerProps {
     onScan?: (data: string) => void;
@@ -60,7 +61,7 @@ export default function QRScanner({
             onScan(data);
         }
 
-        if (showDefaultAlert) {
+        if (showDefaultAlert && data.startsWith("https://") ){
             setTimeout(() => {
                 Alert.alert("QR Code", data, [
                     {text: "Thoát", onPress: () => (qrLock.current = false)},
@@ -76,7 +77,7 @@ export default function QRScanner({
                                             setShowQRScanner && setShowQRScanner(false)
                                             router.replace("/(main)");
                                         } else {
-                                            Alert.alert("Error", `Không tìm thấy nhóm ${data}`, );
+                                            Alert.alert("Error", `Không tìm thấy nhóm ${data}`,);
                                             qrLock.current = false;
                                         }
                                         qrLock.current = false;
@@ -92,11 +93,79 @@ export default function QRScanner({
                     },
                 ]);
             }, 500);
-        } else {
-            setTimeout(() => {
-                qrLock.current = false;
-            }, lockScanTime);
-        }
+        } else if (showDefaultAlert && data.startsWith("iMessify:QRLogin")) {
+			setTimeout(() => {
+				Alert.alert(
+					"Đăng nhập trên PC",
+					"Bạn đang đăng nhập trên thiết bị khác. Tuyệt đối không quét mã và tiếp tục nếu bạn nhận được thông báo trúng thưởng từ người lạ",
+					[
+						{
+							text: "Thoát",
+							onPress: () => (qrLock.current = false),
+						},
+						{
+							text: "Tiếp tục",
+							onPress: () => {
+								axios
+									.post(`${URL_BE}/api/auth/login-qr`, {
+										deviceCode: data,
+										socketId: data.split(";")[1], // Assuming the socketId is the third part of the QR code
+									})
+									.then((response) => {
+										if (response.data.success) {
+											if (response.data.data) {
+												router.replace("/(main)");
+											} else {
+												Alert.alert(
+													"Lỗi",
+													"Không tìm thấy dữ liệu đăng nhập."
+												);
+											}
+										} else {
+											Alert.alert(
+												"Lỗi",
+												response.data.errorMessage ||
+													"Đăng nhập thất bại."
+											);
+										}
+										qrLock.current = false;
+									})
+									.catch((error) => {
+										console.error("QR Login Error:", error);
+										Alert.alert(
+											"Lỗi",
+											"Đăng nhập thất bại. Vui lòng thử lại sau."
+										);
+										qrLock.current = false;
+									});
+							},
+						},
+					]
+				);
+			}, 500);
+		} else if (!data) {
+			setTimeout(() => {
+				Alert.alert("QR Code", data, [
+					{ text: "Thoát", onPress: () => (qrLock.current = false) },
+					{
+						text: "Mở liên kết",
+						onPress: () => {
+							Linking.openURL(data).catch(() => {
+								Alert.alert(
+									"Error",
+									`Không thể mở liên kết ${data}`
+								);
+							});
+							qrLock.current = false;
+						},
+					},
+				]);
+			}, 500);
+		} else {
+			setTimeout(() => {
+				qrLock.current = false;
+			}, lockScanTime);
+		}
     };
 
     if (!permission) {

@@ -1,5 +1,5 @@
 {
-  "name": "iuh.cnm.frontend",
+  "name": "iuh-cnm-frontend",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
@@ -9,14 +9,16 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build-web": "expo export --platform web --output-dir dist",
+	"build-apk": "eas build --platform android --profile preview"
   },
   "jest": {
     "preset": "jest-expo"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
-    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
@@ -24,12 +26,12 @@
     "axios": "^1.8.4",
     "dotenv": "^16.5.0",
     "expo": "~52.0.40",
-    "expo-av": "^15.0.2",
+    "expo-av": "~15.0.2",
     "expo-barcode-scanner": "^13.0.1",
     "expo-blur": "~14.0.3",
     "expo-camera": "~16.0.18",
     "expo-constants": "~17.0.8",
-    "expo-document-picker": "^13.0.3",
+    "expo-document-picker": "~13.0.3",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
     "expo-image-picker": "~16.0.6",
@@ -44,7 +46,6 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "^0.76.9",
-    "react-native-camera": "^4.2.1",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-permissions": "^5.3.0",
     "react-native-qrcode-scanner": "^1.5.5",
@@ -52,6 +53,7 @@
     "react-native-reanimated": "3.16.2",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
+    "react-native-svg": "15.8.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "socket.io-client": "^4.8.1",
@@ -67,5 +69,6 @@
     "react-test-renderer": "18.3.1",
     "typescript": "^5.3.3"
   },
-  "private": true
+  "private": true,
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

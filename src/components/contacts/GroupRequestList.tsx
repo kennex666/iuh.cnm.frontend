@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-    View,
-    Text,
-    Image,
-    ScrollView,
-    TouchableOpacity,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {Image, ScrollView, Text, TouchableOpacity, View,} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
 
 export default function GroupRequestList() {
     // Mock data for UI demonstration
@@ -38,7 +32,7 @@ export default function GroupRequestList() {
     if (requests.length === 0) {
         return (
             <View className="flex-1 items-center justify-center p-4">
-                <Ionicons name="people-outline" size={48} color="#666" />
+                <Ionicons name="people-outline" size={48} color="#666"/>
                 <Text className="text-gray-500 mt-2">Không có lời mời tham gia nhóm nào</Text>
             </View>
         );
@@ -53,7 +47,7 @@ export default function GroupRequestList() {
                 >
                     <View className="flex-row items-center">
                         <Image
-                            source={{ uri: request.group.avatarUrl }}
+                            source={{uri: request.group.avatarUrl}}
                             className="w-12 h-12 rounded-full"
                         />
                         <View className="flex-1 ml-3">
@@ -68,7 +62,7 @@ export default function GroupRequestList() {
                             </Text>
                         </View>
                     </View>
-                    
+
                     <View className="flex-row justify-end mt-3">
                         <TouchableOpacity
                             className="bg-blue-500 px-4 py-2 rounded-full mr-2"

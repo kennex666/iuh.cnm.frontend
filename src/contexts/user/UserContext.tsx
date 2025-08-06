@@ -2,9 +2,9 @@ import React, {createContext, ReactNode, useContext, useEffect, useState} from '
 import {User} from '@/src/models/User';
 import {Profile} from '@/src/models/Profile';
 import {useRouter} from 'expo-router';
-import {ApiResponse} from "@/src/contexts/user/ApiResponse";
-import UserManager from "@/src/contexts/user/UserManager";
-import AuthManager from "@/src/contexts/user/AuthManager";
+import {ApiResponse} from "@/src/contexts/user/manager/ApiResponse";
+import UserManager from "@/src/contexts/user/manager/UserManager";
+import AuthManager from "@/src/contexts/user/manager/AuthManager";
 
 interface LoginCredentials {
     phone: string;
@@ -19,6 +19,7 @@ interface UserContextType {
     isLoading: boolean;
 
     login: (credentials: LoginCredentials) => Promise<ApiResponse>;
+    loginQR: (result: any) => Promise<ApiResponse>;
     logout: (redirect?: boolean) => Promise<void>;
     update: (updatedUser: Partial<User>) => Promise<ApiResponse>;
     refreshUserData: () => Promise<boolean>;
@@ -34,12 +35,12 @@ const UserContext = createContext<UserContextType>({
     isAuthenticated: false,
     isLoading: true,
     login: async () => ({success: false}),
+    loginQR: async () => ({success: false}),
     logout: async () => {
     },
     update: async () => ({success: false}),
     refreshUserData: async () => false,
 });
-
 
 export const useUser = () => useContext(UserContext);
 
@@ -94,6 +95,23 @@ export const UserProvider = ({children}: UserProviderProps) => {
         return result;
     };
 
+    
+    const handleLoginQR = async (
+		result: any,
+	): Promise<ApiResponse> => {
+
+        const loginResult = await AuthManager.loginQR({ result: result.data });
+        console.log("Login QR result:", loginResult);
+        
+        if (loginResult.success && loginResult.data) {
+			setUser(loginResult.data);
+			setProfile(UserManager.computeProfile(loginResult.data));
+			setIsAuthenticated(true);
+		}
+
+		return result || { success: false, errorCode: 500, errorMessage: "Login failed" };
+	};
+
     const handleLogout = async (redirect: boolean = true): Promise<void> => {
         await AuthManager.logout();
         setUser(null);
@@ -133,6 +151,7 @@ export const UserProvider = ({children}: UserProviderProps) => {
                 isAuthenticated,
                 isLoading,
                 login: handleLogin,
+                loginQR: handleLoginQR,
                 logout: handleLogout,
                 update: handleUpdate,
                 refreshUserData

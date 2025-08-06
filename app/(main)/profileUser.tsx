@@ -4,6 +4,7 @@ import {
     Dimensions,
     ImageSourcePropType,
     Modal,
+    Platform,
     SafeAreaView,
     TouchableWithoutFeedback,
     View
@@ -15,6 +16,8 @@ import {pickAvatar, pickCover} from '@/src/utils/ImagePicker';
 import {useRouter} from "expo-router";
 import {useUser} from "@/src/contexts/user/UserContext";
 import {validateAvatar, validateCover} from "@/src/utils/ImageValidator";
+import axios from "axios";
+import { AuthStorage } from "@/src/storage/AuthStorage";
 
 type ProfileModalProps = {
     visible: boolean;
@@ -43,6 +46,9 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
     const modalWidth = width >= 768 ? width * 0.25 : width * 0.8;
     const modalHeight = height * 0.8;
 
+    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
+    const [cover, setCover] = useState<ImageSourcePropType>({uri: ""});
+
     // Handle animation when editMode changes
     useEffect(() => {
         if (editMode) {
@@ -66,14 +72,82 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
         }
     }, [editMode]);
 
+    const dataURItoBlob = (dataURI: string): Blob => {
+        const byteString = atob(dataURI.split(',')[1]);
+        const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+        return new Blob([ab], {type: mimeString});
+    }
+
+    const processImageUri = async (uri: string, fileName: string): Promise<FormData> => {
+        const formData = new FormData();
+        
+        if (Platform.OS === 'web') {
+            if (uri.startsWith('data:')) {
+                const byteString = atob(uri.split(',')[1]);
+                const mimeType = uri.split(',')[0].split(':')[1].split(';')[0];
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+                
+                for (let i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+                
+                const blob = new Blob([ab], { type: mimeType });
+                const file = new File([blob], fileName, { type: mimeType });
+                formData.append(fileName.includes('avatar') ? 'avatar' : 'cover', file);
+            }
+        } else {
+            // React Native: Use file URI directly
+            formData.append(
+                fileName.includes('avatar') ? 'avatar' : 'cover', 
+                {
+                    uri: uri,
+                    name: fileName,
+                    type: `image/${fileName.split('.').pop()}`
+                } as any
+            );
+        }
+        
+        return formData;
+    };
+
     const handlePickAvatar = async () => {
         const result = await pickAvatar();
         if (result.success) {
-            setAvatarUri(result.uri);
+            const formData = await processImageUri(result.uri || '', 'avatar.jpg');
+
+            const token = await AuthStorage.getAccessToken();
+            const response = await axios.put('/user/update', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('Avatar update response:', response);
+
+            if (response.status !== 200) {
+                setToast({
+                    visible: true,
+                    message: 'Cập nhật ảnh đại diện thất bại!',
+                    type: 'error'
+                });
+                return;
+            }
+
+            const newAvatarUrl = response.data.data.avatarUrl;
+            setAvatar({uri: newAvatarUrl});
+
+            delete fetchedUser?.email; 
 
             await update({
-                ...user,
-                avatarURL: result.uri || fetchedUser?.avatarURL
+                ...fetchedUser,
+                avatarURL: newAvatarUrl
             });
 
             setToast({
@@ -82,20 +156,41 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 type: 'success'
             });
 
-            setTimeout(() => {
-                router.replace('/(main)');
-            }, 2000);
         }
     };
 
     const handlePickCover = async () => {
         const result = await pickCover();
         if (result.success) {
-            setCoverUri(result.uri);
+            const formData = await processImageUri(result.uri || '', 'cover.jpg');
+
+            const token = await AuthStorage.getAccessToken();
+            const response = await axios.put('/user/update', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            console.log('Cover update response:', response);
+
+            if (response.status !== 200) {
+                setToast({
+                    visible: true,
+                    message: 'Cập nhật ảnh đại diện thất bại!',
+                    type: 'error'
+                });
+                return;
+            }
+
+            const newCoverUrl = response.data.data.coverUrl;
+            setCover({uri: newCoverUrl});
+            
+            delete fetchedUser?.email;
 
             await update({
-                ...user,
-                coverURL: result.uri || fetchedUser?.coverURL
+                ...fetchedUser,
+                coverURL: newCoverUrl
             });
 
             setToast({
@@ -104,23 +199,13 @@ export default function ProfileModal({visible, onClose}: ProfileModalProps) {
                 type: 'success'
             });
 
-            setTimeout(() => {
-                router.replace('/(main)');
-            }, 2000);
+            setCover({uri: response.data.data.coverUrl});
         }
     };
 
-    const [avatar, setAvatar] = useState<ImageSourcePropType>({uri: ""});
-    const [cover, setCover] = useState<ImageSourcePropType>({uri: ""});
-
     useEffect(() => {
-        validateAvatar(avatarUri || "").then((validatedAvatar) => {
-            setAvatar(validatedAvatar);
-        });
-
-        validateCover(coverUri || "").then((validatedCover) => {
-            setCover(validatedCover);
-        });
+        setAvatar({uri: fetchedUser?.avatarURL || ""});
+        setCover({uri: fetchedUser?.coverURL || ""});
     }, [fetchedUser]);
 
     const handleEdit = async () => {

@@ -3,15 +3,13 @@ function padZero(value: number): string {
 }
 
 function validateAndConvert(value: string | number | Date): Date {
-    if (value === null || value === undefined) {
+    if (value === null || value === undefined)
         throw new Error('Date value cannot be null or undefined');
-    }
 
     const date = value instanceof Date ? value : new Date(value);
 
-    if (isNaN(date.getTime())) {
+    if (isNaN(date.getTime()))
         throw new Error('Invalid date value');
-    }
 
     return date;
 }
@@ -64,7 +62,7 @@ export function formatRelativeTime(value: string | number | Date): string {
         } else if (diffInSeconds < 86400) {
             const hours = Math.floor(diffInSeconds / 3600);
             return `${hours} giờ trước`;
-        } else if (diffInSeconds < 2592000) { // 30 days
+        } else if (diffInSeconds < 2592000) {
             const days = Math.floor(diffInSeconds / 86400);
             return `${days} ngày trước`;
         } else {
