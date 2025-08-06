@@ -1,50 +1,48 @@
-# Welcome to your Expo app 👋
+# iMessify – React Native Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+iMessify is a real-time messaging app built with React Native, designed for smooth user experience and cross-platform support.
 
-## Get started
+## 🚀 Features
 
-1. Install dependencies
+- Real-time chat via WebSocket
+- User presence (online/offline status)
+- Message history display
+- Modern UI/UX
+- Responsive on Android & iOS
+- Modular architecture for easy maintenance
 
-   ```bash
-   npm install
-   ```
+> ✨ Upcoming: End-to-End Encryption (E2EE), Push Notifications, Media messages
 
-2. Start the app
+## 📦 Tech Stack
 
-   ```bash
-    npx expo start
-   ```
+- **React Native** (with TypeScript)
+- **Socket.IO** (WebSocket client)
+- **REST API integration**
+- State management: _[TODO: Add Redux / Zustand / Context API if used]_
+- Navigation: _[TODO: React Navigation / others]_
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 🛠️ Getting Started
 
 ```bash
-npm run reset-project
+# Install dependencies
+npm install
+
+# Run on Android
+npx react-native run-android
+
+# Run on iOS (macOS only)
+npx react-native run-ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📡 Backend
+This is the frontend of iMessify. You can find the backend repository here:
+👉 [Link to backend repo](https://github.com/kennex666/iuh.cnm.backend)
+---
+## Contributors
+- Latest update at 06:28 P.M. 06/08/2025
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| No  | Full Name | Title | Student Code | Total commits | Line of Code |
+| :--: |:--:| :--: | :--: | :--:| :--: |
+| 01. | Nguyễn Thành Luân | Contributor | 21123021 | 198 | 12,519 |
+| 02. | Nguyễn Thiên Phú | Contributor | 20073871  | 204  | 4,680 |
+| 03. | Dương Thái Bảo | Leader | 21037621 | 30 | 1,849 |
